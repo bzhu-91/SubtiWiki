@@ -352,7 +352,7 @@ class UserController extends Controller {
 					if ($validation && $validation->email == $user->email) {
 						$user->_rawPassword = $password;
 						if ($user->update()) {
-							Log::debug($validation->expire());
+							$validation->expire();
 							$this->respond(["message" => "Password changed"], 200, JSON);
 						} else {
 							$this->error("Password cannot be changed, please contact admin.", 500, JSON);
