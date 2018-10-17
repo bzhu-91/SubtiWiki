@@ -28,6 +28,7 @@ class CategoryController extends Controller {
 	protected function index ($accept) {
 		$data = Category::getAll("1");
 		usort($data, ["Category", "compare"]);
+		Statistics::increment("categoryIndex");
 		switch ($accept) {
 			case JSON:
 				// print only id and title

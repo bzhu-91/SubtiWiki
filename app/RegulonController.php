@@ -54,7 +54,7 @@ class RegulonController extends Controller {
 		$all = Regulon::getAll();
 		$count = count($all);
 		$regulons = array_slice($all, ($page-1)*$pageSize, $pageSize);
-
+		Statistics::increment("regulonIndex");
 		switch ($accept) {
 			case HTML:
 			$view = View::loadFile("layout1.tpl");
