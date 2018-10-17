@@ -53,7 +53,7 @@ class PathwayController extends Controller {
 				"vars" => [
 					"pathwayId" => $id,
 				],
-				"jsAfterContent" => ["libs/view", "libs/jquery-ui.min", "libs/pathway","all.editor", "pathway.editor"],
+				"jsAfterContent" => ["libs/view", "libs/pathway","all.editor", "pathway.editor"],
 				"styles" => ["pathway","pathway.editor"]
 			]);
 			$this->respond($view, 200, HTML);

@@ -97,10 +97,10 @@ class GeneController extends Controller {
 							"genomeLength" => $GLOBALS["GENOME_LENGTH"],
 						],
 						"jsAfterContent" => [
-							"libs/genome.min", 
-							"libs/contextBrowser.min", 
-							"libs/interactome.min", 
-							"libs/simpleTree.min", 
+							"libs/genome.canvas", 
+							"libs/contextBrowser", 
+							"libs/interactome", 
+							"libs/simpleTree", 
 							"gene.view",
 							"pathwaySearch"
 						],

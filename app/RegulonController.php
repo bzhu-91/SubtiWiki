@@ -148,7 +148,7 @@ class RegulonController extends Controller {
 							"pageTitle" => "Edit: ".$regulon->getTitle(),
 							"headerTitle" => "Edit: ".$regulon->getTitle(),
 							"content" => "{{regulon.editor.tpl}}",
-							"jsAfterContent" => ["libs/monkey.min"],
+							"jsAfterContent" => ["libs/monkey"],
 							"mode" => "redirect"
 						]);
 					}
