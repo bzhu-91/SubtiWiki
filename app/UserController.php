@@ -248,7 +248,7 @@ class UserController extends Controller {
 				// send email here
 				$link = "http://".$_SERVER['HTTP_HOST'].$GLOBALS["WEBROOT"]."/user/editor?name=".$user->name."&token=".$validation->token;
 				$body = "To reset the password, please follow the link: <a href='$link'>$link</a>";
-				if (Utility::sendEmail($user->email, $user->name, "Reset password for your ".$GLOBALS["SITE_NAME"], $body)) {
+				if (Utility::sendEmail($user->email, $user->name, "Reset password for your ".$GLOBALS["SITE_NAME"]." account", $body)) {
 					$this->respond(["message" => "An email has been sent to your registration email address with a link for password reset."], 200, JSON);
 				} else {
 					$this->respond("Can not send the email, please contact admin.", 500, JSON);
