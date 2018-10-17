@@ -1,0 +1,27 @@
+.comparison-a {
+	background: #C5E1A5;
+	padding: 10px;
+}
+
+.comparison-b {
+	background: #FFCCBC;
+	padding: 10px;
+}
+
+.entry {
+	background: #C1CDCD;
+	padding: 10px;
+	margin-bottom: 10px;
+	margin-top: 10px;
+}
+
+#template {
+	display: none;
+}
+
+#version-a, #version-b{
+	display: inline-block;
+	border: 1px solid gray;
+	border-radius: 4px;
+}
+

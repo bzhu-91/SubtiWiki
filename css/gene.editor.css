@@ -1,0 +1,54 @@
+#side-bar {
+	width: 25%;
+	display: inline-block;
+	vertical-align: top;
+	min-width: 300px;
+}
+
+#main {
+	width: 72%;
+	display: inline-block;
+	vertical-align: top;
+	min-width: 500px;
+}
+
+a.tab {
+	
+	display: block;
+}
+
+a.tab:hover {
+	text-decoration: none;
+	background: #eee;
+}
+
+.tab {
+	color: #666;
+	display: inline-block;
+	padding: 10px 20px;
+	margin-right: 5px;
+}
+
+a.is-active, a.is-active:hover {
+	background: rgb(235,235,235);
+	color: #2E7D32;
+	font-weight: bold;
+}
+
+div.tab-content {
+	display: none;
+}
+
+div.is-active {
+	display: block;
+}
+
+.newBtn {
+	background: transparent;
+	width: 100%;
+	padding: 20px;
+	color: #2E7D32;
+	border: 1px solid #cccccc;
+	margin:0;
+	margin-bottom: 20px;
+}

@@ -1,0 +1,91 @@
+#middle {
+	margin: 0; position: relative; width: 100%; padding: 0;
+}
+
+h2.title {
+	position: absolute; top: 20px; left: 30px;
+}
+
+#browser-container {
+	position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+}
+
+#search-block {
+	position: absolute ;top: 60px; left: 30px;
+}
+
+#network-container {
+	position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+}
+
+#settings {
+	display: none; background: white;
+}
+
+#display-block {
+	position: absolute; left: 30px; top: 110px;
+}
+
+#popup {
+	position: absolute; display: none; top: 20px; right: 20px; border: solid 1px #999; border-radius: 5px; background: white; width: 400px; 
+}
+
+#loading {
+	position: absolute; top: 50%; left: 50%;
+}
+
+#info-box {
+	overflow-y: scroll; padding: 10px; position: relative; max-height: 600px
+}
+
+#popup-cancel {
+	position: absolute; top: 10px; right: 10px;
+}
+
+#control-block {
+	position: absolute; bottom: 20px; right: 20px;
+}
+
+#legend {
+	padding: 10px; bottom: 0; left: 0; position: absolute;
+}
+
+#full {
+	border: 1px solid #ddd; padding:0px 15px; display: none; background: white;
+}
+
+#collapsed {
+	width: 50px; opacity: 0.2; border-radius: 3px; padding: 3px; border: solid 1px #333;
+} 
+
+#collapsed:hover {
+	opacity: 0.6;
+}
+
+.icon {
+	cursor: pointer;margin-bottom: -8px; width: 25px;
+	opacity: 0.6;
+}
+
+.icon:hover {
+	opacity: 1.0;
+}
+
+.icon:active, input[type=submit]:active {
+	transform: translate(1px,1px);
+}
+
+.contextmenu {
+	border: 1px solid lightgray; background: white;display: none;position: absolute; width: 200px; padding: 10px;
+}
+
+.contextmenu ul {
+	margin: 0 -10px; padding: 0;
+}
+
+.contextmenu li {
+	cursor: pointer; padding: 5px 10px;
+}
+.contextmenu li:hover {
+	background: lightgray
+}

@@ -1,0 +1,1 @@
+<div class="m_block"><div class="m_key m_inline">Protein Lenght</div><div class="m_value m_inline"><span class='m_inner_block'>{{:proteinLength}} aa</span><span class="m_inner_block"><a href="genome?gene={{:id}}">Sequence</a></span><span class="m_inner_block"><a href="gene/blast?id={{:id}}&type=protein">Blast</a></span></div></div>

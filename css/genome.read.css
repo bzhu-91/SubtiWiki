@@ -1,0 +1,58 @@
+.tab {
+	display: inline-block;
+    padding: 10px 20px;
+    margin-right: 5px;
+    background: rgb(179,179,179);
+    color: white;
+}
+
+.tab:hover {
+	text-decoration: none;
+	color: #333;
+}
+
+.tab.is-active {
+	background: rgb(231,231,231);
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.tab-content {
+	padding: 20px;
+    background: rgb(231,231,231);
+    display: none;
+}
+
+.tab-content.is-active {
+	display: block;
+}
+
+#data {
+    display: none;
+}
+
+.gray-box {
+    background: #eee;
+    padding: 10px 10px;
+    margin: 10px 0;
+}
+
+#dna-sequence-reversed {
+    display: none;
+}
+
+#protein-sequence-container {
+    display: none;
+}
+
+.left {
+    display: inline-block;
+    width: 75%;
+    vertical-align: top;
+}
+
+.right {
+    display: inline-block;
+    width: 23.5%;
+    vertical-align: top;
+}

@@ -1,0 +1,351 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans); 
+@import url('https://fonts.googleapis.com/css?family=Roboto'); 
+
+:root {
+	--primary-color: #2e7d32; --secondary-color: #4caf50; --accent-color: gray; 
+}
+
+/* css released under Creative Commons License -  http://creativecommons.org/licenses/by/2.0/deed.en  */
+/* html5 + CSS 3 Template created by miss monorom  http://intensivstation.ch 2013 */
+
+* {
+	box-sizing: border-box; 
+}
+
+/* render html5 elements as block 
+rendert html5 elemente als block  */
+
+
+header, footer, section, aside, nav, article { 
+	display: block; 
+}
+
+body {
+	background-color: rgba(170, 170, 170, 0.4); font-size: 1em; font-family: "Roboto","Open Sans",Helvetica, Arial,sans-serif; font-style: normal; font-variant: normal; color:#564b47; min-height: 100vh; margin: 0; padding: 0; 
+}
+
+a {
+	text-decoration: none; /*#999; */
+}
+
+a:hover {
+	text-decoration: underline; 
+}
+
+h1 {
+	font-size: 1.5em;
+}
+
+h2 {
+	font-size: 1.25em; 
+}
+
+img.download {
+	vertical-align:middle; 
+}
+
+img{
+	border:none; 
+}
+
+aside {
+	font-size: small; 
+}
+
+li {
+	line-height: 1.5em; list-style-position: inside; text-indent: -1.3em; padding-left: 1.3em; 
+}
+
+ul {
+	padding-left: 0px; 
+}
+
+/* ----------container zentriert das layout-------------- */
+
+#mini{
+	width:50px; 
+}
+
+#container {
+	max-width: 1250px; min-width:320px; margin:0  auto; background-color: #eee; border-left: 1px solid #dedede; -moz-box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); position: relative; 
+}
+
+
+
+/* ----------header for logo-------------- */
+#top:after{
+	height: 0; content: "."; display: block; clear: both; visibility:hidden; 
+}
+
+#top {
+	background-color: var(--primary-color); -moz-box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); 
+}
+
+#floatTop {
+	padding: 10px 20px; background-color: var(--primary-color); position: relative; display: none; top: 0; width: 100%; overflow: hidden; z-index: 20; color: white; -moz-box-shadow: 1px 2px 2px 1px rgba(0,0,0,0.07); box-shadow: 1px 2px 2px 1px rgba(0,0,0,0.07); 
+}
+
+#top header{
+	padding:10px 0; float:left; width:23%; 
+}
+
+header p{
+	text-transform:uppercase; font-size:0.8434em; 
+}
+
+header img{ 
+border:0; 
+}  
+
+.mini{
+	display:none; 
+}
+
+/* form */
+
+label, .label {
+	font-weight: bold; color: var(--secondary-color); margin-right: 10px; 
+}
+
+button, a.button, .button, input[type=submit]{
+	display:inline-block; line-height: 1em; background: var(--secondary-color); color: white; border: none; padding: 5px; border-radius: 3px; cursor: pointer; box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); -moz-box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); cursor: pointer; margin-left: 5px; font-size: 1em; font-family: inherit; 
+}
+
+a.button:hover {
+	text-decoration: none; color: white; 
+}
+
+a.button:visited {
+	color: white; 
+}
+
+button:focus, .button:focus {
+	outline: 0; 
+}
+
+button:active, .button:active {
+	transform: translate(1px,1px); 
+}
+
+textarea, .textarea{
+	font-family: monospace; line-height: 1.2em; 
+}
+
+/* new nav */
+
+#top nav{
+	padding:0 20px 0 0; margin:0 0 2px; float:right; width:76%; 
+} 
+
+
+#top nav ul:after {
+	height: 0; content: "."; display: block; clear: both; visibility:hidden; 
+} 
+
+
+
+#top nav ul {
+	list-style-type: none; float:right; margin: 0; 
+}
+
+#top nav li {
+	float: left; margin: 0 5px 0 0; line-height: 1.5em; list-style:none; text-indent: 0; padding-left: 0; 
+}
+
+#top nav a, nav a:visited {
+	background-color: #E8F5E9; color: #333; display: block; padding: 5px 15px; text-decoration: none; border-radius: 0 0 2px 2px; 
+}
+
+
+#top nav a:hover {
+	background-color: white; color: #333; 
+}
+#top nav a:active { color:#000000; 
+}
+
+#top nav a.selected {
+	color:#fff; background-color: #f67; 
+}
+
+#floatTop span {
+	font-size: 2em; 
+}
+
+#floatTop nav {
+	float: right; text-align: right
+}
+
+#floatTop nav ul {
+	margin: 0; padding: 10px 0; 
+}
+
+#floatTop nav li{
+	display: inline-block; 
+}
+
+#floatTop nav li a{
+	color: white; background: transparent; padding: 7.5px 10px; border: 1px solid white; margin: 2.5px; border-radius: 3px; 
+}
+
+#floatTop nav li a:hover{
+	color: var(--primary-color); background: #E8F5E9; text-decoration: none; 
+}
+
+#floatTop nav li a:visited{
+	color: white; 
+}
+
+#floatTop nav li a:visited:hover{
+	color: var(--primary-color); 
+}
+
+.footnote {
+	font-size: smaller; background: #eee; padding: 10px; 
+}
+
+.footnote p {
+	margin: 0; 
+}
+
+/* ----------------- content--------------------- */
+section: before {
+	height: 0; content: "."; display: block; clear: both; visibility:hidden; 
+}
+
+section#content {
+	float: left; width: 75%; padding: 20px; background-color: #fff; min-height:600px; 
+}
+/* -------------- side infos ------------- */
+
+aside {
+	padding: 20px; float:right; width: 24%; 
+}
+
+aside img{
+	border: 1px solid #bbb; box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); -moz-box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); 
+}
+
+/* -----------footer--------------------------- */
+
+footer.footer {
+	padding: 20px; clear:both; background-color: #424242; color:#fff; 
+}
+
+footer a {
+	color: #aaa; text-decoration:none; 
+}
+
+footer a:visited {
+	color: #aaa; text-decoration:none; 
+}
+
+.footer-segment {
+	display: inline-block; vertical-align: top; width: 25%; 
+}
+
+.footer-segment ul {
+	padding: 0; list-style: none; 
+}
+
+/*The following line are formatting the browser!*/
+
+
+input {
+	border: 1px solid #999; border-radius: 3px; font-family: monospace; vertical-align: middle; margin-right: 5px; padding: 5px; 
+}
+
+.box {
+	padding: 15px; margin-bottom: 10px; border: 1px solid #bbb; border-radius: 3px; box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); -moz-box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); 
+}
+
+#float_container {
+	position:fixed; right:5px; bottom:10%; z-index: 100; 
+}
+
+#float_container img {
+	display:block; width:50px; height:50px; border-radius: 4px; padding: 10px; background-color:#000; opacity: 0.5; filter: alpha(opacity=50); font-size:100%; font-weight:bold; margin: 10px; background-position: center; background-size: 60% auto; background-repeat: no-repeat; 
+}
+
+#float_container img:hover {
+	opacity: 0.7; filter: alpha(opacity=70); 
+}
+
+/* -------------------- Media Queries -------------------- */
+
+@media only screen and (max-width: 860px) { 
+	form input{width: 90%; 
+	}
+	#top header,#top nav {
+		float:none; width:100%; 
+	}
+	#top nav {
+		padding:0; width:100%; 
+	} 
+	#top nav ul {
+		float:none; 
+	}
+	#top nav li {
+		float: left; margin: 0; width:25%; 
+	}
+	#floatTop {
+		height: 0; width: 0; padding: 0; margin: 0; display: none; overflow: hidden; 
+	}
+}
+
+@media only screen and (max-width: 768px) { 
+	section#content {
+		float: none; width: 100%; padding: 10px; 
+	}
+
+	aside {
+		padding:20px; float: none; width: 100%; 
+	}
+
+	.footer-segment {
+		display: inline-block; vertical-align: top; width: 49%; padding: 0 0 20px; 
+	}
+
+	.footer-segment:last-child {
+		border-top:1px solid #999; display: block; width: 100%; padding:20px 0 0 ; 
+	}
+}
+
+
+
+@media only screen and (max-width: 480px) { 
+	#top nav ul {
+		padding-left: 0; 
+	}
+
+	#top nav li {
+		float: none; margin: 0; width:100%; display:block; 
+	} 
+	#top nav a {
+		width:100%; position:relative; 
+	}
+
+	#top nav a:not(.selected):after {
+		content:'>'; position:absolute; right:10px; 
+	}
+
+	.mini {
+		display:block; 
+	} 
+
+	.menubutton {
+		display:block; position:absolute; right:20px; top:20px; z-index: 400; 
+	}
+
+	.maxi{
+		display:none; 
+	}
+
+	footer.footer {
+		padding: 0; 
+	}
+
+	.footer-segment, .footer-segment:last-child  {
+		display: block; vertical-align: top; width: 100%; border-bottom:1px solid #999; padding:20px; 
+	}
+}
+

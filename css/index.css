@@ -1,0 +1,166 @@
+#searchScope {
+border: none;
+padding: 5px;
+}
+
+#searchBox {
+border: none;
+min-width: 350px;
+}
+
+#main {
+margin: 10px 0 40px 0;
+position: relative;
+}
+
+#index_bkg {
+position: absolute;
+top: 0; left: 0; height: 100%; width: 100%;
+z-index: -1;
+opacity: 0.2;
+}
+
+#searchBar {
+border: 1px solid #ddd;
+display: inline-block;
+background: white
+}
+
+#buttonBar {
+line-height: 2em;
+display: inline-block;
+}
+
+#mobileUpper {
+display: none;
+}
+
+#middle {
+display: flex;
+min-height: 300px;
+align-items: center;
+justify-content: center;
+}
+
+.box {
+width: 150px;
+padding: 10px;
+display: inline-block;
+font-size: small;
+background: white;
+}
+
+
+.box * {
+display: inline-block;
+vertical-align: middle;
+}
+
+.box:hover {
+background: rgba(102,153,204,0.2);
+}
+
+.clickable {
+cursor: pointer;
+}
+
+.clicable:active {
+transform: translate(1,1);
+}
+
+@media screen and (max-width: 640px) {
+#searchBar {
+	width: 100%;
+}
+
+#searchBox, #searchScope {
+	width: 100%;
+	margin: 0;
+}
+
+#buttonBar {
+	display: block;
+	text-align: center;
+}
+}
+
+@media screen and (max-width: 480px) {
+#middle {
+	margin: 10px;
+}
+
+#main {
+	margin: 10px 0 20px 0;
+}
+
+#float h1 {
+	font-size: 1em;
+}
+
+#upper {
+	width: 60%;
+	padding: 0;
+	margin-left: 40%;
+	height: 0px;
+	z-index: 10;
+	display: none;
+}
+
+#upper a {
+	display: block;
+	padding: 12px;
+	margin: 0;
+	background: #000;
+	border: none;
+}
+
+#mobileUpper {
+	display: block;
+	background: #1976D2;
+	padding-bottom: 8px;
+}
+
+#mobileUpper img{
+	display: inline-block;
+	vertical-align: middle;
+}
+
+#logo {
+	height: 70px;
+}
+
+#logoHolder {
+	display: none;
+}
+
+#searchBox, #searchScope {
+	display: block;
+	width: 100%;
+	margin: 0;
+}
+
+#overflow {
+	height: 40px;
+	position: absolute;
+	top: 19px;
+	right: 10px;
+}
+
+#overflow:active {
+	background: rgba(6,69,173,0.3);
+	border-radius: 3px;
+}
+
+#under a{
+	display: block;
+	padding: 12px;
+	margin: 0;
+	text-align: left;
+}
+
+#under p{
+	display: inline-block;
+	width: 49%;
+	vertical-align: top;
+}
+}

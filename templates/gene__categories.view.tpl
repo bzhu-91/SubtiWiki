@@ -1,0 +1,1 @@
+<div id="categories-wrapper"><p class="m_key"><a href="category" target="_blank">Categories</a> containing this gene/protein</p><div id="categories-container"></div></div>

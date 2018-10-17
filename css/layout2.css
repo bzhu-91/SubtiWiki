@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
+
+:root {
+	--primary-color: #2e7d32; --secondary-color: #4caf50; --accent-color: gray;
+}
+
+html {
+	font-size: 12pt;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+div, body{
+	margin: 0; padding: 0;
+}
+
+body {
+	font-size: 1em; font-family: "Roboto","Open Sans",Helvetica, Arial,sans-serif; font-style: normal; font-variant: normal;
+}
+
+p {
+	color: #333; display: block; margin-block-start: 1em; margin-block-end: 1em; margin-inline-start: 0px; margin-inline-end: 0px;
+}
+
+a {
+	text-decoration: none;/*#999;*/
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+h1, h2, h3 {
+	font-weight: bold; margin:10px 0;
+}
+
+h1 {
+	font-size:2.0em; line-height: 2.0em;
+}
+
+h2{
+	font-size:1.7em; margin-top: 10px; font-weight: bold;
+}
+
+h3 {
+	font-size:1.2em;
+}
+
+img{
+	border:none;
+}
+
+ul{
+	list-style-type:none;
+}
+
+label {
+	font-weight: bold; color: var(--secondary-color); margin-right: 10px;
+}
+
+button, .button,  input[type=submit] {
+	display:inline-block; line-height: 1em; background: var(--secondary-color); color: white; border: none; padding: 5px; border-radius: 3px; cursor: pointer; box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); -moz-box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); cursor: pointer; margin-left: 5px; font-size: 0.9em; font-family: inherit;
+}
+
+a.button:hover{
+	color: white; text-decoration: none;
+}
+
+a.button:visited{
+	color: white; text-decoration: none;
+}
+
+a.button:active {
+	color: white;
+}
+
+a.button:focus, button:focus {
+	outline: 0;
+}
+
+button:active, .button:active, input[type=submit]:active {
+	transform: translate(1px,1px);
+}
+
+textarea {
+	font-family: monospace; line-height: 1.5em; font-size: 10pt;
+}
+
+body {
+	background-image: url("../img/bkg.png"); min-height: 100vh; width: 100%; display: flex; flex-direction: column;
+}
+
+input {
+	border: 1px solid #999; border-radius: 3px; font-family: monospace; vertical-align: middle; margin-right: 5px; padding: 5px; outline: 0; font-size: 9pt; line-height: 12pt;
+}
+
+.box {
+	padding: 15px; margin-bottom: 10px; border: 1px solid #bbb; border-radius: 3px; box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); -moz-box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07);
+}
+
+#upper {
+	width: 100%; color: white; background: #333; padding: 10px 2.5%;
+}
+
+#upper a{
+	color: #eee; margin-right: 20px; font-size: 0.92em; font-family: Roboto;
+}
+
+#under a{
+ 	color: #eee; margin-left: 20px; font-size: 0.92em; font-family: Roboto;
+}
+
+#upper a:hover {
+	color: white;
+}
+
+#under a:hover {
+	color: white;
+}
+
+#under {
+	width: 100%; color: white; background: #333; padding: 10px 2.5%; text-align: right;
+}
+
+#middle {
+	flex: 1; margin:50px 60px 50px 50px; width: 95%; position: relative;
+}
+
+.inline {
+	display: inline-block; padding: 10px 0;
+}
+
+.icon:active {
+	transform: translate(1,1);
+}
+
+.footnote {
+	font-size: smaller; background: #eee; padding: 10px;
+}
+
+.footnote p {
+	margin: 0;
+}
+
+pre {
+	background: transparent; border: none; padding: 0; font-family: monospace
+}
+
+input[type="range"] {
+	display: inline; max-width: 200px;
+}
+
+label {
+	margin-bottom:0;
+}
+
+input[type="file"] {
+	display: inline;
+}

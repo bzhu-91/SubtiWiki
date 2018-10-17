@@ -1,0 +1,80 @@
+div#top-menu-bar button {
+    background: transparent;
+    box-shadow: none;
+    color: white;
+    padding: 10px 10px;
+    margin:0;
+    border-radius: 0;
+}
+
+div#top-menu-bar span {
+    color: white;
+    padding: 10px 10px;
+    font-size: 0.9em;
+    margin: 0;
+}
+
+div#top-menu-bar button:hover {
+    background: #666;
+}
+
+div#top-menu-bar {
+    background: #333;
+    padding: 0 20px;
+}
+
+div#panel-add-reaction {
+    display: none;
+}
+
+.menu, .dialog, .popup {
+    position: absolute;
+    display: none;
+    z-index: 1;
+}
+
+.popup {
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+#form-rename, #form-new{
+    display: none;
+    background: white;
+    padding: 20px;
+}
+
+ul#container-reactions, ul#menu-metabolite-suggestions {
+    max-height: 500px;
+    overflow-y: scroll;
+    margin:0;
+    padding:0;
+    background: white;
+}
+
+ul#menu-metabolite {
+    border: 1px solid #999;
+    max-width: 500px;
+}
+
+ul#container-reactions > li, ul#menu-metabolite-suggestions > li {
+    min-width: 300px;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 4px;
+    border-bottom: 1px solid #eeeeee; 
+    cursor: pointer;
+}
+
+ul#container-reactions > li:hover, ul#mmenu-metabolite-suggestions > li:hover {
+    font-weight: bold
+}
+
+div#help-info {
+    background: white; 
+    padding: 20px; 
+    display: none;
+}
+
+ 
