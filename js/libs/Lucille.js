@@ -64,7 +64,7 @@ SomeLightBox.prototype.getOptions = function () {
 		top:"0px",
 		height:"100%",
 		width:"100%",
-		zIndex:"299",
+		zIndex:"600",
 	};
 	style.background = {
 		position:'absolute',
