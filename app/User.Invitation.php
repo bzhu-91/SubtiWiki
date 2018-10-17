@@ -1,26 +1,10 @@
 <?php
 namespace User;
 
-class Invitation {
-	public $token;
-	public $email;
-	public $name;
-	public $type;
+class Invitation extends \Model{
 	protected $fromWhom;
-
 	static $tableName = "UserInvitation";
-
-	/**
-	 * create an instance with given data
-	 * @param  array/object $data given data to be copied to the new instance
-	 * @return User\Invitation       the invitation instance
-	 */
-	public static function withData ($data) {
-		$instance = new Invitation();
-		foreach ($data as $key => $value) {
-			$instance->$key = $data;
-		}
-	}
+	static $primaryKeyName = "email";
 
 	/**
 	 * insert an invitation to the database
@@ -39,10 +23,11 @@ class Invitation {
 	 * @param  string $token invitation token
 	 * @return array        information about this invitation token
 	 */
-	public function get ($token) {
+	static public function getByToken ($token) {
 		$sql = "select * from ".static::$tableName." where token like ? && expired is null";
 		$con = \Application::$conn;
-		return $con->doQuery($sql, [$token]);
+		$result = $con->doQuery($sql, [$token]);
+		if ($result) return self::withData($result[0]);
 	}
 
 	/**
