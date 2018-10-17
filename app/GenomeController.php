@@ -14,7 +14,8 @@ class GenomeController extends Controller {
 					"styles" => ["genome.read"],
 					"vars" => [
 						"genomeLength" => $GLOBALS["GENOME_LENGTH"],
-						"organismName" => $GLOBALS["ORGANISM_NAME"]
+						"organismName" => $GLOBALS["ORGANISM_NAME"],
+						"strainName" => $GLOBALS["STRAIN_NAME"]
 					],
 					"jsAfterContent" => ["tabs","libs/genome.canvas", "contextBrowser", "genome.read"],
 				]);

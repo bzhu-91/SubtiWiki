@@ -404,12 +404,12 @@ GenomeBrowser.prototype.showDNASequence = function (gene) {
 		 		} else {
 		 			strand = "-";
 		 		}
-		 		header = "> " + window.organismName + " EGD-e | " + label + " | " + strand + " strand";
+		 		header = "> " + window.organismName + " " + window.strainName + " | " + label + " | " + strand + " strand";
 		 		break;
 		 	}
 		case "gene":
 			label = self.gene.title;
-			header = "> " + window.organismName + " EGD-e | " + self.gene.locus + " | " + self.gene.title;
+			header = "> " + window.organismName + " " + window.strainName + " | " + self.gene.locus + " | " + self.gene.title;
 			if (self.showingReverse) {
 				header += " (reverse complement)";
 			}
@@ -424,7 +424,7 @@ GenomeBrowser.prototype.showDNASequence = function (gene) {
 				self.DNASequence.addSpan(self.up, self.up + (self.gene.stop - self.gene.start), "background:blue;color:white");
 			}
 			label = self.gene.title + " with flanking";
-			header = "> " + window.organismName + " EGD-e | " + self.gene.locus + " | " + self.gene.title + " | flanking: " + self.up + "bp upstream, " + self.down + "bp downstream";
+			header = "> " + window.organismName + " " + window.strainName + " | " + self.gene.locus + " | " + self.gene.title + " | flanking: " + self.up + "bp upstream, " + self.down + "bp downstream";
 			if (self.showingReverse) {
 				header += " | reverse complement";
 			}
@@ -465,7 +465,7 @@ GenomeBrowser.prototype.showProteinSequence = function () {
 			if (self.plainProteinSequence) {
 				self.proteinSequence = new Sequence(self.plainProteinSequence);
 				$("#protein-sequence-container").show();
-				$("#protein-sequence-header").html("> " + window.organismName + " EGD-e | " + self.gene.locus + " | " + self.gene.title);
+				$("#protein-sequence-header").html("> " + window.organismName + " " + window.strainName + " | " + self.gene.locus + " | " + self.gene.title);
 				var colNum = Math.ceil($("#protein-sequence").width() / 100);
 				$("#protein-sequence").html(self.proteinSequence.toString(10, colNum));
 			}

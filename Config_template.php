@@ -2,6 +2,7 @@
 
 $SITE_NAME = "ListiWiki";
 $ORGANISM_NAME = "<i>Listeria monocytogenes</i>";
+$STRAIN = "EDG-e";
 
 $INCLUDE_PATHS = [
 	"includes", "app", "app/libs", "templates"
