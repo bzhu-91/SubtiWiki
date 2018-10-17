@@ -263,6 +263,7 @@ class ExpressionController extends Controller {
 	}
 
 	public function importer ($input, $accept, $method) {
+		UserController::authenticate(3, $accept);
 		if ($method == "GET" && $accept == HTML) {
 			$view = View::loadFile("layout2.tpl");
 			$view->set($input);
