@@ -24,7 +24,7 @@
         <script type="text/javascript" src="js/patch_AJAX.js"></script>
         <script type="text/javascript" src="js/Editor.js"></script>
 
-        <!-- summer note related
+        <!-- summer note related -->
         <!-- include libraries(jQuery, bootstrap) -->
         <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet">
         <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
@@ -44,7 +44,7 @@
          <a href="category/" target="_self">Categories</a>
          <a href="regulon" target="_self">Regulon list</a>
          <a href="category?id=SW.6.1">Essential Genes</a>
-         <a href="../NetVis" target="_blank">NetVis</a>
+         <a href="http://subtiwiki.uni-goettingen.de/NetVis/" target="_blank">NetVis</a>
          <a href="gene/random">Random gene</a>
          <a href="https://academic.oup.com/nar/article/46/D1/D743/4372578" target="_blank" style="font-weight: bold">Citation</a><?php if ($user): ?>
             <a href="javascript:user.logout()">Hello, <span style='color: white'><?=$user->name?></span></a><?php endif ?>
