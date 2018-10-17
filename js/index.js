@@ -21,6 +21,7 @@ $(document).ready(function(){
 		if (validate(box.val())) {
 			switch(scope.val()) {
 				case "gene":
+				case "wiki":
 					location = baseURL + scope.val() + "?keyword=" + box.val().trim();
 					break;
 				case 'interaction':

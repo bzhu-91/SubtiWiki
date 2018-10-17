@@ -5,7 +5,7 @@
 			<div id="searchBar">
 				<select id="searchScope">
 					<option value="gene">Genes or proteins</option>
-					<option value="subtiwiki">Plasmids, labs, and methods</option>
+					<option value="wiki">Plasmids, labs, and methods</option>
 					<option value="interaction">Interactions</option>
 					<option value="regulation">Regulations</option>
 					<option value="expression">Expression</option>
