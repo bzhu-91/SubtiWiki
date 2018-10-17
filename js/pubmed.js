@@ -1,4 +1,4 @@
-$(window).load(function(){
+$(window).on("load", function(){
 	// asynchronically get pubmed
 	var pubmeds = $("pubmed");
 	var ids = []

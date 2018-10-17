@@ -16,7 +16,7 @@ class GenomeController extends Controller {
 						"genomeLength" => $GLOBALS["GENOME_LENGTH"],
 						"organismName" => $GLOBALS["ORGANISM_NAME"]
 					],
-					"jsAfterContent" => ["tabs","libs/genome.canvas", "libs/contextBrowser", "genome.read"],
+					"jsAfterContent" => ["tabs","libs/genome.canvas", "contextBrowser", "genome.read"],
 				]);
 				$this->respond($view, 200, HTML);
 				break;

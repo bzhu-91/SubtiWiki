@@ -1,6 +1,6 @@
 function pathwaySearch(id) {
 	ajax.get({
-		url: "pathway?gene="+id,
+		url: "pathway?protein="+id,
 		headers: {Accept: "application/json"}
 	}).done(function(status, data, error, xhr){
 		if (error) {

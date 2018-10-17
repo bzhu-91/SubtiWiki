@@ -29,6 +29,14 @@ class Protein extends Model {
 				"regulated" => "mixed"
 			],
 			"position" => 1
+		],
+		"reaction" => [
+			"tableName" => "ReactionCatalyst",
+			"mapping" => [
+				"reaction" => "Reaction",
+				"catalyst" => "mixed"
+			],
+			"position" => 2
 		]
 	];
 

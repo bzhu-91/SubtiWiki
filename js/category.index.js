@@ -1,4 +1,4 @@
-$(window).load(function(){
+$(window).on("load", function(){
 	var categories = $(".category");
 	var dictionary = {
 		"SW": { // add the root

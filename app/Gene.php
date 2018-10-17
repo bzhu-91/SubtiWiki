@@ -45,7 +45,7 @@ class Gene extends Model {
 				"regulated" => "mixed"
 			],
 			"position" => 2
-		]
+		],
 	];
 
 	public static function get ($id) {

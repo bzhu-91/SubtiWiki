@@ -18,7 +18,7 @@ function buildQuery (obj) {
 	return components.join("&");
 }
 
-$(window).load(function(){
+$(window).on("load", function(){
 	if (max == 0) {
 		$("#select-page").hide();
 	}

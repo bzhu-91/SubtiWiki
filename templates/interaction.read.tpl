@@ -5,7 +5,7 @@
 			<p><input type="text" name="geneName" placeholder="gene name" /><input type="submit" /></p>
 		</form>
 	</div>
-	<div id="display-block">
+	<div id="display-block" style="display:none">
 		<p><label>Target: </label><span id="gene-display"></span></p>
 		<p><label>Radius: </label><span id="radius-display"></span></p>
 		<p><label>Coverage: </label><span id="coverage-display"></span></p>
@@ -26,18 +26,20 @@
 				<label class="inline" id="spacingDis" style="margin-left: 10px">Spacing: </label>
 					<img src="img/zoomIn.svg" id="increase-spacing"  class="icon" />
 					<img src="img/zoomOut.svg" id="decrease-spacing" class="icon" />
-				<button id="open-settings" style="padding-bottom: 8px;margin-left: 10px"><img src="img/settings_0.png" class="icon" /> Settings</button>
-				<img src="img/close.png" id="control-collapse" class="icon" />
+				</p>
+			<p>
+				<label>Omics data: </label><select id="omics" style="width:200px"></select>
+				<div id="open-settings" class="button" style="display:inline-block;margin-left:0">
+					<img src="img/settings_0.png" class="icon" /> 
+					<span>Settings</span>
+				</div>
+				<img src="img/close.png" id="control-collapse" class="icon" style="float:right"/>
 			</p>
+			<p style="clear:both"></p>
 		 	</div>
 	</div>
 	<div id="legend"></div>
 	<div id="settings">
-		<div style="padding: 0 10px">
-			<p><h3 style="color: #333">Integrate omics data</h3></p>
-			<p><label class="inline">Transcriptomics: </label><select id="transcriptomics"></select></p>
-			<p><label class="inline">Proteomics: </label><select id="proteomics"></select></p>
-		</div>
 		<div style="padding: 0 10px">
 			<p><h3 style="color: #333">Select color scheme</h3></p>
 			<p><input id="node-color" class="jscolor" value="1976d2" /><label style="margin-left: 20px">Nodes</label></p>

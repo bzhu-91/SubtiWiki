@@ -17,6 +17,14 @@ class Reaction extends Model {
                 "catalyst" => "mixed"
             ],
             "position" => 1
+        ],
+        "pathway" => [
+            "tableName" => "ReactionPathway",
+            "mapping" => [
+                "reaction" => "Reaction",
+                "pathway" => "Pathway"
+            ],
+            "position" => 1
         ]
     ];
 

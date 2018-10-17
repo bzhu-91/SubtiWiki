@@ -4,6 +4,7 @@ require_once ("ViewAdapters.php");
 class PathwayController extends Controller {
 	public function read ($input, $accept) {
 		$id = $this->filter($input, "id", "is_numeric");
+		$proteinId = $this->filter($input, "protein", "/^[a-f0-9]{40}$/");
 		if ($accept == HTML) {
 			if (is_null($id)) {
 				$id = 1;
@@ -26,9 +27,28 @@ class PathwayController extends Controller {
 			if ($id) {
 				$pathway = Pathway::get($id);
 				// get all the reactions
-				$all = Reaction::getAll();
+				$all = Reaction::getAll(["pathway" => $id]);
 				$pathway->reactions = $all;
 				$this->respond($pathway, 200, JSON);
+			} elseif ($proteinId) {
+				// find all reactions
+				// get all pathways in reactions
+				$protein = Protein::get($proteinId);
+				if ($protein) {
+					$reactions = $protein->has("reaction");
+					$allPathways = [];
+					foreach($reactions as $reaction) {
+						$pathways = array_column($reaction->has("pathway"), "pathway");
+						foreach($pathways as $pathway) {
+							$allPathways[$pathway->id] = $pathway;
+						}
+					}
+					if ($allPathways) {
+						$this->respond(array_values($allPathways), 200, JSON);
+					} else $this->error("Pathway not found", 404, JSON);
+				} else {
+					$this->error("Gene not found", 404, JSON);
+				}
 			} else {
 				$allPathways = Pathway::getAll(1);
 				$this->respond($allPathways, 200, JSON);

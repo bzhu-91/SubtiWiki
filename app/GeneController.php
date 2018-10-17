@@ -98,9 +98,9 @@ class GeneController extends Controller {
 						],
 						"jsAfterContent" => [
 							"libs/genome.canvas", 
-							"libs/contextBrowser", 
 							"libs/interactome", 
 							"libs/simpleTree", 
+							"contextBrowser", 
 							"gene.view",
 							"pathwaySearch"
 						],

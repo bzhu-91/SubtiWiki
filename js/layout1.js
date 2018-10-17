@@ -1,4 +1,4 @@
-$(window).load(function(){
+$(window).on("load", function(){
 	var width = $("#floatTop").width() + 40;
 	window.onresize = function(){
 		var width = $("#floatTop").width() + 40;
