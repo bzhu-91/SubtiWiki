@@ -60,12 +60,27 @@ class Protein extends Model {
 		}
 	}
 
+	public function fetchDomains () {
+		if ($this->id) {
+			$sql = "select * from ProteinDomain where protein like ?";
+			$result = Application::$conn->doQuery($sql, [$this->id]);
+			if ($result) {
+				foreach ($result as &$row) {
+					$row = (object) $row;
+				}
+				return $result;
+			}
+		}
+	}
+
 	public function patch () {
 		$results = Utility::deepSearch($this, "[[this]]");
 		foreach ($results as $keypath) {
 			$data = null;
-			if (Utility::startsWith($keypath, "Paralogous protein")) {
+			if (Utility::startsWith($keypath, "paralogous protein")) {
 				$data = $this->fetchParalogues();
+			} elseif ($keypath == "domains") {
+				$data = $this->fetchDomains();
 			}
 			if ($data == null) {
 				Utility::unsetValueFromKeyPath($this, $keypath);
@@ -93,7 +108,7 @@ class Protein extends Model {
 	}
 
 	public function getStructures () {
-		$s = $this->Structure;
+		$s = $this->structure;
 		$matches = array();
 		preg_match_all("/\[PDB\|(.+?)\]/i", $s[0], $matches);
 		return $matches[1];

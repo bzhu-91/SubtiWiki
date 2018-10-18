@@ -72,9 +72,7 @@ class GeneController extends Controller {
 			Utility::clean($gene);
 			Utility::decodeLinkForView($gene);
 			$gene->updateCount(); // start counter
-
 			$data = MetaData::sort($gene);
-			
 			if (count($gene->names) > 1) {
 				array_pop($gene->names);
 				$gene->names = implode(", ", $gene->names);
@@ -117,9 +115,9 @@ class GeneController extends Controller {
 						"css" => ["gene.view"],
 						"side" => "{{structure:pdb}}{{expression:expid}}{{gene__interaction.view.tpl}}{{gene__regulation.view.tpl}}",
 					]);
-					if ($gene->{"The protein"}) {
-						if ($gene->{'The protein'}->Structure) {
-							$view->set("pdb", $gene->{"The protein"}->getStructures()[0]);
+					if ($gene->{"the protein"}) {
+						if ($gene->{'the protein'}->structure) {
+							$view->set("pdb", $gene->{"the protein"}->getStructures()[0]);
 						}
 					}
 					if ($gene->outlinks->bsupath) {
@@ -158,7 +156,7 @@ class GeneController extends Controller {
 		// get all the defined templates
 		foreach ($gene as $key => $value) {
 			$keypath = $keypath->push($key);
-			$filename = "gene__".$keypath->toString("__").".view.tpl";
+			$filename = "gene__".$keypath.".view.tpl";
 			if (file_exists(stream_resolve_include_path($filename))) {
 				$view->registerAdapter((string) $keypath, function() use ($filename) {
 					return "{{".$filename."}}";
@@ -184,18 +182,18 @@ class GeneController extends Controller {
 			if ($data) return "<h3>Expression</h3><p><a href='./expression?gene={{:id}}' target='_blank'><img src='http://genome.jouy.inra.fr/seb/images/details/{{:expid}}.png' style='width: 98%' /></a></p>";
 		});
 
-		$view->registerAdapter("Expression and Regulation->Operons->each", function($each) {
+		$view->registerAdapter("expression and Regulation->operons->each", function($each) {
 			$segment = View::loadFile("operon.view.tpl");
 			$each->button = '<a href="operon?id={{:id}}" class="button" style="float:right;">Open in new tab</a>';
 			$segment->set($each);
 			return "<div class='box'>".$segment->generate(true, true)."</div>";
 		});
 
-		$view->registerAdapter("The protein->id", function(){
+		$view->registerAdapter("the protein->id", function(){
 			return "";
 		});
 
-		$view->registerAdapter("The protein->title", function(){
+		$view->registerAdapter("the protein->title", function(){
 			return "";
 		});
 

@@ -51,11 +51,11 @@ class Gene extends Model {
 	public static function get ($id) {
 		$ins = parent::get($id);
 		if ($ins) {
-			if (property_exists($ins, "The protein")) {
-				$ins->{"The protein"} = Protein::withData($ins->{"The protein"});
-				$ins->{"The protein"}->id = $ins->id;
-				$ins->{"The protein"}->title = ucfirst($ins->title);
-				$ins->{"The protein"}->patch();
+			if (property_exists($ins, "the protein")) {
+				$ins->{"the protein"} = Protein::withData($ins->{"the protein"});
+				$ins->{"the protein"}->id = $ins->id;
+				$ins->{"the protein"}->title = ucfirst($ins->title);
+				$ins->{"the protein"}->patch();
 			}
 			$ins->patch();
 		}
@@ -80,10 +80,10 @@ class Gene extends Model {
 			if ($keypath == "categories") {
 				$data = "{{this}}";
 			}
-			if ($keypath == "Expression and Regulation->Operons") {
+			if ($keypath == "expression and Regulation->operons") {
 				$data = $this->fetchOperons();
 			}
-			if ($keypath == "Expression and Regulation->Other regulations") {
+			if ($keypath == "expression and Regulation->other regulations") {
 				$data = $this->fetchOtherRegulations();
 			}
 			if ($keypath == "regulons") {
