@@ -7,3 +7,5 @@ The source code the popular model organism database SubtiWiki.
 - PHP 7.0+
 - php-xml of PHP
 - MySQL 5.8+
+
+Documentations are under res/doc
