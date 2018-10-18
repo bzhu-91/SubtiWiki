@@ -141,8 +141,8 @@ ContextBrowser.prototype.setData = function (data, genomeLength, callback) {
 	} else {
 		self.diagram = new Genome.diagram(self.diagramContainer[0], self.dataSet, {
 			gene: {
-				color: "#4caf50",
-				borderColor: "gray"
+				color: "salmon",
+				borderColor: "#eee"
 			}
 		});
 		self.configDiagram();
