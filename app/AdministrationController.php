@@ -152,7 +152,7 @@ class AdministrationController extends Controller {
 			if ($conn->getColumnNames($tableName)) {
 				$added = MetaData::fix($tableName);
 				if ($added) {
-					header("Location: ".$GLOBALS["WEBROOT"]."/administration/scheme?className=$tableName");
+					header("Location: ".$GLOBALS["WEBROOT"]."/administration/schema?className=$tableName");
 				} else {
 					Log::debug("Not okay");
 				}
