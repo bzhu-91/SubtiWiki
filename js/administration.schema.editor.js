@@ -18,6 +18,13 @@ Scheme.prototype.getView = function () {
         marginRight: "2.5px"
     });
     select.val(this.type);
+    var editBtn = $("<button>Edit</button>").css({
+        float: "right"
+    }).on("click", function () {
+        SomeLightBox.prompt("Key path editor", span.html(), function (val) {
+            span.html(val);
+        });
+    });
     var delBtn = $("<button>Delete</button>")
     .css({
         background: "tomato",
@@ -40,7 +47,7 @@ Scheme.prototype.getView = function () {
             theme:"tomato"
         });
     });
-    box.append(span, delBtn, select, $("<p></p>").css("clear", "both"));
+    box.append(span, delBtn, editBtn, select, $("<p></p>").css("clear", "both"));
     return box;
 }
 
