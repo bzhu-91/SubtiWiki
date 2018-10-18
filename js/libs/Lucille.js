@@ -510,7 +510,7 @@ SomeLightBox.error = function(msg, animation) {
 	}, null, null, null, !animation);
 };
 
-SomeLightBox.prompt = function(name, val, callback, themeColor) {
+SomeLightBox.prompt = function(title, val, callback, themeColor) {
 	var l = new SomeLightBox({
 		width: "400px",
 		height: "fitToContent",
@@ -526,7 +526,7 @@ SomeLightBox.prompt = function(name, val, callback, themeColor) {
 	}
 	l.load(div);
 	
-	div.innerHTML = "<p style='margin: 5px 0; color: " + themeColor + "; font-weight: bold;'>" + name + "</p>";
+	div.innerHTML = "<p style='margin: 5px 0; color: " + themeColor + "; font-weight: bold;'>" + title + "</p>";
 	var input = document.createElement("input");
 	with(input){
 		type = "text";
