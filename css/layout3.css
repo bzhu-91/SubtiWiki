@@ -1,6 +1,10 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto');
 @import url('https://fonts.googleapis.com/css?family=Open+Sans');
 
+:root {
+	--primary-color: #ac3939; --secondary-color: tomato; --accent-color: gray;
+}
+
 * {
 	margin: 0;
 	padding: 0;
@@ -36,7 +40,7 @@ div#center {
 
 label, .label {
 	font-weight: bold;
-	color: #4CAF50;
+	color: var(--secondary-color);
 	margin-right: 10px;
 }
 
@@ -50,7 +54,7 @@ input {
 button, a.button, .button, input[type='submit'] {
     display:inline-block;
     line-height: 1em;
-    background: #4CAF50;
+    background: var(--secondary-color);
     color: white;
     border: none;
     padding: 5px;
