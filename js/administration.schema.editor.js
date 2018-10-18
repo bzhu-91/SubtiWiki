@@ -52,7 +52,9 @@ Scheme.prototype.getView = function () {
 }
 
 Scheme.fromView = function (box) {
-    var keypath = $(box).find("#path").html().split(" -> ");
+    var keypath = $(box).find("#path").html().replace("&gt;", ">").split("->").map(function(a){
+        return a.trim();
+    });
     var type = $(box).find("#type").val();
     return new Scheme(keypath, type);
 }
@@ -77,7 +79,7 @@ $(document).ready(function(){
         if (ev && ev.formData) {
             var keypath = ev.formData.keypath;
             var type = ev.formData.type;
-            var scheme = new Scheme(keypath.split(" -> "), type);
+            var scheme = new Scheme(keypath.replace("&gt;", ">").split(" -> "), type);
             $("#keypaths").prepend(scheme.getView());
         } 
     });
