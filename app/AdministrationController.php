@@ -145,6 +145,21 @@ class AdministrationController extends Controller {
 		}
 	}
 
+	public function repair ($input, $accept, $method) {
+		if ($method == "GET" && $accept == HTML) {
+			$tableName = $this->filter($input, "tableName", "has", ["Table name is required", 400, $accept]);
+			$conn = Application::$conn;
+			if ($conn->getColumnNames($tableName)) {
+				$added = MetaData::fix($tableName);
+				if ($added) {
+					header("Location: ".$GLOBALS["WEBROOT"]."/administration/scheme?className=$tableName");
+				} else {
+					Log::debug("Not okay");
+				}
+			} else $this->error("Table not found", 404, $accept);
+		} else $this->error("Unaccepted", 406, $accept);
+	}
+
 	/**
 	 * general importer for tables
 	 */
