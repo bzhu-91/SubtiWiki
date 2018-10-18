@@ -2,9 +2,9 @@
 <div>
 {{::rest}}
 <p class='m_value_inline'>
-	<a class='inner-block' href='gene?id={{:id}}' target='_blank'><i>Gene page</a>
-	<a class='inner-block' href='interaction?gene={{:id}}' target='_blank'><i>Interaction browser</a>	
-	<a class='inner-block' href='javascript: pathwaySearch("{{:id}}")' target='_blank'>Pathway browser</a>
+	<a class='inner-block' href='interaction?gene={{:id}}' target='_blank'>Interactions</a>	
+	<a class='inner-block' href='regulation?gene={{:id}}' target='_blank'>Regulations</a>	
+	<a class='inner-block' href='javascript: pathwaySearch("{{:id}}")' target='_blank'>Pathways</a>
 </p>
 <div style="display: none;">
 	<p>{{:bank_id}}</p>

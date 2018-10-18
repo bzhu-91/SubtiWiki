@@ -220,7 +220,7 @@ var ExpressionBrowser = ExpressionBrowser || function (geneId) {
 	
 	var self = this;
 	self.loadConditions(function() {
-		self.contextBrowser = new ContextExpressionBrowser($("#DSS-browser"), self.conditions["tilling array"]);
+		self.contextBrowser = new ContextExpressionBrowser($("#omics-position-browser"), self.conditions["tilling array"]);
 		self.contextBrowser.showMessage("loading...");
 		self.loadGene(geneId, function() {
 			$("#data").show();
