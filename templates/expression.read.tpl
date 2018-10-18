@@ -7,5 +7,10 @@
 		</form>
 	</div>
 	<br>
+	<div class="section">
+		<div class="left" id="omics-position-browser"></div>
+		<div class="right" id="gene-summary"></div>
+	</div>
 	<div id="data" style="display: none"></div>
 </div>
+{{jsvars:vars}}
