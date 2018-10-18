@@ -1,7 +1,7 @@
 <?php
 class Genome extends Model {
 	static $tableName = "GenomicContext";
-	static $fileName = "res/EDG-e";
+	static $fileName = "res/M129.fasta";
 
 	public static function findContextByGene ($id, $span) {
 		if ($id) {
