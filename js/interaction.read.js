@@ -39,9 +39,9 @@ $(document).ready(function(){
 		if (getQueryVariable("gene")) {
 			browser = new InteractionBrowser(getQueryVariable("gene"));
 		} else {
-			// show full graph
-			browser = new InteractionBrowser();
-			// $("#display-block, #loading, #control-block").hide();
+			// do not show full graph
+			// browser = new InteractionBrowser();
+			$("#display-block, #loading, #control-block").hide();
 		}
 		lightbox = new SomeLightBox({
 			width: "400px",
