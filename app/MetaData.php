@@ -3,6 +3,8 @@ class MetaData extends Model {
 	static $tableName = "MetaData";
 	static $primaryKeyName = "className";
 
+	public $scheme = [];
+
 	public static function insertKeyValuePair (&$object, $keypath, $value) {
 		if (is_string($keypath)) $keypath = new KeyPath($keypath);
 		// find possible previous one
@@ -85,6 +87,39 @@ class MetaData extends Model {
 			}
 		}
 		return $anomalies;
+	}
+
+	/**
+	 * try to fix the meta data by adding all existing key paths into the scheme
+	 * manual order is needed
+	 */
+	public static function fix ($className) {
+		$allObjects = $className::getAll(1);
+		$meta = self::get($className);
+		if (!$meta) {
+			$meta = new MetaData;
+			$meta->className = $className;
+			$meta->scheme = [];
+			if (!$meta->insert()) {
+				return false;
+			}
+		}
+		$addedPath = [];
+		if ($meta) {
+			foreach ($allObjects as $object) {
+				$structure = self::deflate($object);
+				foreach ($structure as $each) {
+					// if the path is not in the template
+					if (!self::hasPath($each, $meta->scheme)) {
+						$meta->scheme[] = $each;
+						$addedPath[] = $each;
+					}
+				}
+			}
+		}
+		if ($meta->update()) {
+			return $addedPath ? $addedPath : true;
+		} else return false;
 	}
 
 	public static function hasPath ($path, $structure) {
