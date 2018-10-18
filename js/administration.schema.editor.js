@@ -21,7 +21,7 @@ Scheme.prototype.getView = function () {
     var editBtn = $("<button>Edit</button>").css({
         float: "right"
     }).on("click", function () {
-        SomeLightBox.prompt("Key path editor", span.html(), function (val) {
+        SomeLightBox.prompt("Key path editor", span.html().replace("&gt;", ">"), function (val) {
             span.html(val);
         });
     });
