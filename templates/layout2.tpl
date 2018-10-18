@@ -17,6 +17,7 @@
 
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.1/papaparse.min.js"></script>
         <script type="text/javascript" src="js/libs/md5.js"></script>
         <script type="text/javascript" src="js/libs/Lucille.js"></script>
         <script type="text/javascript" src="js/patch_IE.js"></script>
