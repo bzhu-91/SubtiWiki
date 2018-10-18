@@ -40,8 +40,8 @@ $(document).ready(function(){
 			browser = new InteractionBrowser(getQueryVariable("gene"));
 		} else {
 			// do not show full graph
-			// browser = new InteractionBrowser();
-			$("#display-block, #loading, #control-block").hide();
+			browser = new InteractionBrowser();
+			// $("#display-block, #loading, #control-block").hide();
 		}
 		lightbox = new SomeLightBox({
 			width: "400px",

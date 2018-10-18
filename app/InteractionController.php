@@ -21,20 +21,24 @@ class InteractionController extends Controller {
 				if ($radius === null) {
 					$radius = 5;
 				}
+				$wholeGraph = Interaction::getWholeGraph();
 				if ($geneId === null) {
-					$this->error("Invalid gene", 400, JSON);
+					// show full graph
+					$data = $wholeGraph->toJSON();
+				} else {
+					$subgraph = $wholeGraph->subgraph($geneId, $radius);
+					if ($subgraph) {
+						$data = $subgraph->toJSON();
+					} else $this->error("Gene not found", 404, JSON);
 				}
-				$wholeGraph = Interaction::getWholeGraph($sigA);
-				$subgraph = $wholeGraph->subgraph($geneId, $radius);
-				if ($subgraph) {
-					$data = $subgraph->toJSON();
+				if ($data) {
 					foreach ($data["nodes"] as $key => &$gene) {
 						$gene = Gene::simpleGet($gene->id);
 					}
 					$data["nodes"] = Utility::arrayColumns($data["nodes"], ["id", "title"]);
 					Utility::decodeLinkForView($data["edges"]);
 					$this->respond($data, 200, JSON);
-				} else $this->error("Gene not found", 404, JSON);
+				} else $this->error("Graph not found", 404, JSON);
 				break;
 			case HTML_PARTIAL:
 				$this->error("Not acceptable", 406, HTML);
