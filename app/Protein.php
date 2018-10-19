@@ -1,7 +1,5 @@
 <?php
-class Protein extends Model {
-	use Markup;
-
+class Protein extends Gene {
 	static $tableName = "Gene";
 
 	static $relationships = [
@@ -39,6 +37,19 @@ class Protein extends Model {
 			"position" => 2
 		]
 	];
+
+	public static function withData ($data) {
+		Utility::clean($data);
+		Utility::toObject($data);
+		$protein = new Protein();
+		foreach ($data as $key => $value) {
+			$protein->{$key} = $value;
+		}
+		if ($protein->title) {
+			$protein->title = ucfirst($protein->title);
+		}
+		return $protein;
+	}
 
 	public function fetchParalogues () {
 		if ($this->id) {
@@ -89,22 +100,6 @@ class Protein extends Model {
 			}
 		}
 		Utility::clean($this); 
-	}
-
-	public static function getRefWithId($id) {
-		$gene = Gene::getRefWithId($id);
-		if ($gene) {
-			$gene->title = ucfirst($gene->title);
-			return Protein::withData($gene);
-		}
-	}
-
-	public static function getRefWithTitle($id) {
-		$gene = Gene::getRefWithId($id);
-		if ($gene) {
-			$gene->title = ucfirst($gene->title);
-			return Protein::withData($gene);
-		}
 	}
 
 	public function getStructures () {
