@@ -111,7 +111,7 @@ class ReactionController extends Controller {
 			$input["novel"] = $input["novel"] == "on" ? 1 : 0;
 			$reaction = Reaction::withData($input);
 			if ($reaction->insert()) {
-				$this->respond(["uri" => "reaction/editor?id".$reaction->id], 200, JSON);
+				$this->respond(["uri" => "reaction/editor?id=".$reaction->id], 200, JSON);
 			} else {
 				$this->error("An internal error has happened, please contact admin.", 500, JSON);
 			}
