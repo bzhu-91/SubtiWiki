@@ -228,6 +228,8 @@ $(document).ready(function(){
 				}
 			} else {
 				$("#regulon-wrapper").hide();
+				$("#mainnav").find("li:contains('Regulon')").remove();
+				$("#floatTop nav").find("li:contains('Regulon')").remove();
 			}
 		})
 	})();
