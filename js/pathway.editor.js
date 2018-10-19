@@ -310,7 +310,7 @@ PathwayEditor.createCanvas = function () {
     var self = this;
     // if there is no SVG tag, then create one
     // if there is a svg tag, need to adapt all the reactions etc.
-    if ($("svg").length) {
+    if ($("#editor svg").length) {
         this.loadCanvas();
     } else {
         this.canvas = new Pathway.Canvas();
@@ -446,7 +446,7 @@ PathwayEditor.configCanvas = function () {
 PathwayEditor.loadCanvas = function () {
     var self = this;
     this.membrane = $("rect#membrane")[0];
-    this.canvas = new Pathway.Canvas(document.getElementsByTagName("svg")[0]);
+    this.canvas = new Pathway.Canvas($("#editor svg")[0]);
 
     // add all the reactions
     $(".reaction").each(function(idx, element){
