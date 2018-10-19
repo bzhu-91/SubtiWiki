@@ -831,7 +831,7 @@ $(document).on("change", "#select-pathway", function(evt){
 
 $(document).on("click", "#btn-save", function(evt){
     PathwayEditor.clearSelection();
-    var outerHTML = $("svg")[0].outerHTML;
+    var outerHTML = $("#editor svg")[0].outerHTML;
     ajax.put({
         url: "pathway",
         headers: {Accept: "application/json"},
