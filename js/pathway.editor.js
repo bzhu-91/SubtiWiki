@@ -117,7 +117,7 @@ PathwaySearchViewController.hide = function () {
 }
 
 PathwaySearchViewController.searchForReaction = function (keyword) {
-    if (keyword.length > 2) {
+    if (keyword.length >= 2) {
         this.resultsContainer.html("");
         var results = PathwayModel.searchReaction(keyword);
         if (results.length) {
@@ -125,7 +125,7 @@ PathwaySearchViewController.searchForReaction = function (keyword) {
         } else {
             this.resultsContainer.html("No results found");
         }
-    }
+    } else SomeLightBox.error("Keyword too short");
 }
 
 PathwaySearchViewController.createResultList = function (results) {
