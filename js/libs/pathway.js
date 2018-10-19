@@ -550,7 +550,7 @@ Pathway.Metabolite.prototype.createText = function () {
         var tspan2 = Util.elNS("tspan");
         tspan2.textContent = replacement;
         Util.attrNS(tspan2, {
-            "baseline-shift": type,
+            "baseline-shift": type == "sup" ? "super" : "sub",
             "style":"font-size: x-small"
         });
         view.appendChild(tspan2);
