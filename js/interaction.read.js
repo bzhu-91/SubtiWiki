@@ -247,7 +247,22 @@ InteractionBrowser.prototype.load = function () {
 			self.rawData = data;
 			self.createData();
 		} else {
-			SomeLightBox.error("Data not found");
+			SomeLightBox.alert({
+				title: "Error",
+				message: "Interaction with this protein is not found",
+				confirm: {
+					title: "Go to all interactions",
+					onclick: function () {
+						window.location = $("base").attr("href") + "interaction";
+					},
+					color: "darkgreen"
+				},
+				cancel: {
+					title: "Cancel",
+					color: "gray"
+				},
+				theme: "red"
+			});
 		}
 	});
 	ajax.get({
