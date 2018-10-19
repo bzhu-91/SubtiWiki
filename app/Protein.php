@@ -1,7 +1,5 @@
 <?php
-class Protein extends Model {
-	use Markup;
-
+class Protein extends Gene {
 	static $tableName = "Gene";
 
 	static $relationships = [
@@ -40,6 +38,19 @@ class Protein extends Model {
 		]
 	];
 
+	public static function withData ($data) {
+		Utility::clean($data);
+		Utility::toObject($data);
+		$protein = new Protein();
+		foreach ($data as $key => $value) {
+			$protein->{$key} = $value;
+		}
+		if ($protein->title) {
+			$protein->title = ucfirst($protein->title);
+		}
+		return $protein;
+	}
+
 	public function fetchParalogues () {
 		if ($this->id) {
 			$relationships = $this->has("paralogues");
@@ -60,12 +71,27 @@ class Protein extends Model {
 		}
 	}
 
+	public function fetchDomains () {
+		if ($this->id) {
+			$sql = "select * from ProteinDomain where protein like ?";
+			$result = Application::$conn->doQuery($sql, [$this->id]);
+			if ($result) {
+				foreach ($result as &$row) {
+					$row = (object) $row;
+				}
+				return $result;
+			}
+		}
+	}
+
 	public function patch () {
 		$results = Utility::deepSearch($this, "[[this]]");
 		foreach ($results as $keypath) {
 			$data = null;
-			if (Utility::startsWith($keypath, "Paralogous protein")) {
+			if (Utility::startsWith($keypath, "paralogous protein")) {
 				$data = $this->fetchParalogues();
+			} elseif ($keypath == "domains") {
+				$data = $this->fetchDomains();
 			}
 			if ($data == null) {
 				Utility::unsetValueFromKeyPath($this, $keypath);
@@ -76,24 +102,8 @@ class Protein extends Model {
 		Utility::clean($this); 
 	}
 
-	public static function getRefWithId($id) {
-		$gene = Gene::getRefWithId($id);
-		if ($gene) {
-			$gene->title = ucfirst($gene->title);
-			return Protein::withData($gene);
-		}
-	}
-
-	public static function getRefWithTitle($id) {
-		$gene = Gene::getRefWithId($id);
-		if ($gene) {
-			$gene->title = ucfirst($gene->title);
-			return Protein::withData($gene);
-		}
-	}
-
 	public function getStructures () {
-		$s = $this->Structure;
+		$s = $this->structure;
 		$matches = array();
 		preg_match_all("/\[PDB\|(.+?)\]/i", $s[0], $matches);
 		return $matches[1];
