@@ -43,6 +43,7 @@ class HistoryController extends Controller {
 				"showFootNote" => "none",
 				"records" => $records,
 				"title" => "Edit history: $className: ".$targetObject->title,
+				"pageTitle" => "Edit history: $className: ".$targetObject->title,
 				"content" => "{{history:records}}{{jsvars:vars}}",
 				"navlinks" => [
 					["innerHTML" => $targetObject->title, "href" => $target."?id=".$id]
@@ -290,6 +291,7 @@ class HistoryController extends Controller {
 				$view = View::loadFile("layout1.tpl");
 				$view->set([
 					"title" => "Comparison",
+					"pageTitle" => "Comparison",
 					"content" => "{{history.comparison.tpl}}",
 					"vars" => [
 						"entry0" => $meta0,
