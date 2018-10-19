@@ -944,7 +944,7 @@ $(document).on("click", "#btn-membrane-height-minus", function (ev) {
     }
 });
 
-$(dodcument).on("click", "#btn-select-connected-components", function (ev) {
+$(document).on("click", "#btn-select-connected-components", function (ev) {
     var reaction = $("#menu-reaction").prop("reaction");
     var els = PathwayEditor.findAllConnectedComponents(reaction);
     for (var uuid in els) {
