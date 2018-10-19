@@ -555,7 +555,7 @@ Pathway.Metabolite.prototype.createText = function () {
         });
         view.appendChild(tspan2);
         if (split(txt3)) {
-            render.apply(self, split(txt1));
+            render.apply(self, split(txt3));
         } else {
             var tspan3 = Util.elNS("tspan");
             tspan3.textContent = txt3;
