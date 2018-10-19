@@ -11,11 +11,12 @@ function getQueryVariable(variable) {
 }
 
 $(document).ready(function() {
-	if ("echarts" in window) {
+	var gene = getQueryVariable("gene");
+	if (("echarts" in window) && gene) {
 		$("#hint").hide();
 		$("#diagram-t").css("height", "600px");
 		$("#diagram-p").css("height", "600px");
-		browser = new ExpressionBrowser (getQueryVariable("gene"));
+		browser = new ExpressionBrowser (gene);
 	}
 });
 
