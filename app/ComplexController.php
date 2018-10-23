@@ -116,6 +116,8 @@ class ComplexController extends Controller {
         $id = $this->filter($input, "id", "/^\d+$/", ["Id is required", 400, $accept]);
         if ($accept == JSON) {
             $complex = Complex::withData($input);
+            $complex->lastAuthor = User::getCurrent();
+            $complex->lastUpdate = date("Y-m-d H:i:s");
             if ($complex->update()) {
                 $this->respond(null, 200, JSON);
             } else {
@@ -144,6 +146,8 @@ class ComplexController extends Controller {
         $title = $this->filter($input, "title", "has", ["Title is required", 400, $accept]);
         if ($accept == JSON) {
             $complex = Complex::withData($input);
+            $complex->lastAuthor = User::getCurrent();
+            $complex->lastUpdate = date("Y-m-d H:i:s");
             if ($complex->insert()) {
                 $this->respond(["uri" => "complex/editor?id={$complex->id}"], 201, JSON);
             } else {

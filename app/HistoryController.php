@@ -154,6 +154,8 @@ class HistoryController extends Controller {
 				break;
 			case 'reaction':
 				// need to include reaction first
+				$reaction = Reaction::withData($entry->record);
+				$presentation .="R{$reaction->id}";
 				break;
 			case 'geneCategory':
 				if (is_string($entry->record->gene)) {
@@ -238,9 +240,40 @@ class HistoryController extends Controller {
 			case "wiki":
 				$presentation .= "<a href='wiki?id={$entry->record->id}'>{$entry->record->title}</a>";
 				break;
-				default:
-				
+			case "metabolite":
+				$metabolite = Metabolite::withData($entry->record);
+				$presentation .= $metabolite->title;
+			case "complexMember":
+				$complex = Complex::simpleGet($entry->record->complex);
+				if ($complex == null) {
+					$lastRevision = History::findLastRevision("complex", $entry->record->complex);
+					$complex = Complex::withData($lastRevision);
+				}
+				$member = Model::parse($entry->record->member);
+				if ($member) {
+					$predicate = $entry->lastOperation == "add" ? " to " : " from ";
+					$presentation .= $this->toRevisionLink($member).$predicate.$this->toRevisionLink($complex);
+				}
 				break;
+			case 'reactionCatalyst':
+				$reaction = Reaction::simpleGet($entry->record->reaction);
+				if ($reaction == null) {
+					$lastRevision = History::findLastRevision("reaction", $entry->record->reaction);
+					$reaction = Reaction::withData($lastRevision);
+				}
+				$catalyst = Model::parse($entry->record->catalyst);
+				if ($catalyst) {
+					$predicate = $entry->lastOperation == "add" ? " to " : " from ";
+					$presentation .= $this->toRevisionLink($catalyst).$predicate."<a href='history?target=reaction&id={$reaction->id}'>R{$reaction->id}: {$reaction->equation}</a>";
+				}
+				break;
+			case 'complex':
+				$complex = Complex::withData($entry->record);
+				$presentation .= $this->toRevisionLink($complex);
+				break;
+			default:
+				break;
+			
 		}
 
 		return [
