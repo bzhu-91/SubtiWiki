@@ -448,28 +448,32 @@ PathwayBrowser.showOmicsData = function (conditionId, data) {
         }
     }
     if (dataset.length) {
+        if (this.state == "omics") {
             this.clearOmicsData();
-    } else if (this.state == "highlight") {
-        this.clearHighlight();
-    } else {
-        this.fadeAll();
-    }
-    this.state = "omics";
-    var spectrum = new ColorSpectrum(con.title, con.min, con.max, con.type == "protein level (copies per cell)" ? "log": "");
-    dataset.forEach(function(each){
-        var color = spectrum.getColor(each.value);
-        cssData[".protein[id='" + each.id + "'] rect._protein_rect"] = {
-            fill: color
+        } else if (this.state == "highlight") {
+            this.clearHighlight();
+        } else {
+            this.fadeAll();
         }
-    });
-    this.createCSSBlock("transcriptomics", cssData);
-    var legend = spectrum.createLegend();
-    legend.css({
-        position: "absolute", left: "20px", bottom: "20px"
-    });
-    $("#middle").append(legend);
-    this.legend = legend;
-    return true;
+        this.state = "omics";
+        var spectrum = new ColorSpectrum(con.title, con.min, con.max, con.type == "protein level (copies per cell)" ? "log": "");
+        dataset.forEach(function(each){
+            var color = spectrum.getColor(each.value);
+            cssData[".protein[id='" + each.id + "'] rect._protein_rect"] = {
+                fill: color
+            }
+        });
+        this.createCSSBlock("transcriptomics", cssData);
+        var legend = spectrum.createLegend();
+        legend.css({
+            position: "absolute", left: "20px", bottom: "20px"
+        });
+        $("#middle").append(legend);
+        this.legend = legend;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 PathwayBrowser.clearOmicsData = function () {
