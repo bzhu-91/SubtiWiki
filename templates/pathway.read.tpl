@@ -20,10 +20,8 @@
                 <button id="clear-highlight">Clear highlight</button>
             </p>
             <p>
-                <label>Transcriptomic data</label>
-                <select id="transcriptomics" style="width:150px" class="omics"></select>
-                <label>Proteomic data</label>
-                <select id="proteomics" style="width:150px" class="omics"></select>
+                <label>Omics data</label>
+                <select id="omics" style="width:150px" class="omics"></select>
                 <button id="clear-omic-data">Clear omics data</button>
             </p>
             <img src="img/close.png" style="float: right; cursor: pointer;" id="closePanel" />

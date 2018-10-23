@@ -19,82 +19,42 @@ Select.prototype.populate = function () {
 
     for(var i = 0; i < arr.length; i++){
 		var each = arr[i];
-		var option = document.createElement("option");
-		option.value = each.id;
-		option.innerHTML = each.title;
-		self.view.appendChild(option);
+        if (each) {
+    		var option = document.createElement("option");
+            option.value = each.id;
+    		option.innerHTML = each.title;
+    		self.view.appendChild(option);
+        }
 	}
 }
 
-var ColorSpectrum = ColorSpectrum || function (title, min, max) {
-    this.title = title;
-    this.min = min;
-    this.max = max;
+var GroupSelect = GroupSelect || function (id, data) {
+	this.view = document.getElementById(id);
+	this.data = data;
+	this.populate();
 }
 
-ColorSpectrum.prototype.toHexColor = function (color) {
-    var r,g,b;
-    r = color[0].toString(16);
-    g = color[1].toString(16);
-    b = color[2].toString(16);
-
-    if (r.length == 1) r = "0" + r;
-    if (g.length == 1) g = "0" + g;
-    if (b.length == 1) b = "0" + b;
-    return "#" + r + g + b;
-
+GroupSelect.prototype.populate = function () {
+	var self = this;
+	self.view.innerHTML = "<option value='-1'>Please select</option>";
+	
+	for (var group in self.data) {
+		var optgroup = document.createElement("optgroup");
+		optgroup.label = group;
+		self.view.appendChild(optgroup);
+		for (var id in self.data[group]) {
+            var option = document.createElement("option");
+			option.value = self.data[group][id].id;
+			option.innerHTML = self.data[group][id].title;
+			self.view.appendChild(option);
+		}
+	}
 }
-ColorSpectrum.prototype.getColor = function (value) {
-    // green, yellow, red
-    var start, end, alpha;
-    var middle = (this.max + this.min) / 2;
-    if (value < middle) {
-        start = [0,255,0]; end = [255,255,0];
-        alpha = (value - this.min) / (this.max - this.min) * 2;
-    } else {
-        start = [255,255,0]; end = [255,0,0];
-        alpha = (value - middle) / (this.max - this.min) * 2;
-    }
-    var color = [
-        Math.round(alpha * end[0] + (1 - alpha) * start[0]),
-        Math.round(alpha * end[1] + (1 - alpha) * start[1]),
-        Math.round(alpha * end[2] + (1 - alpha) * start[2]),
-    ];
-    return this.toHexColor(color);
-}
-
-ColorSpectrum.prototype.createLegend = function (size) {
-    size = size || 300;
-    var container = $("<div></div>");
-    container.css({width: size + 20 + "px"});
-    var title = $("<p></p>");
-    title.html(this.title);
-    title.css({"text-align": "center", margin:0, padding:0})
-    var clearBar = $("<div></div>");
-    clearBar.css({clear: "both"});
-    var colorContainer = $("<div></div>");
-    colorContainer.css({margin: "0 10px 0 10px", height: "30px"});
-    var labelMin = $("<div></div>");
-    labelMin.html(this.min);
-    labelMin.css({display:"inline-block"});
-    var labelMax = $("<div></div>");
-    labelMax.html(this.max);
-    labelMax.css({float: "right"});
-
-    container.append(labelMin, labelMax, clearBar, colorContainer, title);
-    for (var i = 0; i < size; i++) {
-        var block = $("<div></div>");
-        var color = this.getColor(i * (this.max - this.min) / size + this.min);
-        block.css({height: "30px", width:"1px", background: color, display: "inline-block"});
-        colorContainer.append(block);
-    }
-
-    return container;
-}
-
 
 $(document).ready(function(){
-    PathwayBrowser.load();
+    $.getScript($("base").attr("href") + "js/libs/colorSpectrum.js", function(){
+        PathwayBrowser.load();
+    });
 });
 
 $(document).on("click", "#closePanel", function(){
@@ -131,33 +91,17 @@ $(document).on("change", "#all-pathways", function(){
     window.location = "pathway?id"+this.value;
 });
 
-$(document).on("change", "#transcriptomics", function(){
+$(document).on("change", "#omics", function(){
     var self = this;
     PathwayBrowser.clearOmicsData();
-    if (this.value != -1) {
+    var conditionId = this.value;
+    if (conditionId != -1) {
         PathwayBrowser.clearHighlight();
         $("#all-proteins, #all-metabolites").val(-1);
-        PathwayBrowser.loadOmicsData("T" + this.value, function (data){
-            if (!PathwayBrowser.showOmicsData("T", data)) {
+        PathwayBrowser.loadOmicsData(conditionId, function (data){
+            if (!PathwayBrowser.showOmicsData(conditionId, data)) {
                 SomeLightBox.error("No data available");
                 $(self).val(-1);
-                
-            }
-        });
-    }
-});
-
-$(document).on("change", "#proteomics", function(){
-    var self = this;
-    PathwayBrowser.clearOmicsData();
-    if (this.value != -1) {
-        PathwayBrowser.clearHighlight();
-        $("#all-proteins, #all-metabolites").val(-1);
-        PathwayBrowser.loadOmicsData("P" + this.value, function (data){
-            if (!PathwayBrowser.showOmicsData("P", data)) {
-                SomeLightBox.error("No data available");
-                $(self).val(-1);
-         
             }
         });
     }
@@ -227,6 +171,7 @@ PathwayBrowser.load = function () {
 }
 
 PathwayBrowser.loadConditions = function (callback) {
+    var self = this;
     // load the omics data conditions
     ajax.get({
 		url: "expression/condition",
@@ -235,10 +180,22 @@ PathwayBrowser.loadConditions = function (callback) {
 		if (error) {
 			SomeLightBox.error("Connection to server lost");
 		} else if (state == 200) {
-			self.conditions = data;
-			new Select("transcriptomics", data.transcriptomic);
-            new Select("proteomics", data.proteomic);
-            if(callback) callback();
+            self.conditions = {};
+            for(var i in data){
+                self.conditions[data[i].id] = data[i];
+			}
+            
+			var forSelection = {};
+			for (var id in data) {
+				var type = data[id].type
+				if (!(type in forSelection)) {
+					forSelection[type] = {};
+				}
+				forSelection[type][id] = data[id];
+			}
+			// filters
+            new GroupSelect("omics", forSelection);
+            if (callback) callback.apply(this);
 		}
 	});
 }
@@ -320,9 +277,12 @@ PathwayBrowser.configCanvas = function () {
     var els2move = [];
 
     this.canvas = new Pathway.Canvas($("svg")[0]);
+    this.canvas.setScale(0.5);
+    this.canvas.position(0,0,"top left");
     this.canvas.attr({
         style: null
     });
+
     this.canvas.on("mousedown", function(evt){
         if (evt.button == 0) {
             els2move = [self.canvas];
@@ -459,9 +419,9 @@ PathwayBrowser.loadMetabolite = function (metaboliteId, callback) {
     })
 }
 
-PathwayBrowser.loadOmicsData = function (dataset, callback) {
+PathwayBrowser.loadOmicsData = function (conditionId, callback) {
     ajax.get({
-        url: "expression?condition=" + dataset,
+        url: "expression?condition=" + conditionId,
         headers: {Accept: "application/json"}
     }).done(function(status, data, error, xhr){
         if (error) {
@@ -474,10 +434,11 @@ PathwayBrowser.loadOmicsData = function (dataset, callback) {
     });
 }
 
-PathwayBrowser.showOmicsData = function (type, data) {
+PathwayBrowser.showOmicsData = function (conditionId, data) {
+    var self = this;
     var dataset = [];
     var cssData = {};
-    var max = -Infinity, min = Infinity;
+    var con = self.conditions[conditionId];
     for (var id in data) {
         if (id in this.proteins && data[id]) {
             dataset.push({
@@ -485,8 +446,6 @@ PathwayBrowser.showOmicsData = function (type, data) {
                 value: data[id]
             });
         }
-        if (data[id] > max) max = data[id];
-        if (data[id] < min) min = data[id];
     }
     if (dataset.length) {
         if (this.state == "omics") {
@@ -497,7 +456,7 @@ PathwayBrowser.showOmicsData = function (type, data) {
             this.fadeAll();
         }
         this.state = "omics";
-        var spectrum = new ColorSpectrum(type == "T" ? "Expression level" : "??", min, max);
+        var spectrum = new ColorSpectrum(con.title, con.min, con.max, con.type == "protein level (copies per cell)" ? "log": "");
         dataset.forEach(function(each){
             var color = spectrum.getColor(each.value);
             cssData[".protein[id='" + each.id + "'] rect._protein_rect"] = {
