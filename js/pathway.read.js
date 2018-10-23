@@ -88,7 +88,7 @@ $(document).on("change", "#all-metabolites", function(){
 });
 
 $(document).on("change", "#all-pathways", function(){
-    window.location = "pathway?id"+this.value;
+    window.location = "pathway?id="+this.value;
 });
 
 $(document).on("change", "#omics", function(){
@@ -448,8 +448,7 @@ PathwayBrowser.showOmicsData = function (conditionId, data) {
         }
     }
     if (dataset.length) {
-        if (this.state == "omics") {
-            this.clearOmicsData();
+            this.clearOmicsData();2
         } else if (this.state == "highlight") {
             this.clearHighlight();
         } else {
