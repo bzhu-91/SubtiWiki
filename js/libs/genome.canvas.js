@@ -674,7 +674,6 @@ Genome.diagram.prototype.moveTo = function (basepair, where) {
     where = where || "left";
     var coordinate = this.dataSet._translateCoordinates(basepair) * this.getOptions().resolution;
     var viewPortSpan = Math.round(this.canvas.width / this.pixelRatio / this.getOptions().resolution);
-    console.log(viewPortSpan);
     var x;
     switch (where) {
         case 'left':
