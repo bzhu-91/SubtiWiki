@@ -57,6 +57,33 @@ $(document).ready(function(){
     });
 });
 
+$(document).on("submit", "#search", function(ev){
+	ev.stopPropagation();
+	ev.preventDefault();
+
+	var geneName = this.geneName.value.trim();
+
+	if (geneName.length >= 2) {
+		ajax.get({
+			url:"gene?keyword="+geneName+"&mode=title",
+			headers: {Accept: "application/json"}
+		}).done(function(state, data, error, xhr){
+			if (error) {
+				SomeLightBox.error("Connection to server lost");
+			} else if (state == 200) {
+				if (data.length > 1) {
+					SomeLightBox.error("Gene name " + geneName + " is ambigious");
+				} else {
+					pathwaySearch(data[0].id);
+				}
+			} else {
+				SomeLightBox.error("Gene " + geneName + " not found");
+			}
+		})
+	}
+	return false;
+});
+
 $(document).on("click", "#closePanel", function(){
     $("#full").hide();
     $("#collapsed").show();
