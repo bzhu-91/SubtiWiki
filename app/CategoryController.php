@@ -60,8 +60,7 @@ class CategoryController extends Controller {
 		}
 	}
 
-	protected function findForGene ($input, $accept, $method) {
-		if ($method != "GET") $this->error("Unaccepted method", 405, $accept);
+	protected function findForGene ($input, $accept) {
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i", ["Invalid gene id", 400, $accept]);
 		$gene = Gene::simpleGet($geneId);
 		$data = $gene->has("categories");
