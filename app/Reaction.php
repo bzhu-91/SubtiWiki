@@ -103,7 +103,7 @@ class Reaction extends Model {
     public function insert () {
         $conn = Application::$conn;
         $conn->beginTransaction();
-        if (History::record($this, "add") && parent::insert()) {
+        if (parent::insert() && History::record($this, "add")) {
             $conn->commit();
             return true;
         } else {
