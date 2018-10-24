@@ -1,11 +1,7 @@
 <?php
 class Genome extends Model {
 	static $tableName = "GenomicContext";
-<<<<<<< HEAD
-	static $fileName = "res/M129.fasta";
-=======
 	static $fileName = "res/genome.txt";
->>>>>>> 0ca8a9d48a5f09e1bf6029e57ebaa19d0af9f1ad
 
 	public static function findContextByGene ($id, $span) {
 		if ($id) {
