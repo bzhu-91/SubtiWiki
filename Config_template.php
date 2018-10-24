@@ -48,6 +48,7 @@ $ROUTING_TABLE = [
 
 $GENOME_TYPE = "cyclic"; // can also be "linear"
 $GENOME_LENGTH = 2944608;
+$GENOME_FILE_NAME = "res/genome.txt"; // the file where genome sequence is stored, the genome sequence should have no headers and no spaces/new lines
 $ADMIN_PASSWORD = ""; // this password is used when a user want to delete a gene
 
 $OPEN_REGISTRATION = true; // if false, an invitation is required

@@ -1,7 +1,7 @@
 <?php
 class Genome extends Model {
 	static $tableName = "GenomicContext";
-	static $fileName = "res/EDG-e";
+	static $fileName = "res/genome.txt";
 
 	public static function findContextByGene ($id, $span) {
 		if ($id) {
@@ -99,5 +99,9 @@ class Genome extends Model {
 			return self::findSequenceByLocation($gene->start, $gene->stop, $gene->strand);
 		}
 	}
+}
+
+if ($GLOBALS["GENOME_FILE_NAME"]) {
+	Genome::$fileName = $GLOBALS["GENOME_FILE_NAME"];
 }
 ?>
