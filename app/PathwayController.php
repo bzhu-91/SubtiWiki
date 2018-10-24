@@ -35,10 +35,10 @@ class PathwayController extends Controller {
 				// get all pathways in reactions
 				$protein = Protein::get($proteinId);
 				if ($protein) {
-					$reactions = $protein->has("reaction");
+					$hasReactions = $protein->has("reaction");
 					$allPathways = [];
-					foreach($reactions as $reaction) {
-						$pathways = array_column($reaction->has("pathway"), "pathway");
+					foreach($hasReactions as $hasReaction) {
+						$pathways = array_column($hasReaction->reaction->has("pathway"), "pathway");
 						foreach($pathways as $pathway) {
 							$allPathways[$pathway->id] = $pathway;
 						}
