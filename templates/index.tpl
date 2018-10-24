@@ -54,8 +54,8 @@
 			<span>Methods</span>
 		</div>
 		<p style="font-size: smaller">Citation</p>
-		<div class="pubmed" style="background: white; font-size: smaller;">
-			Citation or other news
+		<div class="pubmed" style="background: white; font-size: smaller; max-width: 800px">
+			This database is a joined effort of <a href="http://www.crg.eu/"><b>CRG-Centre for Genomic Regulation, Barcelona, Spain</b></a> and <a href="http://genmibio.uni-goettingen.de/"><b>Department of General Microbiology, University of Göttingen, Göttingen, Germany</b></a>.
 		</div>
 	</div>
 </div>
