@@ -945,9 +945,9 @@ Genome.axis = Genome.axis || function (dataSet,resolution, ctx) {
 
     this.dataSet = dataSet;
     this.ctx = ctx;
-    this.x1 = this.min * resolution;
-    this.x2 = this.max * resolution;
+    
     this.setDefaultOptions(Genome.defaultOptions.axis);
+    this.setGlobalOptions({resolution: resolution});
 }
 
 Genome.axis.prototype = Object.create(CanvasView.prototype);
@@ -968,7 +968,10 @@ Genome.axis.prototype.isPointInView = function (x,y) {
  * draw the axis
  */
 Genome.axis.prototype.draw = function () {
-    this.y1 = this.y2 = this.getOptions().layout.y;
+    var self = this, o = self.getOptions(), resolution = o.resolution;
+    this.y1 = this.y2 = o.layout.y;
+    this.x1 = this.min * resolution;
+    this.x2 = this.max * resolution;
 
     // draw the line
     var linePath = new Path2D();
@@ -979,7 +982,7 @@ Genome.axis.prototype.draw = function () {
     this.ctx.stroke(linePath);
 
     // draw all the ticks
-    var interval = 200 / this.resolution; // have a tick every 200px (200 / resolution) bp
+    var interval = 200 / resolution; // have a tick every 200px (200 / resolution) bp
     interval = Math.ceil(interval / 1000) * 1000; // round it ups
 
     var tickStart = Math.ceil(this.min / interval) * interval // round up
@@ -987,7 +990,7 @@ Genome.axis.prototype.draw = function () {
 
     while (currentPos <= this.max) {
         var realCoordinates = this.dataSet._translateCoordinatesReal(currentPos);
-        this.drawTick(currentPos * this.resolution, realCoordinates);
+        this.drawTick(currentPos * resolution, realCoordinates);
         currentPos += interval;
     }
 }
