@@ -6,6 +6,7 @@ class GenomeController extends Controller {
 	public function read ($input, $accept) {
 		switch ($accept) {
 			case HTML:
+				$tables = Genome::codonTable();
 				$view = View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Genome Browser",
@@ -15,7 +16,9 @@ class GenomeController extends Controller {
 					"vars" => [
 						"genomeLength" => $GLOBALS["GENOME_LENGTH"],
 						"organismName" => $GLOBALS["ORGANISM_NAME"],
-						"strainName" => $GLOBALS["STRAIN_NAME"]
+						"strainName" => $GLOBALS["STRAIN_NAME"],
+						"codonTable" => $tables["codonTable"],
+						"startTable" => $tables["startTable"],
 					],
 					"jsAfterContent" => ["tabs","libs/genome.canvas", "contextBrowser", "genome.read"],
 				]);

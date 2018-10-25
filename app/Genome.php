@@ -99,6 +99,36 @@ class Genome extends Model {
 			return self::findSequenceByLocation($gene->start, $gene->stop, $gene->strand);
 		}
 	}
+
+	public static function codonTable () {
+		$codonString = trim($GLOBALS["CODON_TABLE"]);
+		$strings = explode("\n", $codonString);
+		if (count($strings) != 5) {
+			return false;
+		}
+		foreach($strings as &$str) {
+			$str = trim($str);
+			if (strlen($str) != 64) {
+				Log::debug(strlen($str));
+				return false;
+			}
+		}
+		$A = $strings[0];
+		$B = $strings[1];
+		$C = $strings[2];
+		$P = $strings[3];
+		$S = $strings[4];
+		$codonTable = [];
+		$startTable = [];
+		for ($i = 0; $i < 64; $i++) {
+			Utility::setValueFromKeypath($codonTable, [$A[$i], $B[$i], $C[$i]], $P[$i]);
+			Utility::setValueFromKeypath($startTable, [$A[$i], $B[$i], $C[$i]], $S[$i]);
+		}
+		return [
+			"codonTable" => $codonTable,
+			"startTable" => $startTable
+		];
+	}
 }
 
 if ($GLOBALS["GENOME_FILE_NAME"]) {

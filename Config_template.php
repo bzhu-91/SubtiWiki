@@ -53,4 +53,19 @@ $ADMIN_PASSWORD = ""; // this password is used when a user want to delete a gene
 
 $OPEN_REGISTRATION = true; // if false, an invitation is required
 
+// the codon table, source https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi?mode=c#SG11
+// line	comment
+// 1	base 1
+// 2	base 2
+// 3	base 3
+// 4	amino acid
+// 5	starts
+$CODON_TABLE = <<<CODON
+TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG
+TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG
+TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG
+FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
+---M------**--*----M------------MMMM---------------M------------
+CODON;
+
 ?>
