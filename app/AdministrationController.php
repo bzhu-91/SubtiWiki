@@ -146,6 +146,7 @@ class AdministrationController extends Controller {
 	}
 
 	public function repair ($input, $accept, $method) {
+		UserController::authenticate(3, $accept);
 		if ($method == "GET" && $accept == HTML) {
 			$tableName = $this->filter($input, "tableName", "has", ["Table name is required", 400, $accept]);
 			$conn = Application::$conn;
