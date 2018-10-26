@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans');
 
 :root {
-	--primary-color: #ac3939; --secondary-color: tomato; --accent-color: gray;
+	--primary-color: #1976d2; --secondary-color: #2196F3; --accent-color: gray; 
 }
 
 * {
