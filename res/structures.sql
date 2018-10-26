@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.23, for Linux (x86_64)
 --
--- Host: localhost    Database: ListiWiki
+-- Host: localhost    Database: SubtiWiki
 -- ------------------------------------------------------
 -- Server version	5.7.23
 
@@ -91,7 +91,7 @@ DROP TABLE IF EXISTS `DataSet`;
 CREATE TABLE `DataSet` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
-  `data` text NOT NULL,
+  `data` json DEFAULT NULL,
   `pubmed` int(10) DEFAULT NULL,
   `type` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -714,7 +714,6 @@ CREATE TABLE `Wiki` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_general_ci */;
 /*!50001 CREATE ALGORITHM=MERGE */
-/*!50013 DEFINER=`ListiWikiAdmin`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `ViewGeneOperon` AS select `Operon`.`id` AS `operon`,`Gene`.`id` AS `gene` from (`Operon` join `Gene` on((`Operon`.`_genes` like concat('%',`Gene`.`id`,'%')))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
