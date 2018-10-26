@@ -1,11 +1,13 @@
 .comparison-a {
 	background: #C5E1A5;
 	padding: 10px;
+	word-break: break-word;
 }
 
 .comparison-b {
 	background: #FFCCBC;
 	padding: 10px;
+	word-break: break-word;
 }
 
 .entry {
