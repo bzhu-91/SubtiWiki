@@ -105,6 +105,7 @@ class OperonController extends Controller {
 				$title = $this->filter($input, "title", "has", ["Title is required", 400, JSON]);
 				$genes = $this->filter($input, "genes", "has", ["Genes is required", 400, JSON]);
 				$operon = Operon::withData($input);
+				$operon->lastAuthor = User::getCurrent()->name;
 				try {
 					$result = $operon->replace();
 					if ($result) {
