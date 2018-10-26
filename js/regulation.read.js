@@ -278,19 +278,12 @@ var RegulationBrowser = RegulationBrowser || function (geneId) {
 
 RegulationBrowser.prototype.load = function () {
 	var self = this;
-	ajax.get({
-		url: window.location.href,
-		headers: {Accept: "application/json"}
-	}).done(function(state, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (state == 200) {
-			self.rawData = data;
-			self.createData();
-		} else {
-			SomeLightBox.error("Data not found");
-		}
-	});
+	if (window.rawData) {
+		self.rawData = window.rawData;
+		self.createData();
+	} else {
+		SomeLightBox.error("Data not found");
+	}
 	ajax.get({
 		url: "expression/condition",
 		headers: {Accept: "application/json"}

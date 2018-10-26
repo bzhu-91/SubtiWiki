@@ -10,7 +10,7 @@
 		<p><label>Radius: </label><span id="radius-display"></span></p>
 		<p><label>Coverage: </label><span id="coverage-display"></span></p>
 	</div>
-	<div id="loading">Loading</div>
+	<div id="loading">{{:message}}</div>
 	<div id="control-block">
 		<img src="img/settings_1.png" id="collapsed"/>
 		<div id="full">
@@ -65,3 +65,4 @@
 		</ul>
 	</div>
 </div>
+{{jsvars:vars}}

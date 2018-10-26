@@ -10,7 +10,7 @@
 		<p><label>Radius: </label><span id="radius-display"></span></p>
 		<p><label>Coverage: </label><span id="coverage-display"></span></p>
 	</div>
-	<div id="loading">Loading</div>
+	<div id="loading">{{:message}}</div>
 	<div id="control-block">
 		<img src="img/settings_1.png" id="collapsed"/>
 		<div id="full">
@@ -29,13 +29,14 @@
 			</p>
 			<p>
 				<label>Omics data: </label>
-				<select id="omics"></select>
+				<select id="omics" style="width:200px"></select>
 			</p>
 			<p>
 				<input type="checkbox" id="sigA-Regulon" {{:sigA}}/><label class="inline">Include SigA Regulon</label>
 				<button id="open-settings" style="padding-bottom: 8px;margin-left: 10px"><img src="img/settings_0.png" class="icon" /> Settings</button>
-				<img src="img/close.png" id="control-collapse" class="icon" />
+				<img src="img/close.png" id="control-collapse" class="icon" style="float:right"/>
 			</p>
+			<p style="clear:both"></p>
 		 	</div>
 	</div>
 
@@ -68,3 +69,4 @@
 		</ul>
 	</div>
 </div>
+{{jsvars:vars}}
