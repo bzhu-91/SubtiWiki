@@ -113,9 +113,6 @@ class Expression {
 		// get max or min value
 		foreach ($all as &$con) {
 			$con->category = $con->getCategory();
-			$maxMin = OmicsGene::getMaxMin($con->id);
-			$con->max = $maxMin["max"];
-			$con->min = $maxMin["min"];
 		}
 		return $all;
 	}
@@ -124,9 +121,6 @@ class Expression {
 		$con = ExperimentalCondition::get($id);
 		if ($con) {
 			$con->category = $con->getCategory();
-			$maxMin = OmicsGene::getMaxMin($id);
-			$con->max = $maxMin["max"];
-			$con->min = $maxMin["min"];
 		}
 		return $con;
 	}
