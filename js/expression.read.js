@@ -232,10 +232,12 @@ var ExpressionBrowser = ExpressionBrowser || function (geneId) {
 	// 		self.loadContext(geneId);
 	// 	});
 	// });
-	self.loadGene(geneId, function() {
-		$("#data").show();
-		self.loadData(geneId, function() {
-			self.draw();
+	self.loadConditions(function() {
+		self.loadGene(geneId, function() {
+			$("#data").show();
+			self.loadData(geneId, function() {
+				self.draw();
+			});
 		});
 	});
 }
