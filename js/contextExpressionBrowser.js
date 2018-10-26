@@ -60,6 +60,14 @@ ContextExpressionBrowser.prototype.setData = function (data, genomeLength, callb
         TSS: {
             plus: 360,
             minus: 470
+        },
+        upshift: {
+            plus: 360,
+            minus: 470
+        },
+        downshift: {
+            plus: 360,
+            minus: 470
         }
     });
 
