@@ -247,6 +247,16 @@ CREATE TABLE `MetaData` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `MetaData`
+--
+
+LOCK TABLES `MetaData` WRITE;
+/*!40000 ALTER TABLE `MetaData` DISABLE KEYS */;
+INSERT INTO `MetaData` VALUES ('Gene','[{\"path\": [\"id\"], \"type\": \"a\"}, {\"path\": [\"title\"], \"type\": \"a\"}, {\"path\": [\"description\"], \"type\": \"a\"}, {\"path\": [\"locus\"], \"type\": \"a\"}, {\"path\": [\"pI\"], \"type\": \"a\"}, {\"path\": [\"mw\"], \"type\": \"a\"}, {\"path\": [\"proteinLength\"], \"type\": \"a\"}, {\"path\": [\"geneLength\"], \"type\": \"a\"}, {\"path\": [\"function\"], \"type\": \"a\"}, {\"path\": [\"product\"], \"type\": \"a\"}, {\"path\": [\"ec\"], \"type\": \"a\"}, {\"path\": [\"synonyms\"], \"type\": \"a\"}, {\"path\": [\"uniProt\"], \"type\": \"a\"}, {\"path\": [\"essential\"], \"type\": \"a\"}, {\"path\": [\"outlinks\", \"geneBank\"], \"type\": \"a\"}, {\"path\": [\"genomicContext\"], \"type\": \"a\", \"default\": \"[[this]]\"}, {\"path\": [\"categories\"], \"type\": \"a\", \"default\": \"[[this]]\"}, {\"path\": [\"regulons\"], \"type\": \"a\", \"default\": \"[[this]]\"}, {\"path\": [\"Gene\", \"Coordinates\"], \"type\": \"a\"}, {\"path\": [\"Gene\", \"Phenotypes of a mutant\"], \"type\": \"b\"}, {\"path\": [\"Gene\", \"additional information\"], \"type\": \"b\"}, {\"path\": [\"RNA\", \"Catalyzed reaction/ biological activity\"], \"type\": \"b\"}, {\"path\": [\"RNA\", \"additional information\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Catalyzed reaction/ biological activity\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Protein family\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Paralogous protein(s)\"], \"type\": \"b\", \"default\": [\"[[this]]\"]}, {\"path\": [\"The protein\", \"Similar proteins in <i>B. subtilis</i> subsp. 168\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Kinetic information\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Structure\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Domain\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Modification\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Cofactors\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Effectors of protein activity\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"Localization\"], \"type\": \"b\"}, {\"path\": [\"The protein\", \"additional information\"], \"type\": \"b\"}, {\"path\": [\"Expression and Regulation\", \"Operons\"], \"type\": \"a\", \"default\": [\"[[this]]\"]}, {\"path\": [\"Expression and Regulation\", \"Other regulations\"], \"type\": \"a\", \"default\": [\"[[this]]\"]}, {\"path\": [\"Expression and Regulation\", \"additional information\"], \"type\": \"b\"}, {\"path\": [\"Biological materials\", \"Mutant\"], \"type\": \"b\"}, {\"path\": [\"Biological materials\", \"Expression vector\"], \"type\": \"b\"}, {\"path\": [\"Biological materials\", \"lacZ fusion\"], \"type\": \"b\"}, {\"path\": [\"Biological materials\", \"GFP fusion\"], \"type\": \"b\"}, {\"path\": [\"Biological materials\", \"two-hybrid system\"], \"type\": \"b\"}, {\"path\": [\"Biological materials\", \"FLAG-tag construct\"], \"type\": \"b\"}, {\"path\": [\"Biological materials\", \"Antibody\"], \"type\": \"b\"}, {\"path\": [\"strain\"], \"type\": \"b\"}, {\"path\": [\"Labs working on this gene/protein\"], \"type\": \"b\"}, {\"path\": [\"References\"], \"type\": \"b\", \"default\": [\"<pubmed></pubmed>\"]}, {\"path\": [\"References\", \"Reviews\"], \"type\": \"b\", \"default\": [\"<pubmed></pubmed>\"]}, {\"path\": [\"References\", \"Research papers\"], \"type\": \"b\", \"default\": [\"<pubmed></pubmed>\"]}, {\"path\": [\"count\"], \"type\": \"a\"}, {\"path\": [\"lastUpdate\"], \"type\": \"a\"}, {\"path\": [\"lastAuthor\"], \"type\": \"a\"}]'),('Operon','[{\"path\": [\"id\"], \"type\": \"a\"}, {\"path\": [\"title\"], \"type\": \"a\"}, {\"path\": [\"genes\"], \"type\": \"a\"}, {\"path\": [\"description\"], \"type\": \"a\"}, {\"path\": [\"regulation\"], \"type\": \"b\"}, {\"path\": [\"additional information\"], \"type\": \"b\"}, {\"path\": [\"count\"], \"type\": \"a\"}, {\"path\": [\"lastUpdate\"], \"type\": \"a\"}, {\"path\": [\"lastAuthor\"], \"type\": \"a\"}]');
+/*!40000 ALTER TABLE `MetaData` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `Metabolite`
 --
 
@@ -512,6 +522,15 @@ CREATE TABLE `ReactionPathway` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `ReactionPathway`
+--
+
+LOCK TABLES `ReactionPathway` WRITE;
+/*!40000 ALTER TABLE `ReactionPathway` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ReactionPathway` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `Regulation`
 --
 
@@ -599,6 +618,16 @@ CREATE TABLE `Statistics` (
   PRIMARY KEY (`item`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Statistics`
+--
+
+LOCK TABLES `Statistics` WRITE;
+/*!40000 ALTER TABLE `Statistics` DISABLE KEYS */;
+INSERT INTO `Statistics` VALUES ('categoryExport',0),('categoryIndex',0),('expressionBrowser',0),('geneCategoryExport',0),('geneExport',0),('genomeBrowser',0),('index',0),('interactionBrowser',0),('interactionExport',0),('operonExport',0),('pathwayBrowser',0),('regulationBrowser',0),('regulationExport',0),('regulonIndex',0),('statistics',0);
+/*!40000 ALTER TABLE `Statistics` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `User`
