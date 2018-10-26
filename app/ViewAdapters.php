@@ -186,13 +186,6 @@ View::registerAdapter("structure", function($data){
 	</a></p>";
 });
 
-View::registerAdapter("expression", function($id, $path){
-	return "<h3>Expression</h3>
-	<p><a href='./expression/view/{$id}' target='_blank'>
-	<img src='http://genome.jouy.inra.fr/seb/images/details/{$path}.png' style='width: 98%' />
-	</a></p>";
-});
-
 /**
  * category related
  */

@@ -204,6 +204,13 @@ class GeneController extends Controller {
 				return "<div class='m_block'><div class='m_key m_inline'>Molecular weight</div><div class='m_value m_inline'>".number_format($data, 2)." kDa</div></div>";
 			}
 		});
+
+		$view->registerAdapter("expression", function($id, $path){
+			return "<h3>Expression</h3>
+			<p><a href='./expression/view/{$id}' target='_blank'>
+			<img src='http://genome.jouy.inra.fr/seb/images/details/{$path}.png' style='width: 98%' />
+			</a></p>";
+		});
 	}
 
 	/** search function */
