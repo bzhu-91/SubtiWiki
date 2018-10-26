@@ -61,19 +61,11 @@ ContextExpressionBrowser.prototype.setData = function (data, genomeLength, callb
             plus: 360,
             minus: 470
         },
-<<<<<<< HEAD
-        Upshift: {
-            plus: 360,
-            minus: 470
-        },
-        Downshift: {
-=======
         upshift: {
             plus: 360,
             minus: 470
         },
         downshift: {
->>>>>>> b41552964b02c991b1b64b8ece6816ca6a614dda
             plus: 360,
             minus: 470
         }

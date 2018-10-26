@@ -26,13 +26,18 @@ class ExpressionController extends Controller {
 					"expression.read"
 				],
 				"styles" => ["expression.read"],
-				"bsupath" => $bsupath,
 				"vars" => [
 					"genomeLength" => $GLOBALS["GENOME_LENGTH"]
 				]
 			]);
 			if ($alternative) {
 				$view->set("jsAfterContent", ["expression.read", "expression.read.alternative"]);
+			}
+			if ($geneId) {
+				$gene = Gene::get($geneId);
+				$view->set([
+					"bsupath" => $gene->outlinks->bsupath,
+				]);
 			}
 			$this->respond($view, 200, HTML);
 		} elseif ($accept == HTML_PARTIAL) {

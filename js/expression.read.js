@@ -235,6 +235,8 @@ var ExpressionBrowser = ExpressionBrowser || function (geneId) {
 	self.loadConditions(function() {
 		self.loadGene(geneId, function() {
 			$("#data").show();
+			$("#section").show();
+			self.adjustImageSize();
 			self.loadData(geneId, function() {
 				self.draw();
 			});
@@ -469,4 +471,13 @@ ExpressionBrowser.prototype.filterDataSet = function () {
 			}
 		}
 	}
+}
+
+ExpressionBrowser.prototype.adjustImageSize = function () {
+	var img1 = $("#exp-img");
+	var img2 = $("#exp-legend");
+	var width = $(".left").width() - 10;
+	var r = img1.width() /(img1.width() + img2.width());
+	img1.css({width: (r * width > 992 ? 992 : r*width) + "px"});
+	img2.css({width: ((1-r)*width > 228 ? 228 : (1-r)*width) + "px"});
 }
