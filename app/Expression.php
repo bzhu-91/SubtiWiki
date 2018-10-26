@@ -4,6 +4,7 @@ class ExperimentalCondition extends Model{
 	static $tableName = "DataSet";
 	static $types = [
 		"transcript level (fold change)",
+		"transcript level (expression index)",
 		"transcript level (raw intensity)",
 		"protein level (copies per cell)",
 		"protein level (existence)",
