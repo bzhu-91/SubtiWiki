@@ -28,6 +28,10 @@
 					<img src="img/zoomOut.svg" id="decrease-spacing" class="icon" />
 			</p>
 			<p>
+				<label>Omics data: </label>
+				<select id="omics"></select>
+			</p>
+			<p>
 				<input type="checkbox" id="sigA-Regulon" {{:sigA}}/><label class="inline">Include SigA Regulon</label>
 				<button id="open-settings" style="padding-bottom: 8px;margin-left: 10px"><img src="img/settings_0.png" class="icon" /> Settings</button>
 				<img src="img/close.png" id="control-collapse" class="icon" />
@@ -37,11 +41,6 @@
 
 	<div id="legend"></div>
 	<div id="settings">
-		<div style="padding: 0 10px">
-			<p><h3 style="color: #333">Integrate omics data</h3></p>
-			<p><label class="inline">Transcriptomics: </label><select id="transcriptomics"></select></p>
-			<p><label class="inline">Proteomics: </label><select id="proteomics"></select></p>
-		</div>
 		<div style="padding: 0 10px">
 			<p><h3 style="color: #333">Select color scheme</h3></p>
 			<p><input id="node-color" class="jscolor" value="1976d2" /><label style="margin-left: 20px">Nodes</label></p>
