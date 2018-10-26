@@ -133,7 +133,9 @@ class View {
 	}
 
 	private function printValueHTML (KeyPath $keypath, $obj) {
-		$obj = json_decode(json_encode($obj));
+		if (is_array($obj)) {
+			$obj = json_decode(json_encode($obj));
+		}
 		$str = "";
 		foreach ($obj as $key => $value) {
 			if ($key[0] === "_" || $value === null || $value === "" || json_encode($value) === "[]" || json_encode($value) === "{}") {
