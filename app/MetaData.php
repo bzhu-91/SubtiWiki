@@ -145,7 +145,7 @@ class MetaData extends Model {
 			foreach ($template as $path) {
 				$keypath = new KeyPath($path);
 				$val = $keypath->get($object);
-				if (!is_null($val)) {
+				if (!is_null($val) && !is_object($val) && !(is_array($val) && Utility::isAssoc($val))) {
 					$sorted[(string) $keypath] = $val;
 				}
 			}
