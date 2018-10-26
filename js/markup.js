@@ -35,6 +35,8 @@ function parseMarkup(txt) {
 						return "<a target='_blank' href='http://subtiwiki.uni-goettingen.de/v3/gene/search/exact/"+g2+"'><i>"+g2+"</i></a>";
 					case 'sw.protein':
 						return "<a target='_blank' href='http://subtiwiki.uni-goettingen.de/v3/gene/search/exact/"+g2+"'>"+(g2[0].toUpperCase() + g2.slice(1))+"</a>";
+					case 'sw':
+						return "<a target='_blank' href='http://subtiwiki.uni-goettingen.de/wiki//index.php/" + g2 + "'>" + g2 + '</a>';
 					default:
 						return m;
 
