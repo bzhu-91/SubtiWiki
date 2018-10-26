@@ -220,15 +220,22 @@ var ExpressionBrowser = ExpressionBrowser || function (geneId) {
 
 	
 	var self = this;
-	self.loadConditions(function() {
-		self.contextBrowser = new ContextExpressionBrowser($("#omics-position-browser"), self.conditions["tilling array"]);
-		self.contextBrowser.showMessage("loading...");
-		self.loadGene(geneId, function() {
-			$("#data").show();
-			self.loadData(geneId, function() {
-				self.draw();
-			});
-			self.loadContext(geneId);
+	// for subtiwiki, no context browser
+	// self.loadConditions(function() {
+	// 	self.contextBrowser = new ContextExpressionBrowser($("#omics-position-browser"), self.conditions["tilling array"]);
+	// 	self.contextBrowser.showMessage("loading...");
+	// 	self.loadGene(geneId, function() {
+	// 		$("#data").show();
+	// 		self.loadData(geneId, function() {
+	// 			self.draw();
+	// 		});
+	// 		self.loadContext(geneId);
+	// 	});
+	// });
+	self.loadGene(geneId, function() {
+		$("#data").show();
+		self.loadData(geneId, function() {
+			self.draw();
 		});
 	});
 }
