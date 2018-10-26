@@ -4,6 +4,23 @@ require_once("ViewAdapters.php");
 class InteractionController extends Controller {
 	public function read ($input, $accept) {
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i");
+		$radius = $this->filter($input, "radius", "is_numeric");
+		if ($radius === null) {
+			$radius = 5;
+		}
+		if ($geneId === null) {
+			$this->error("Invalid gene", 400, JSON);
+		}
+		$wholeGraph = Interaction::getWholeGraph($sigA);
+		$subgraph = $wholeGraph->subgraph($geneId, $radius);
+		if ($subgraph) {
+			$data = $subgraph->toJSON();
+			foreach ($data["nodes"] as $key => &$gene) {
+				$gene = Gene::simpleGet($gene->id);
+			}
+			$data["nodes"] = Utility::arrayColumns($data["nodes"], ["id", "title"]);
+			Utility::decodeLinkForView($data["edges"]);
+		}
 		switch ($accept) {
 			case HTML:
 				$view = View::loadFile("layout2.tpl");
@@ -14,27 +31,23 @@ class InteractionController extends Controller {
 					"jsAfterContent" => ["libs/vis-network.min", "libs/jscolor","interaction.read"],
 					"styles" => ["browser", "vis-network.min"],
 				]);
+				if ($data) {
+					$view->set([
+						"message" => "loading",
+						"vars" => [
+							"rawData" => $data
+						]
+					]);
+				} else {
+					$view->set([
+						"message" => "Data not found"
+					]);
+				}
 				$this->respond($view, 200, HTML);
 				break;
 			case JSON:
-				$radius = $this->filter($input, "radius", "is_numeric");
-				if ($radius === null) {
-					$radius = 5;
-				}
-				if ($geneId === null) {
-					$this->error("Invalid gene", 400, JSON);
-				}
-				$wholeGraph = Interaction::getWholeGraph($sigA);
-				$subgraph = $wholeGraph->subgraph($geneId, $radius);
-				if ($subgraph) {
-					$data = $subgraph->toJSON();
-					foreach ($data["nodes"] as $key => &$gene) {
-						$gene = Gene::simpleGet($gene->id);
-					}
-					$data["nodes"] = Utility::arrayColumns($data["nodes"], ["id", "title"]);
-					Utility::decodeLinkForView($data["edges"]);
-					$this->respond($data, 200, JSON);
-				} else $this->error("Gene not found", 404, JSON);
+				if ($data) $this->respond($data, 200, JSON);
+				else $this->error("Data not found", 404, JSON);
 				break;
 			case HTML_PARTIAL:
 				$this->error("Not acceptable", 406, HTML);

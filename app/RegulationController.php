@@ -6,6 +6,27 @@ class RegulationController extends Controller {
 	public function read ($input, $accept) {
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i");
 		$sigA = $this->filter($input, "sigA", "is_bool");
+		$radius = $this->filter($input, "radius", "is_numeric");
+		if ($sigA === null) {
+			$sigA = false;
+		}
+		if ($radius === null) {
+			$radius = 5;
+		}
+		if ($geneId === null) {
+			$this->error("Invalid gene", 400, JSON);
+		}
+		$wholeGraph = Regulation::getWholeGraph($sigA);
+		$subgraph = $wholeGraph->subgraph($geneId, $radius, true);
+		if ($subgraph) {
+			$data = $subgraph->toJSON();
+			foreach ($data["nodes"] as $key => &$node) {
+				if (!$node->title) {
+					$node = Gene::simpleGet($node->id);
+				}
+			}
+			$data["nodes"] = Utility::arrayColumns($data["nodes"], ["id", "title"]);
+		}
 		switch ($accept) {
 			case HTML:
 				$view = View::loadFile("layout2.tpl");
@@ -15,31 +36,24 @@ class RegulationController extends Controller {
 					"content" => "{{regulation.read.tpl}}",
 					"jsAfterContent" => ["libs/vis-network.min", "libs/jscolor","regulation.read"],
 					"styles" => ["browser", "vis-network.min"],
-					"sigA" => $sigA ? "checked" : ""
+					"sigA" => $sigA ? "checked" : "",
 				]);
+				if ($data) {
+					$view->set([
+						"vars" => [
+							"rawData" => $data
+						],
+						"message" => "loading"
+					]);
+				} else {
+					$view->set([
+						"message" => "Data not found"
+					]);
+				}
 				$this->respond($view, 200, HTML);
 				break;
 			case JSON:
-				$radius = $this->filter($input, "radius", "is_numeric");
-				if ($sigA === null) {
-					$sigA = false;
-				}
-				if ($radius === null) {
-					$radius = 5;
-				}
-				if ($geneId === null) {
-					$this->error("Invalid gene", 400, JSON);
-				}
-				$wholeGraph = Regulation::getWholeGraph($sigA);
-				$subgraph = $wholeGraph->subgraph($geneId, $radius, true);
-				if ($subgraph) {
-					$data = $subgraph->toJSON();
-					foreach ($data["nodes"] as $key => &$node) {
-						if (!$node->title) {
-							$node = Gene::simpleGet($node->id);
-						}
-					}
-					$data["nodes"] = Utility::arrayColumns($data["nodes"], ["id", "title"]);
+				if ($data) {
 					$this->respond($data, 200, JSON);
 				} else $this->error("Gene not found", 404, JSON);
 				break;
