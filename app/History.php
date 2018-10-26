@@ -106,5 +106,20 @@ class History extends Model {
 			return $record[0];
 		}
 	}
+
+	public static function parse ($str) {
+		$current = Model::parse($str);
+		if ($current) return $current;
+		else {
+			preg_match_all("/\{(\w+?)\|([^\[\]\|]+?)\}/i", $str, $matches);
+			$className = ucfirst($matches[1][0]);
+			if (!empty($matches)) {
+				$record = self::findLastRevision($matches[1][0], $matches[2][0]);
+				if ($record) {
+					return $className::withData($record->record);
+				}
+			}
+		}
+	}
 }
 ?>

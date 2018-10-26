@@ -144,6 +144,10 @@ class HistoryController extends Controller {
 				$gene = Gene::withData($entry->record);
 				$presentation .= $this->toRevisionLink($gene);
 				break;
+			case 'category':
+				$category = Category::withData($entry->record);
+				$presentation .= $category->toLinkMarkup();
+				break;
 			case 'operon':
 				$operon = Operon::withData($entry->record);
 				$operon->title = preg_replace_callback("/\[\[gene\|([a-f0-9]{40})\]\]/i",function($match){
@@ -155,7 +159,26 @@ class HistoryController extends Controller {
 			case 'reaction':
 				// need to include reaction first
 				$reaction = Reaction::withData($entry->record);
-				$presentation .="R{$reaction->id}";
+				$presentation .= "R{$reaction->id}";
+				break;
+			case 'regulon':
+				$regulon = Regulon::withData($entry->record);
+				$regulon->title = $regulon->getTitle();
+				$presentation .= $this->toRevisionLink($regulon);
+				break;
+			case "pathway":
+				$presentation .= "<a href='pathway?id={$entry->record->id}'>{$entry->record->title}</a>";
+				break;
+			case "wiki":
+				$presentation .= "<a href='wiki?id={$entry->record->id}'>{$entry->record->title}</a>";
+				break;
+			case "metabolite":
+				$metabolite = Metabolite::withData($entry->record);
+				$presentation .= $metabolite->title;
+				break;
+			case 'complex':
+				$complex = Complex::withData($entry->record);
+				$presentation .= $this->toRevisionLink($complex);
 				break;
 			case 'geneCategory':
 				if (is_string($entry->record->gene)) {
@@ -203,14 +226,6 @@ class HistoryController extends Controller {
 				}
 				$presentation .= $this->toRevisionLink($prot1)."-".$this->toRevisionLink($prot2);
 				break;
-			case 'regulon':
-				$regulon = Regulon::simpleGet($entry->record->id);
-				if (!$regulon) {
-					$regulon = History::findLastRevision("regulon", $entry->record->id);
-				}
-				$regulon->title = $regulon->getTitle();
-				$presentation .= $this->toRevisionLink($regulon);
-				break;
 			case 'paralogousProtein':
 				if (is_string($entry->record->prot1)) {
 					$prot1 = Gene::simpleGet($entry->record->prot1);
@@ -231,28 +246,26 @@ class HistoryController extends Controller {
 				}
 				$presentation .= $this->toRevisionLink($prot1)."-".$this->toRevisionLink($prot2);
 			case 'regulation':
-				$regulator = Model::parse($entry->record->regulator);
-				$regulated = Model::parse($entry->record->regulated);
+				$regulator = History::parse($entry->record->regulator);
+				$regulated = History::parse($entry->record->regulated);
+				if ($regulated && $regulator) {
+					$presentation .= "regulation: ".$this->toRevisionLink($regulator)." → ".$regulated->toLinkMarkup();
+				} else {
+					$presentation .= "regulation: Error with record. Please contact admin";
+				}
 				break;
-			case "pathway":
-				$presentation .= "<a href='pathway?id={$entry->record->id}'>{$entry->record->title}</a>";
-				break;
-			case "wiki":
-				$presentation .= "<a href='wiki?id={$entry->record->id}'>{$entry->record->title}</a>";
-				break;
-			case "metabolite":
-				$metabolite = Metabolite::withData($entry->record);
-				$presentation .= $metabolite->title;
 			case "complexMember":
 				$complex = Complex::simpleGet($entry->record->complex);
 				if ($complex == null) {
 					$lastRevision = History::findLastRevision("complex", $entry->record->complex);
 					$complex = Complex::withData($lastRevision);
 				}
-				$member = Model::parse($entry->record->member);
+				$member = History::parse($entry->record->member);
 				if ($member) {
 					$predicate = $entry->lastOperation == "add" ? " to " : " from ";
 					$presentation .= $this->toRevisionLink($member).$predicate.$this->toRevisionLink($complex);
+				} else {
+					$presentation .= "Error with record. Please contact admin";
 				}
 				break;
 			case 'reactionCatalyst':
@@ -266,10 +279,6 @@ class HistoryController extends Controller {
 					$predicate = $entry->lastOperation == "add" ? " to " : " from ";
 					$presentation .= $this->toRevisionLink($catalyst).$predicate."<a href='history?target=reaction&id={$reaction->id}'>R{$reaction->id}: {$reaction->equation}</a>";
 				}
-				break;
-			case 'complex':
-				$complex = Complex::withData($entry->record);
-				$presentation .= $this->toRevisionLink($complex);
 				break;
 			default:
 				break;
