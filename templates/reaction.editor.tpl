@@ -1,4 +1,3 @@
-
 <p style="text-align: right">
     <a href="reaction">List of all reactions</a>
     &nbsp;&nbsp;&nbsp;&nbsp;
