@@ -1,4 +1,3 @@
-
 <p style="text-align: right">
     <a href="reaction">List of all reactions</a>
     &nbsp;&nbsp;&nbsp;&nbsp;
@@ -8,18 +7,12 @@
     <h3>Reaction</h3>
     <p>{{:message}}</p>
     <form action="reaction" method="{{:method}}" type="ajax" style="background:#eee; padding:10px">
-        <p><label>Equation: </label>{{:equation}}<i>(This is automatic generated)</i></p>
+        <input type="hidden" name="id" value="{{:id}}" />
+        <p><label>Equation: </label>{{:equation}}<i> (This is automatic generated)</i></p>
         <p>
             <label>This reaction is: </label>
             <input type="checkbox" name="reversible" id="AA-CE" {{:checkReversible}}/><label for="AA-CE">Reversible reaction</label>
             <input type="checkbox" name="novel" id="AA-BD" {{:checkNovel}}/><label for="AA-BD">Novel reaction</label>
-        </p>
-        <p>
-            <label>Pathway: </label>
-            <select name="pathway" id="select-pathway">
-                <option>Please select</option>
-            </select>
-
         </p>
         <p>
             <label>KEGG reaction id: </label><input type="text" name="KEGG" value="{{:KEGG}}" />(optional)
