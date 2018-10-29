@@ -10,6 +10,13 @@ function getQueryVariable(variable) {
     console.log('Query variable %s not found', variable);
 }
 
+function ucfirst (str) {
+	str += ''
+	var f = str.charAt(0)
+		.toUpperCase()
+	return f + str.substr(1)
+}
+
 $(document).ready(function() {
 	var gene = getQueryVariable("gene");
 	if (("echarts" in window) && gene) {
@@ -404,7 +411,7 @@ ExpressionBrowser.prototype.drawChart = function (type, data, container, descrip
 	var self = this;
 	var chart = echarts.init(container);
 	var options = JSON.parse(JSON.stringify(self.chartOptions));
-	options.title.text = options.yAxis.name = type;
+	options.title.text = options.yAxis.name = ucfirst(type);
 	if (type == "proteomic data (copies per cell)") options.yAxis.type = "log";
 
 	// add conditions to the xAxis
