@@ -68,15 +68,41 @@ PathwayModel.loadReaction = function (reactionId, callback) {
 PathwayModel.searchReaction = function (keyword) {
     var results = [];
     keyword = keyword.toLowerCase();
+    var keywords = [];
+    if (keyword.indexOf(" ") != -1) {
+        keywords = keyword.split(" ");
+    } else {
+        keywords.push(keyword);
+    }
     this.reactionIndex.forEach(function(reaction){
-        if (reaction.equation && reaction.equation.toLowerCase().indexOf(keyword) > -1) {
-            results.push(reaction);
+        var result = {
+            reaction: reaction,
+            relevance: 0
+        }
+        if (reaction.equation) {
+            keywords.forEach(function(keyword){
+                if (reaction.equation.toLowerCase().indexOf(keyword) != -1) {
+                    result.relevance++;
+                }
+            });
+            results.push(result);
         }
     });
-    results = results.sort(function(a,b){
-        return a.id - b.id;
+    results = results.filter(function(result) {
+        return result.relevance > 0;
     });
-    return results;
+    results = results.sort(function(a,b){
+        if (a.relevance > b.relevance) return 1;
+        else if (a.relevance < b.relevance) return -1;
+        else if (a.id > b.id) return 1;
+        else if (a.id < b.id) return -1;
+        else return 0;
+    });
+    var reactions = [];
+    results.forEach(function(result){
+        reactions.push(result.reaction);
+    });
+    return reactions;
 }
 
 var PathwaySearchViewController = PathwaySearchViewController || {
