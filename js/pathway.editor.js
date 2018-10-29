@@ -92,8 +92,8 @@ PathwayModel.searchReaction = function (keyword) {
         return result.relevance > 0;
     });
     results = results.sort(function(a,b){
-        if (a.relevance > b.relevance) return 1;
-        else if (a.relevance < b.relevance) return -1;
+        if (a.relevance > b.relevance) return -1;
+        else if (a.relevance < b.relevance) return 1;
         else if (a.id > b.id) return 1;
         else if (a.id < b.id) return -1;
         else return 0;
