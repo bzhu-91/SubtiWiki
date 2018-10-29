@@ -29,5 +29,33 @@ class Pathway extends Model {
             }
         }
     }
+
+    /**
+     * @param Array $reactions the reactions
+     * @return true/false 
+     */
+    public function setReactions ($reactions) {
+        $conn = Application::$conn;
+        if ($this->id && $reactions) {
+            $conn->beginTransaction();
+            $sql = "delete from ReactionPathway where pathway = ?";
+            if ($conn->doQuery($sql, [$this->id])) {
+                $vals = [];
+                $placeholders = array_fill(0, count($reactions), "(?,?)");
+                $sql = "insert into ReactionPathway (pathway, reaction) values ";
+                foreach($reactions as $reaction) {
+                    $vals[] = $this->id;
+                    $vals[] = $reaction->id;
+                }
+                $sql .= implode(",", $placeholders);
+                if ($conn->doQuery($sql, $vals)) {
+                    $conn->commit();
+                    return true;
+                }
+            }
+            $conn->rollback();
+            return false;
+        }
+    }
 }
 ?>

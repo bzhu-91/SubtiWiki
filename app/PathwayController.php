@@ -4,7 +4,7 @@ require_once ("ViewAdapters.php");
 class PathwayController extends Controller {
 	public function read ($input, $accept) {
 		$id = $this->filter($input, "id", "is_numeric");
-		$proteinId = $this->filter($input, "protein", "/^[a-f0-9]{40}$/");
+		$proteinId = $this->filter($input, "protein", "/^[a-f0-9]{40}$/i");
 		if ($accept == HTML) {
 			if (is_null($id)) {
 				$id = 1;
@@ -90,6 +90,17 @@ class PathwayController extends Controller {
 				}
 				if (array_key_exists("map", $input)) {
 					$pathway->map = $input["map"];
+				}
+				if (array_key_exists("reactions", $input)) {
+					$reactions = [];
+					$ids = explode(",", $input["reactions"]);
+					foreach($ids as $id) {
+						$reaction = Reaction::simpleGet($id);
+						if ($reaction) {
+							$reactions[] = $reaction;
+						}
+					}
+					$pathway->setReactions($reactions);
 				}
 				if ($pathway->update()) {
 					$this->respond(null, 200, JSON);

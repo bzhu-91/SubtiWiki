@@ -856,6 +856,15 @@ $(document).on("change", "#select-pathway", function(evt){
 })
 
 $(document).on("click", "#btn-save", function(evt){
+    // get all the geneIds in this pathway map
+    var ids = {};
+    $("#editor .reaction").each(function(idx, reaction){
+        ids[reaction.id] = true;
+    });
+    var reactions = [];
+    for(var id in ids) {
+        reactions.push(id);
+    }
     PathwayEditor.clearSelection();
     var outerHTML = $("#editor svg")[0].outerHTML;
     ajax.put({
@@ -863,7 +872,8 @@ $(document).on("click", "#btn-save", function(evt){
         headers: {Accept: "application/json"},
         data: ajax.serialize({
             map: outerHTML,
-            id: pathwayId
+            id: pathwayId,
+            reactions: reactions.join(",")
         })
     }).done(function(status, data, error, xhr){
         if (error) {
