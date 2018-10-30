@@ -846,7 +846,7 @@ $(document).on("submit", "#form-rename", function(evt){
 
 $(document).on("change", "#select-pathway", function(evt){
     var self = this;
-    SomeLightBox.alert("Save the result", "Would you like to save your working progress before leaving this page?", {
+    if (window.pathwayId) SomeLightBox.alert("Save the result", "Would you like to save your working progress before leaving this page?", {
         title: "Save",
         onclick: function(){
             $("#btn-save").click();
