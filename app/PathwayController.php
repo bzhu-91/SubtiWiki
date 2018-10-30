@@ -60,22 +60,22 @@ class PathwayController extends Controller {
 		UserController::authenticate(1, $accept);
 		if ($accept == HTML && $method == "GET") {
 			$id = $this->filter($input, "id", "is_numeric");
-			// by default $id is one
-			if (is_null($id)){
-				$id = 1;
-			}
-			$pathway = Pathway::get($id);
 			$view = View::loadFile("layout4.tpl");
-			$view->set($pathway);
 			$view->set([
 				"headerTitle" => "Edit pathway",
 				"content" => "{{pathway.editor.tpl}}{{jsvars:vars}}",
-				"vars" => [
-					"pathwayId" => $id,
-				],
 				"jsAfterContent" => ["libs/view", "libs/pathway","all.editor", "pathway.editor"],
 				"styles" => ["pathway","pathway.editor"]
 			]);
+			if ($id) {
+				$pathway = Pathway::get($id);
+				$view->set($pathway);
+				$view->set([
+					"vars" => [
+						"pathwayId" => $id,
+					],
+				]);
+			}
 			$this->respond($view, 200, HTML);
 		}
 	}
