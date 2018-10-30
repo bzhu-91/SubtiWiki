@@ -18,10 +18,14 @@ if (Object.assign) {
 
 $(document).ready(function(){
     $("#top-menu-bar").tooltip();
-    PathwayModel.loadIndex(function(){
-        PathwaySearchViewController.init();
-        PathwayEditor.init();
-    })    
+    if (window.pathwayId) {
+        PathwayModel.loadIndex(function(){
+            PathwaySearchViewController.init();
+            PathwayEditor.init();
+        })    
+    } else {
+        PathwayEditor.loadPathways();
+    }
 });
 
 var PathwayModel = PathwayModel || {
@@ -213,11 +217,13 @@ PathwayEditor.loadPathways = function () {
         if (error) {
             SomeLightBox.error("Connection to server lost");
         } else if (status == 200) {
-            $("#select-pathway").html("");
+            $("#select-pathway").html("<option>Please select</option>");
             data.forEach(function(pathway){
                 $("#select-pathway").append($("<option></option>").html(pathway.title).val(pathway.id));
             });
-            $("#select-pathway").val(pathwayId);
+            if (window.pathwayId) {
+                $("#select-pathway").val(pathwayId);
+            }
         }
     })
 }
