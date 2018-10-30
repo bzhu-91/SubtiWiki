@@ -245,7 +245,7 @@ class ReactionController extends Controller {
 		switch($method) {
 			case 'POST':
 				// add metabolite here
-				$type = $this->filter($input, "type", "/(protein)|(complex)/i", ["Type of the catalyst is required", 400, JSON]);
+				$type = $this->filter($input, "type", "/(protein)|(complex|object)/i", ["Type of the catalyst is required", 400, JSON]);
 				$title = $this->filter($input, "title", "has", ["Name of the catalyst is required", 400, JSON]);
 				switch($type) {
 					case "protein":
@@ -272,6 +272,14 @@ class ReactionController extends Controller {
 							}
 						}
 						if ($reaction->addCatalyst($complex)){
+							$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
+						} else {
+							$this->error("An internal error has happened, please contact admin", 500, JSON);
+						}
+						break;
+					case "object":
+						$object = new Object($title);
+						if ($reaction->addCatalyst($object)){
 							$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
 						} else {
 							$this->error("An internal error has happened, please contact admin", 500, JSON);

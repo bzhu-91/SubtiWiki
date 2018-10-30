@@ -8,6 +8,7 @@
             <option value="-1">Please select ...</option>
             <option value="protein">Protein</option>
             <option value="complex">Protein Complex</option>
+            <option value="object">Unspecified</option>
         </select>
         <label>Catalyst: </label><input type="text" name="title" style='width:300px' /><input type="submit" />
     </form>
