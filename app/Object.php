@@ -9,14 +9,14 @@ class Object extends Model {
 	}
 
 	public static function getRefWithId ($id) {
-		return new Riboswitch($id);
+		return new Object($id);
 	}
 
 	public static function getRefWithTitle ($title) {
-		return new Riboswitch($title);
+		return new Object($title);
 	}
 
 	public static function simpleGet ($id) {
-		return new Riboswitch($id);
+		return new Object($id);
 	}
 }
