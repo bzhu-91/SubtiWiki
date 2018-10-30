@@ -24,7 +24,7 @@ trait Markup {
 		preg_match_all("/\{(\w+?)\|([^\[\]\|]+?)\}/i", $str, $matches);
 		if (!empty($matches)) {
 			$className = ucfirst($matches[1][0]);
-			if ($className == "object") {
+			if ($className == "Object") {
 				$obj = new stdClass;
 				$obj->id = $matches[2][0];
 				$obj->title = $matches[2][0];
