@@ -61,7 +61,7 @@ class DBBase {
 			$stmt->execute();
 			return $stmt;
 		} catch (Exception $e) {
-			Log::debug($e->getMessage());
+			// Log::debug($e->getMessage());
 			$this->lastError = $e->getMessage();
 			return false;
 		}
