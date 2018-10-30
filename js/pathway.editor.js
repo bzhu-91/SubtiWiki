@@ -246,6 +246,7 @@ PathwayEditor.processView = function () {
 PathwayEditor.drawReaction = function (reactionId) {
     var self = this;
     PathwayModel.loadReaction(reactionId, function(data){
+        data.width = 100; data.height = 200;
         var reaction = new Pathway.Reaction(data);
         reaction.appendTo(self.canvas);
         reaction.position(0,0,"left top");
