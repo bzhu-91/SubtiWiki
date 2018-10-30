@@ -19,7 +19,9 @@ class PathwayController extends Controller {
 				"jsAfterContent" => ["libs/view","libs/pathway","pathway.read"],
 				"styles" => ["browser", "pathway"],
 				"vars" => [
-					"pathwayId" => $id
+					"pathwayId" => $id,
+					"pathways" => Utility::arrayColumns(Pathway::getAll(1), ["id", "title"]),
+					"conditions" => Expression::getConditions()
 				],
 			]);
 			$this->respond($view, 200, HTML);

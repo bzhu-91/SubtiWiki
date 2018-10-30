@@ -189,18 +189,33 @@ var PathwayBrowser = PathwayBrowser || {
 
 PathwayBrowser.load = function () {
     var self = this;
+    self.configCanvas();
     this.loadConditions();
-    this.loadData(function(){
-        self.configCanvas();
-        self.loadCanvas();
-        self.loadPathways();
-    });
+    this.loadPathways();
+    this.loadCanvas();
 }
 
 PathwayBrowser.loadConditions = function (callback) {
     var self = this;
     // load the omics data conditions
-    ajax.get({
+    if (window.conditions) {
+        self.conditions = {};
+        for(var i in conditions){
+            self.conditions[conditions[i].id] = conditions[i];
+        }
+        
+        var forSelection = {};
+        for (var id in conditions) {
+            var type = conditions[id].type
+            if (!(type in forSelection)) {
+                forSelection[type] = {};
+            }
+            forSelection[type][id] = conditions[id];
+        }
+        // filters
+        new GroupSelect("omics", forSelection);
+        if (callback) callback.apply(this);
+    } else ajax.get({
 		url: "expression/condition",
 		headers: {Accept: "application/json"}
 	}).done(function(state, data, error, xhr){
@@ -227,57 +242,23 @@ PathwayBrowser.loadConditions = function (callback) {
 	});
 }
 
-PathwayBrowser.loadData = function (callback) {
-    var self = this;
-    ajax.get({
-        url: "gene?query=title",
-        headers: {Accept: "application/json"}
-    }).done(function(status, data, error, xhr){
-        if (error) {
-            SomeLightBox.error("Connection to server lost");
-        } else if(status == 200) {
-            data.shift(); // remove header
-            data.forEach(function(row){
-                self.allProteins[row[0]] = {
-                    id: row[0],
-                    locus: row[1],
-                    title: row[2]
-                }
-            });
-        }
-
-        ajax.get({
-            url: "metabolite?query=title",
-            headers: {Accept: "application/json"}
-        }).done(function(status, data, error, xhr){
-            if (error) {
-                SomeLightBox.error("Connection to server lost");
-            } else if (status == 200) {
-                data.shift();
-                data.forEach(function(row){
-                    self.allMetabolites[row[0]] = {
-                        id: row[0],
-                        title: row[1]
-                    }
-                });
-            }
-
-            if (callback) callback();
-        })
-    });
-}
-
 PathwayBrowser.loadCanvas = function () {
     var self = this;
     // get all enzymes and metabolites
     $(".protein").each(function(idx, element){
         var id = element.id;
-        self.proteins[id] = self.allProteins[id]
+        self.proteins[id] = {
+            id: id,
+            title: element.getAttribute("title")
+        }
     });
 
     $(".metabolite").each(function(idx, element){
         var id = element.id;
-        self.metabolites[id] = self.allMetabolites[id];
+        self.metabolites[id] = {
+            id: id,
+            title: element.getAttribute("title")
+        };
     });
 
     // create select
@@ -286,7 +267,10 @@ PathwayBrowser.loadCanvas = function () {
 }
 
 PathwayBrowser.loadPathways = function () {
-    ajax.get({
+    if (window.pathways) {
+        new Select("all-pathways", window.pathways);
+        $("#all-pathways").val(pathwayId);
+    } else ajax.get({
         url: "pathway",
         headers: {Accept: "application/json"}
     }).done(function(status, data, error, xhr){
