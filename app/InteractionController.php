@@ -8,9 +8,6 @@ class InteractionController extends Controller {
 		if ($radius === null) {
 			$radius = 5;
 		}
-		if ($geneId === null) {
-			$this->error("Invalid gene", 400, JSON);
-		}
 		$wholeGraph = Interaction::getWholeGraph($sigA);
 		$subgraph = $wholeGraph->subgraph($geneId, $radius);
 		if ($subgraph) {
@@ -35,7 +32,9 @@ class InteractionController extends Controller {
 					$view->set([
 						"message" => "loading",
 						"vars" => [
-							"rawData" => $data
+							"rawData" => $data,
+							"datasetDisplayMode" => $GLOBALS["DATASET_DISPLAY_MODE"],
+							"conditions" => Expression::getConditions()
 						]
 					]);
 				} else {

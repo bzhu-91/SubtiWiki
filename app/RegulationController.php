@@ -13,9 +13,6 @@ class RegulationController extends Controller {
 		if ($radius === null) {
 			$radius = 5;
 		}
-		if ($geneId === null) {
-			$this->error("Invalid gene", 400, JSON);
-		}
 		$wholeGraph = Regulation::getWholeGraph($sigA);
 		$subgraph = $wholeGraph->subgraph($geneId, $radius, true);
 		if ($subgraph) {
@@ -41,7 +38,9 @@ class RegulationController extends Controller {
 				if ($data) {
 					$view->set([
 						"vars" => [
-							"rawData" => $data
+							"rawData" => $data,
+							"conditions" => Expression::getConditions(),
+							"datasetDisplayMode" => $GLOBALS["DATASET_DISPLAY_MODE"]
 						],
 						"message" => "loading"
 					]);
