@@ -1,1 +1,1 @@
-<p>{{:description}}</p>
+<p style="margin: 1.5em 0 1.5em 0">{{:description}}</p>
