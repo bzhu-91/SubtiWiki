@@ -1,8 +1,8 @@
 #strain {
-    padding:5px 10px;
+    padding: 2.5px 10px;
     border: 1px solid #ddd;
     border-radius: 3px;
     background-color: #eee;
-    font-size: smaller;
+    font-size: 11pt;
     margin-bottom: 5px;
 }
