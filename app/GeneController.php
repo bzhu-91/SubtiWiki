@@ -91,6 +91,7 @@ class GeneController extends Controller {
 						"title" => "<i>{$gene->title}</i>",
 						"pageTitle" => $gene->title,
 						"content" => "{{gene.view.tpl}}",
+						"titleExtra" => "<div id=strain>{{:strain}}</div>",
 						"vars" => [
 							"geneId" => $gene->id,
 							"geneTitle" => $gene->title,
