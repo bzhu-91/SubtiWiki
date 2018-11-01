@@ -1,2 +1,2 @@
-<div id="wiki-viewer"></div>
+<div id="wiki-viewer">{{:article}}</div>
 {{jsvars:vars}}

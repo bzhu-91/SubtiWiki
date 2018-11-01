@@ -1,9 +1,11 @@
 <form action="wiki" method="{{:method}}" type="ajax" class="quill">
 <p>
-    <label>Title: </label>
-    <input name="title" value="{{:title}}" />
+    <p>
+        <label>Title: </label>
+        <input name="title" value="{{:title}}" />
+    </p>
+    <textarea name="article">{{:article}}</textarea>
 </p>
-<div id="wiki-editor"></div>
 <input type="hidden" name="id" value="{{:id}}" />
 <p style="text-align:right">
     <a class="button delBtn" id="{{:id}}" target="wiki" style="float:left; margin-left:0">Delete</a>
