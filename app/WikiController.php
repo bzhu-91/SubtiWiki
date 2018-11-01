@@ -119,13 +119,9 @@ class WikiController extends Controller {
                         $view->set([
                             "pageTitle" => "{{:title}}",
                             "content" => "{{wiki.view.tpl}}",
-                            "jsAfterContent" => ["libs/quill.min", "wiki.view"],
-                            "styles" => ["quill.snow"],
-                            "vars" => [
-                                "article" => $article->article
-                            ],
+                            "jsAfterContent" => ["wiki.view"],
                             "floatButtons" => [
-                                ["href" => "wiki/editor?id=$id", "icon" => "edit.svg"]
+                                ["href" => "wiki/editor?id={$article->id}", "icon" => "edit.svg"]
                             ]
                         ]);
                         $this->respond($view, 200, HTML);
