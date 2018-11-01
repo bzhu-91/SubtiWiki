@@ -242,11 +242,11 @@ function sort (mode) {
 	if (mode.match(/termination.*anti-?termination/i)) {
 		return "other";
 	}
-	if (mode.match(/termination/i)) {
-		return "repressive";
-	}
 	if (mode.match(/anti-?termination/i)) {
 		return "activative";
+	}
+	if (mode.match(/termination/i)) {
+		return "repressive";
 	}
 	return "other"
 }
