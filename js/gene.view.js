@@ -57,7 +57,7 @@ $(document).ready(function(){
 					width:"100%", 
 					height:"auto",
 					node:{
-						color:"#8BC34A"
+						color:"#2196F3"
 					}
 				};
 				var dataSet = new Interactome.dataSet(data.nodes, data.edges);
