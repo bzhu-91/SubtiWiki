@@ -1,5 +1,18 @@
-var Select = Select || function (id, data, withNull) {
-	this.view = document.getElementById(id);
+function ucfirst (str) {
+	str += ''
+	var f = str.charAt(0)
+		.toUpperCase()
+	return f + str.substr(1)
+}
+
+var Select = Select || function (container, data, withNull) {
+    if (typeof container === "string" || container instanceof String) {
+        this.view = document.getElementById(container);
+    } else if (container.tagName && container.tagName === "SELECT") {
+        this.view = container;
+    } else {
+        throw new Error ("container is not a valid dom element or id string");
+    }
     this.data = data;
     this.withNull = withNull || true;
 	this.populate();
@@ -28,8 +41,14 @@ Select.prototype.populate = function () {
 	}
 }
 
-var GroupSelect = GroupSelect || function (id, data) {
-	this.view = document.getElementById(id);
+var GroupSelect = GroupSelect || function (container, data) {
+	if (typeof container === "string" || container instanceof String) {
+        this.view = document.getElementById(container);
+    } else if (container.tagName && container.tagName === "SELECT") {
+        this.view = container;
+    } else {
+        throw new Error ("container is not a valid dom element or id string");
+    }
 	this.data = data;
 	this.populate();
 }
@@ -118,10 +137,13 @@ $(document).on("change", "#all-pathways", function(){
     window.location = "pathway?id="+this.value;
 });
 
-$(document).on("change", "#omics", function(){
+$(document).on("change", ".omics", function(){
     var self = this;
     PathwayBrowser.clearOmicsData();
     var conditionId = this.value;
+    // reset other omics select tags
+    $("select.omics").val(-1);
+    self.value = conditionId;
     if (conditionId != -1) {
         PathwayBrowser.clearHighlight();
         $("#all-proteins, #all-metabolites").val(-1);
@@ -173,6 +195,15 @@ $(document).on("click", ".metabolite", function(){
     })
 });
 
+$(document).on("click", "#full-screen", function() {
+    if (this.innerHTML == "Full screen") {
+        this.innerHTML = "Exit full screen";
+    } else {
+        this.innerHTML = "Full screen";
+    }
+    $("#upper, #under").toggle();
+});
+
 // load all conditions
 var PathwayBrowser = PathwayBrowser || {
     proteins: {},
@@ -213,33 +244,21 @@ PathwayBrowser.loadConditions = function (callback) {
             forSelection[type][id] = conditions[id];
         }
         // filters
-        new GroupSelect("omics", forSelection);
+        if (window.datasetDisplayMode == "seperate") {
+            for(var type in forSelection) {
+                var label = $("<label></label>").html(ucfirst(type));
+                var select = $("<select></select>").addClass("omics");
+                new Select(select[0], forSelection[type]);
+                $("#omics-data-select-container").append(label, select);
+            }
+        } else {
+            var label = $("<label>Omics data</label>");
+            var select = $("<select></select>").addClass("omics");
+            new GroupSelect(select[0], forSelection);
+            $("#omics-data-select-container").append(label, select);
+        }
         if (callback) callback.apply(this);
-    } else ajax.get({
-		url: "expression/condition",
-		headers: {Accept: "application/json"}
-	}).done(function(state, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (state == 200) {
-            self.conditions = {};
-            for(var i in data){
-                self.conditions[data[i].id] = data[i];
-			}
-            
-			var forSelection = {};
-			for (var id in data) {
-				var type = data[id].type
-				if (!(type in forSelection)) {
-					forSelection[type] = {};
-				}
-				forSelection[type][id] = data[id];
-			}
-			// filters
-            new GroupSelect("omics", forSelection);
-            if (callback) callback.apply(this);
-		}
-	});
+    }
 }
 
 PathwayBrowser.loadCanvas = function () {

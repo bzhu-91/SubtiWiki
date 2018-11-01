@@ -53,6 +53,8 @@ $ADMIN_PASSWORD = ""; // this password is used when a user want to delete a gene
 
 $OPEN_REGISTRATION = true; // if false, an invitation is required
 
+$DATASET_DISPLAY_MODE = "seperate"; // can also be aggregate, controller how omics data is shown in the pathway/interaction/regulation browsers
+
 // the codon table, source https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi?mode=c#SG11
 // line	comment
 // 1	base 1

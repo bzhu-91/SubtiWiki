@@ -27,8 +27,8 @@
 					<img src="img/zoomIn.svg" id="increase-spacing"  class="icon" />
 					<img src="img/zoomOut.svg" id="decrease-spacing" class="icon" />
 				</p>
+			<p id="omics-data-select-container" style="line-height: 2em"></p>
 			<p>
-				<label>Omics data: </label><select id="omics" style="width:200px"></select>
 				<div id="open-settings" class="button" style="display:inline-block;margin-left:0">
 					<img src="img/settings_0.png" class="icon" /> 
 					<span>Settings</span>

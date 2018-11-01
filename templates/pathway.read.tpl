@@ -11,6 +11,7 @@
             <p>
                 <label>All pathways</label>
                 <select id="all-pathways"></select>
+                <button id="full-screen">Full screen</button>
             </p>
             <p>
                 <label>All enzymes:</label>
@@ -20,8 +21,7 @@
                 <button id="clear-highlight">Clear highlight</button>
             </p>
             <p>
-                <label>Omics data</label>
-                <select id="omics" style="width:150px" class="omics"></select>
+                <span id="omics-data-select-container" style="line-height: 2em"></span>
                 <button id="clear-omic-data">Clear omics data</button>
             </p>
             <img src="img/close.png" style="float: right; cursor: pointer;" id="closePanel" />

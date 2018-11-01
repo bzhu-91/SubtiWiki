@@ -10,8 +10,57 @@ function getQueryVariable(variable) {
     return null;
 }
 
-var GroupSelect = GroupSelect || function (id, data) {
-	this.view = document.getElementById(id);
+function ucfirst (str) {
+	str += ''
+	var f = str.charAt(0)
+		.toUpperCase()
+	return f + str.substr(1)
+}
+
+var Select = Select || function (container, data, withNull) {
+    if (typeof container === "string" || container instanceof String) {
+        this.view = document.getElementById(container);
+    } else if (container.tagName && container.tagName === "SELECT") {
+        this.view = container;
+    } else {
+        throw new Error ("container is not a valid dom element or id string");
+    }
+    this.data = data;
+    this.withNull = withNull || true;
+	this.populate();
+}
+
+Select.prototype.populate = function () {
+	var self = this;
+	if (this.withNull) self.view.innerHTML = "<option value='-1'>Please select</option>";
+
+    var arr = [];
+	for (var i in self.data) {
+        arr.push(self.data[i]);
+    }
+    arr = arr.sort(function(a,b){
+        return a.title.localeCompare(b.title);
+    });
+
+    for(var i = 0; i < arr.length; i++){
+		var each = arr[i];
+        if (each) {
+    		var option = document.createElement("option");
+            option.value = each.id;
+    		option.innerHTML = each.title;
+    		self.view.appendChild(option);
+        }
+	}
+}
+
+var GroupSelect = GroupSelect || function (container, data) {
+	if (typeof container === "string" || container instanceof String) {
+        this.view = document.getElementById(container);
+    } else if (container.tagName && container.tagName === "SELECT") {
+        this.view = container;
+    } else {
+        throw new Error ("container is not a valid dom element or id string");
+    }
 	this.data = data;
 	this.populate();
 }
@@ -25,7 +74,7 @@ GroupSelect.prototype.populate = function () {
 		optgroup.label = group;
 		self.view.appendChild(optgroup);
 		for (var id in self.data[group]) {
-			var option = document.createElement("option");
+            var option = document.createElement("option");
 			option.value = self.data[group][id].id;
 			option.innerHTML = self.data[group][id].title;
 			self.view.appendChild(option);
@@ -222,10 +271,15 @@ $(document).on("click", "#export-nvis", function(){
 	document.body.appendChild(a);a.click();a.remove();
 });
 
-$(document).on("change", "#omics", function () {
+$(document).on("change", ".omics", function () {
 	var con = this.value;
+	// reset the other selec tags
+	$("select.omics").val(-1);
+	this.value = con;
 	browser.clearOmicsData();
-	browser.setOmicsData(con);
+	if (con != -1) {
+		browser.setOmicsData(con);
+	}
 });
 
 function sort (mode) {
@@ -263,6 +317,7 @@ var RegulationBrowser = RegulationBrowser || function (geneId) {
 	this.transcriptomics;
 	this.proteomics;
 	this.container = document.getElementById("network-container");
+	this.legend;
 
 	this.rawData;
 	this.data = {
@@ -284,30 +339,36 @@ RegulationBrowser.prototype.load = function () {
 	} else {
 		SomeLightBox.error("Data not found");
 	}
-	ajax.get({
-		url: "expression/condition",
-		headers: {Accept: "application/json"}
-	}).done(function(state, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (state == 200) {
-			self.conditions = {};
-            for(var i in data){
-                self.conditions[data[i].id] = data[i];
-			}
-			
-			var forSelection = {};
-			for (var id in data) {
-				var type = data[id].type
-				if (!(type in forSelection)) {
-					forSelection[type] = {};
-				}
-				forSelection[type][id] = data[id];
-			}
-			// filters
-			new GroupSelect("omics", forSelection);
-		}
-	});
+	// load the omics data conditions
+    if (window.conditions) {
+        self.conditions = {};
+        for(var i in conditions){
+            self.conditions[conditions[i].id] = conditions[i];
+        }
+        
+        var forSelection = {};
+        for (var id in conditions) {
+            var type = conditions[id].type
+            if (!(type in forSelection)) {
+                forSelection[type] = {};
+            }
+            forSelection[type][id] = conditions[id];
+        }
+        // filters
+        if (window.datasetDisplayMode == "seperate") {
+            for(var type in forSelection) {
+                var label = $("<label></label>").html(ucfirst(type));
+                var select = $("<select></select>").addClass("omics");
+                new Select(select[0], forSelection[type]);
+                $("#omics-data-select-container").append(label, select);
+            }
+        } else {
+            var label = $("<label>Omics data</label>");
+            var select = $("<select></select>").addClass("omics");
+            new GroupSelect(select[0], forSelection);
+            $("#omics-data-select-container").append(label, select);
+        }
+    }
 }
 
 RegulationBrowser.prototype.createData = function () {
@@ -657,7 +718,8 @@ RegulationBrowser.prototype.showOmicsData = function (conditionId) {
 		}
 	}
 	self.data.nodes.update(update);
-	$("#legend").html("").append(spectrum.createLegend());
+	this.legend = spectrum.createLegend();
+	$("#legend").html("").append(this.legend);
 }
 
 RegulationBrowser.prototype.setOmicsData = function (conditionId) {
@@ -676,6 +738,7 @@ RegulationBrowser.prototype.clearOmicsData = function () {
 		update.push(node);
 	});
 	self.data.nodes.update(update);
+	if (this.legend) this.legend.remove();
 }
 
 RegulationBrowser.prototype.cluster = function (id) {

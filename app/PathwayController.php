@@ -21,7 +21,8 @@ class PathwayController extends Controller {
 				"vars" => [
 					"pathwayId" => $id,
 					"pathways" => Utility::arrayColumns(Pathway::getAll(1), ["id", "title"]),
-					"conditions" => Expression::getConditions()
+					"conditions" => Expression::getConditions(),
+					"datasetDisplayMode" => $GLOBALS["DATASET_DISPLAY_MODE"]
 				],
 			]);
 			$this->respond($view, 200, HTML);

@@ -27,10 +27,7 @@
 					<img src="img/zoomIn.svg" id="increase-spacing"  class="icon" />
 					<img src="img/zoomOut.svg" id="decrease-spacing" class="icon" />
 			</p>
-			<p>
-				<label>Omics data: </label>
-				<select id="omics" style="width:200px"></select>
-			</p>
+			<p id="omics-data-select-container"></p>
 			<p>
 				<input type="checkbox" id="sigA-Regulon" {{:sigA}}/><label class="inline">Include SigA Regulon</label>
 				<button id="open-settings" style="padding-bottom: 8px;margin-left: 10px"><img src="img/settings_0.png" class="icon" /> Settings</button>
