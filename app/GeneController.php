@@ -188,7 +188,9 @@ class GeneController extends Controller {
 		$view->registerAdapter("Expression and Regulation->Operons->each", function($each) {
 			$segment = View::loadFile("operon.view.tpl");
 			$each->button = '<a href="operon?id={{:id}}" class="button" style="float:right;">Open in new tab</a>';
-			$segment->set($each);
+			$operon = Operon::withData($each);
+			$data = MetaData::sort($operon);
+			$segment->set($data);
 			return "<div class='box'>".$segment->generate(true, true)."</div>";
 		});
 
@@ -502,12 +504,9 @@ class GeneController extends Controller {
 		$genes = Gene::getAll(1);
 		foreach ($genes as $gene) {
 			if ($gene->names) {
-				if (count($gene->names) > 1) {
-					array_shift($gene->names);
-					Utility::insertAfter($gene, "synonyms", implode(", ", $gene->names), "names");
-				} 
+				Utility::insertAfter($gene, "synonyms", implode(", ", $gene->names), "names");
 				unset($gene->names);
-				$gene->update(true);
+				$gene->replace(true);
 				Log::debug($gene->title);
 			}
 		}
