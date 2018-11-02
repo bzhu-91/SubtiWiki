@@ -57,6 +57,10 @@ ul{
 	list-style-type:none;
 }
 
+.note-editing-area ul {
+	list-style-type: disc;
+}
+
 label {
 	font-weight: bold; color: var(--secondary-color); margin-right: 10px;
 }

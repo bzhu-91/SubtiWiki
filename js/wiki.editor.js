@@ -9,7 +9,10 @@ $(document).ready(function(){
             ['para', ['ul', 'ol', 'paragraph']],
             ['height', ['height']],
             ['insert', ['picture', 'link', 'table', 'hr']],
-            ['help', ['fullscreen','undo','redo','help']]
+            ['help', ['fullscreen','codeview','undo','redo','help']]
         ]
+    });
+    $("pubmed").each(function(idx, each){
+        each.outerHTML = each.outerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     });
 });

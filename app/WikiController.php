@@ -112,6 +112,7 @@ class WikiController extends Controller {
             }
             if ($article) {
                 $article->updateCount();
+                Utility::decodeLinkForView($article->article);
                 switch ($accept) {
                     case HTML:
                         $view = View::loadFile("layout1.tpl");
@@ -157,6 +158,7 @@ class WikiController extends Controller {
                 $article->title = $title;
                 $article->article = $input["article"];
                 $article->lastAuthor = User::getCurrent()->name;
+                Utility::encodeLink($article->article);
                 if ($article->update()){
                     $this->respond(["uri" => "wiki?id=$id"], 200, JSON);
                 } else {
@@ -193,6 +195,7 @@ class WikiController extends Controller {
             $wiki->title = $title;
             $wiki->article = $article;
             $wiki->lastAuthor = User::getCurrent()->name;
+            Utility::encodeLink($article->article);
 
             if ($wiki->insert()){
                 $this->respond(["uri" => "wiki?id=".$wiki->id], 201, JSON);
@@ -215,6 +218,7 @@ class WikiController extends Controller {
                 if ($article) {
                     $method = "put";
                     $pageTitle = "Edit article";
+                    Utility::decodeLinkForEdit($article->article);
                     $view->set($article);
                 } else {
                     $this->error("Article not found", 404, HTML);
@@ -228,7 +232,7 @@ class WikiController extends Controller {
                 "headerTitle" => $pageTitle,
                 "content" => "{{wiki.editor.tpl}}",
                 "method" => $method,
-                "jsAfterContent" => ["libs/quill.min", "wiki.editor", "all.editor"],
+                "jsAfterContent" => ["wiki.editor", "all.editor"],
                 "styles" => ["quill.snow"],
             ]);
             

@@ -13,8 +13,15 @@ function parseMarkup(txt) {
 					g3 = "<i>" + g3 + "</i>";
 				}
 				var primaryKey = "id";
-				if (g1 == "user") {
-					primaryKey = "name";
+				switch (g1) {
+					case "user":
+						primaryKey = "name";
+						break;
+					case "wiki":
+						primaryKey = "title";
+						break;
+					default:
+						primaryKey = "id";
 				}
 				if (g2 != "search") {
 					return "<a href='"+g1+"?"+primaryKey+"="+g2+"'>"+g3+"</a>";
@@ -37,6 +44,8 @@ function parseMarkup(txt) {
 						return "<a target='_blank' href='http://subtiwiki.uni-goettingen.de/v3/gene/search/exact/"+g2+"'>"+(g2[0].toUpperCase() + g2.slice(1))+"</a>";
 					case 'sw':
 						return "<a target='_blank' href='http://subtiwiki.uni-goettingen.de/wiki//index.php/" + g2 + "'>" + g2 + '</a>';
+					case 'wiki':
+						return "<a target='_blank' href='wiki?title="+g2+"'>"+g2+"</a>";
 					default:
 						return m;
 

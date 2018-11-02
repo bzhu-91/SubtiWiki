@@ -45,7 +45,7 @@
 			<img src="img/lab_logo.svg" width="24px">
 			<span>Labs</span>
 		</div>
-		<div class="box clickable" onclick="window.open('wiki?title=Plasimids')">
+		<div class="box clickable" onclick="window.open('wiki?title=Plasmids')">
 			<img src="img/vector_logo.svg" width="24px">
 			<span>Plasmids</span>
 		</div>
