@@ -60,6 +60,10 @@ ul {
 	padding-left: 0px; 
 }
 
+p {
+	line-height: 1.5em;
+}
+
 /* ----------container zentriert das layout-------------- */
 
 #mini{
