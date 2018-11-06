@@ -166,13 +166,15 @@ class MetaData extends Model {
 				$val = $keypath->get($object);
 				if (!is_null($val)) {
 					$sorted[(string) $keypath] = $val;
-				} elseif ($entry->default) {
-					// use default if it is defined
-					$sorted[(string) $keypath] = $entry->default;
-				} elseif ($entry->type == "b" || $entry->type == "ab") {
-					$sorted[(string) $keypath] = [$placeholder];
-				} else {
-					$sorted[(string) $keypath] = $placeholder;
+				} elseif (!$entry->ignore) {
+					if ($entry->default) {
+						// use default if it is defined
+						$sorted[(string) $keypath] = $entry->default;
+					} elseif ($entry->type == "b" || $entry->type == "ab") {
+						$sorted[(string) $keypath] = [$placeholder];
+					} else {
+						$sorted[(string) $keypath] = $placeholder;
+					}
 				}
 			}
 			return Utility::inflate($sorted, true); // use strict mode

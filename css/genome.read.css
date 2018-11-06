@@ -13,7 +13,7 @@
 
 .tab.is-active {
 	background: rgb(231,231,231);
-    color: #4CAF50;
+    color: var(--secondary-color);
     font-weight: bold;
 }
 

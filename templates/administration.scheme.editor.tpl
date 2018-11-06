@@ -21,6 +21,7 @@
 				<option value="ab">Mixed</option>
 			</select>
 		</p>
+		<p><input type="checkbox" name="ignore"/><label>Ignore in editor</label></p>
 		<p style="text-align:right">
 			<input type="submit" />
 		</p>
