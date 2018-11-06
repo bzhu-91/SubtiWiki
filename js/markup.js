@@ -13,8 +13,15 @@ function parseMarkup(txt) {
 					g3 = "<i>" + g3 + "</i>";
 				}
 				var primaryKey = "id";
-				if (g1 == "user") {
-					primaryKey = "name";
+				switch (g1) {
+					case "user":
+						primaryKey = "name";
+						break;
+					case "wiki":
+						primaryKey = "title";
+						break;
+					default:
+						primaryKey = "id";
 				}
 				if (g2 != "search") {
 					return "<a href='"+g1+"?"+primaryKey+"="+g2+"'>"+g3+"</a>";
@@ -35,6 +42,10 @@ function parseMarkup(txt) {
 						return "<a target='_blank' href='http://subtiwiki.uni-goettingen.de/v3/gene/search/exact/"+g2+"'><i>"+g2+"</i></a>";
 					case 'sw.protein':
 						return "<a target='_blank' href='http://subtiwiki.uni-goettingen.de/v3/gene/search/exact/"+g2+"'>"+(g2[0].toUpperCase() + g2.slice(1))+"</a>";
+					case 'sw':
+						return "<a target='_blank' href='http://subtiwiki.uni-goettingen.de/wiki//index.php/" + g2 + "'>" + g2 + '</a>';
+					case 'wiki':
+						return "<a target='_blank' href='wiki?title="+g2+"'>"+g2+"</a>";
 					default:
 						return m;
 
@@ -56,16 +67,11 @@ var getTextNodesIn = function(el) {
 };
 
 var parse = function(){
-	getTextNodesIn(document.body).each(function(idx, textNode){
-		if($(textNode).parents("textarea, pre, code, input, .rewrite-ignore, script").length == 0)
-			$(textNode).replaceWith(parseMarkup(textNode.textContent));
-	});
-
 	keyMapping = {
 		'short':[
-			'bsu','bioMaterials','phenotypes','locations','mw','activity','geneLength','proteinLength','pI','categories','labs','gfp','ec','twoHybrid','expressionVectors','genomicContext', 'regulons'
+			'bsu','bioMaterials','phenotypes','localization','mw','activity','geneLength','proteinLength','pI','categories','labs','gfp','ec','twoHybrid','expressionVectors','genomicContext', 'regulons'
 		],
-		'full':['Locus tag','Biological materials','Phenotypes of a mutant','Localization','Molecular weight','Catalyzed reaction/ biological activity','Gene length','Protein length','Isoelectric point','<a href="category" target="_blank">Categories</a> containing this gene/protein','Labs working on this gene/protein','GFP fusion','E.C.','Two-hybrid system','Expression Vectors','Genomic Context', 'This gene is a member of the following <a href="?mode=regulon&action=list">regulons</>'
+		'full':['Locus tag','Biological materials','Phenotypes of a mutant','[wiki|Localization]','Molecular weight','Catalyzed reaction/ biological activity','Gene length','Protein length','Isoelectric point','<a href="category" target="_blank">Categories</a> containing this gene/protein','Labs working on this gene/protein','GFP fusion','E.C.','Two-hybrid system','Expression Vectors','Genomic Context', 'This gene is a member of the following <a href="?mode=regulon&action=list">regulons</>'
 		],
 	};
 	$('.m_key').each(function(i, n){
@@ -73,6 +79,11 @@ var parse = function(){
  		var idx = keyMapping.short.indexOf(k)
  		if (idx >= 0) n.innerHTML = keyMapping.full[idx];
  		else n.innerHTML = k[0].toUpperCase() + k.slice(1);
+	});
+
+	getTextNodesIn(document.body).each(function(idx, textNode){
+		if($(textNode).parents("textarea, pre, code, input, .rewrite-ignore, script").length == 0)
+			$(textNode).replaceWith(parseMarkup(textNode.textContent));
 	});
 }
 $(document).ready(parse);
