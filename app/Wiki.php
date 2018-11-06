@@ -43,5 +43,11 @@ class Wiki extends Model {
             }
         }
     }
+
+    public function toLinkMarkup () {
+        if ($this->title) {
+            return "[wiki|".$this->title."]";
+        }
+    }
 }
 ?>
