@@ -1,6 +1,7 @@
-var Scheme = Scheme || function (path, type) {
+var Scheme = Scheme || function (path, type, ignore) {
     this.path = path;
     this.type = type;
+    this.ignore = ignore;
 }
 
 Scheme.prototype.getView = function () {
@@ -18,6 +19,8 @@ Scheme.prototype.getView = function () {
         marginRight: "2.5px"
     });
     select.val(this.type);
+    var check = $("<input></input>").attr("type", "checkbox").prop("checked", this.ignore).css({float:"right",marginTop: "5px"});
+    var label_check = $("<label></label>").html("Ignore in editor").css("float", "right");
     var editBtn = $("<button>Edit</button>").css({
         float: "right"
     }).on("click", function () {
@@ -47,7 +50,7 @@ Scheme.prototype.getView = function () {
             theme:"tomato"
         });
     });
-    box.append(span, delBtn, editBtn, select, $("<p></p>").css("clear", "both"));
+    box.append(span, delBtn, editBtn, select, label_check, check, $("<p></p>").css("clear", "both"));
     return box;
 }
 
@@ -56,13 +59,14 @@ Scheme.fromView = function (box) {
         return a.trim();
     });
     var type = $(box).find("#type").val();
-    return new Scheme(keypath, type);
+    var ignore = $(box).find("input[type=checkbox]").prop("checked");
+    return new Scheme(keypath, type, ignore);
 }
 
 $(document).ready(function(){
     var scheme = JSON.parse($("textarea[name=scheme]").val());
 	scheme.forEach(function(each,idx){
-        var s = new Scheme(each.path, each.type);
+        var s = new Scheme(each.path, each.type, each.ignore);
         $("#keypaths").append(s.getView());
 	});
     $("#keypaths").sortable();
@@ -79,7 +83,8 @@ $(document).ready(function(){
         if (ev && ev.formData) {
             var keypath = ev.formData.keypath;
             var type = ev.formData.type;
-            var scheme = new Scheme(keypath.replace("&gt;", ">").split(" -> "), type);
+            var ignore = ev.formData.ignore;
+            var scheme = new Scheme(keypath.replace("&gt;", ">").split(" -> "), type, ignore);
             $("#keypaths").prepend(scheme.getView());
         } 
     });
