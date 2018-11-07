@@ -246,6 +246,7 @@ PathwayEditor.processView = function () {
 PathwayEditor.drawReaction = function (reactionId) {
     var self = this;
     PathwayModel.loadReaction(reactionId, function(data){
+        data.width = 100; data.height = 200;
         var reaction = new Pathway.Reaction(data);
         reaction.appendTo(self.canvas);
         reaction.position(0,0,"left top");
@@ -846,19 +847,23 @@ $(document).on("submit", "#form-rename", function(evt){
 
 $(document).on("change", "#select-pathway", function(evt){
     var self = this;
-    if (window.pathwayId) SomeLightBox.alert("Save the result", "Would you like to save your working progress before leaving this page?", {
-        title: "Save",
-        onclick: function(){
-            $("#btn-save").click();
-            window.location = "pathway/editor?id=" + self.value;
-        }
-    }, {
-        title: "Don't save",
-        color: "red",
-        onclick: function (){
-            window.location = "pathway/editor?id=" + self.value;
-        }
-    })
+    if (window.pathwayId) {
+        SomeLightBox.alert("Save the result", "Would you like to save your working progress before leaving this page?", {
+            title: "Save",
+            onclick: function(){
+                $("#btn-save").click();
+                window.location = "pathway/editor?id=" + self.value;
+            }
+        }, {
+            title: "Don't save",
+            color: "red",
+            onclick: function (){
+                window.location = "pathway/editor?id=" + self.value;
+            }
+        });
+    } else {
+        window.location = "pathway/editor?id=" + self.value;
+    }
 })
 
 $(document).on("click", "#btn-save", function(evt){
