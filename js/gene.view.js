@@ -25,8 +25,9 @@ $(document).ready(function(){
 			} else if(status == 200) {
 				browser.setData(data, genomeLength);
 				browser.on("click", function(ev){
-					if (ev.currentGene) {
-						window.open("gene/?id=" + ev.currentGene.id);
+					if (ev.currentViews) {
+						var view = ev.currentViews[0];
+						if (view.id && view.type == "gene") window.open("gene?id=" + view.id);
 					}
 				});
 				browser.diagram.focus(geneId);
