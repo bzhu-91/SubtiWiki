@@ -82,15 +82,36 @@ $(document).on("submit", "form[type=ajax]", function(ev) {
 	return false;
 });
 
-$(document).on("blur", "input[type=gene], input[type=protein]",function(){
+$(document).on("focus", "input[type=gene], input[type=protein]",function(){
 	var self = this;
 	var form = $(this).parents("form");
+	$(self).css({borderColor: "#999"});
+	if (!self.clone) {
+		var clone = $(self).clone();
+		self.clone = clone;
+		clone.attr("type", "hidden");
+		$(self).removeAttr("name");
+		form.append(clone);
+		var restore = function () {
+			$(self).attr("name", clone.attr("name"));
+			clone.remove();
+			return self;
+		};
+		var del = function () {
+			$(self).remove();
+			clone.remove();
+		}
+		clone[0].restore = restore;
+		clone[0].delete = del;
+		self.restore = restore;
+		self.delete = del;
+	}
+});
+
+$(document).on("blur", "input[type=gene], input[type=protein]",function(){
+	var self = this;
 	var geneName = this.value.trim();
-	if (geneName.length < 2) {
-		$(self).css({
-			background:"#FFEBEE"
-		});
-	} else {
+	if (geneName.length > 2) {
 		ajax.get({
 			url:"gene?mode=title&keyword="+geneName,
 			headers:{Accept:"application/json"}
@@ -100,32 +121,204 @@ $(document).on("blur", "input[type=gene], input[type=protein]",function(){
 			} else if (status == 200 && data.length == 1) {
 				self.clone.val(data[0].id);
 				$(self).css({
-					background: "#E8F5E9"
+					borderColor: "green"
 				});
 			} else {
 				$(self).css({
-					background:"#FFEBEE"
+					borderColor:"red"
 				});
 			}
 		})
 	}
 });
 
-$(document).on("focus", "input[type=gene], input[type=protein]",function(){
+$(document).on("focus", "input[type=DNA], input[type=RNA]", function () {
+	// select operon with the gene in it
 	var self = this;
-	var form = $(this).parents("form");
-	$(self).css({
-		background: "transparent"
-	});
+	var form = $(self).parents("form");
+	$(self).css({borderColor: "#999"});
 	if (!self.clone) {
 		var clone = $(self).clone();
 		self.clone = clone;
 		clone.attr("type", "hidden");
 		$(self).removeAttr("name");
 		form.append(clone);
+		var restore = function () {
+			$(self).attr("name", clone.attr("name"));
+			clone.remove();
+			return self;
+		};
+		var del = function () {
+			$(self).remove();
+			clone.remove();
+		}
+		clone[0].restore = restore;
+		clone[0].delete = del;
+		self.restore = restore;
+		self.delete = del;
+		// set up auto complete
+		var suggestions = [];
+		$(self).autocomplete({
+			source: function (request, response) {
+				ajax.get({
+					url:"gene?mode=title&keyword="+request.term,
+					headers:{Accept:"application/json"}
+				}).done(function(status, data, error, xhr){
+					if (error) {
+						SomeLightBox.error("Connection to server lost");
+					} else if (status == 200 && data.length == 1) {
+						var gene = data[0];
+						gene.type = "gene";
+						gene.value = gene.label = "gene: " + gene.title;
+						suggestions.push(gene);
+						ajax.get({
+							url: "operon?gene=" + encodeURIComponent(data[0].id),
+							headers: {Accept: "application/json"}
+						}).done(function(status, operons, error, xhr){
+							if (!error && status == 200 && operons.length) {
+								for(var i = 0; i < operons.length; i++) {
+									operons[i].value = operons[i].label = "operon:" + operons[i].title.replace(/\[gene\|.+?\|(.+?)\]/gi, "$1");
+									operons[i].type = "operon";
+								}
+								suggestions = suggestions.concat(operons);
+								response(suggestions)
+							}
+						})
+					}
+				});
+			},
+			minLength: 2,
+			select: function(event, ui) {
+				clone.attr("value", ui.item.type + ":" + ui.item.id);
+			}
+		});
 	}
 });
 
+$(document).on("blur", "input[type=DNA], input[type=RNA]", function(){
+	if (this.clone.val().trim().length == 0) {
+		$(this).css({
+			borderColor: "red"
+		})
+	}
+});
+
+$(document).on("focus", "input[type=metabolite]", function () {
+	var self = this;
+	var form = $(self).parents("form");
+	$(self).css({
+		borderColor: "#999"
+	})
+	if (!self.clone) {
+		var clone = $(self).clone();
+		self.clone = clone;
+		clone.attr("type", "hidden");
+		$(self).removeAttr("name");
+		form.append(clone);
+		var restore = function () {
+			$(self).attr("name", clone.attr("name"));
+			clone.remove();
+			return self;
+		};
+		var del = function () {
+			$(self).remove();
+			clone.remove();
+		}
+		clone[0].restore = restore;
+		clone[0].delete = del;
+		self.restore = restore;
+		self.delete = del;
+		// set up auto complete
+		$(self).autocomplete({
+			source: function (request, response) {
+				ajax.get({
+					url: "metabolite?keyword=" + encodeURIComponent(request.term),
+					headers: {Accept: "application/json"}
+				}).done(function(status, data, error, xhr){
+					if (!error && status == 200 && data.length) {
+						for(var i = 0; i < data.length; i++) {
+							data[i].label = data[i].title;
+							data[i].value = data[i].title;
+						}
+						response(data)
+					}
+				})
+			},
+			minLength: 2,
+			select: function(event, ui) {
+				clone.attr("value", ui.item.id);
+			}
+		});
+	}
+});
+
+$(document).on("focus", "input[type=complex]", function () {
+	var self = this;
+	var form = $(self).parents("form");
+	$(self).css({
+		borderColor: "#999"
+	})
+	if (!self.clone) {
+		var clone = $(self).clone();
+		self.clone = clone;
+		clone.attr("type", "hidden");
+		$(self).removeAttr("name");
+		form.append(clone);
+		var restore = function () {
+			$(self).attr("name", clone.attr("name"));
+			clone.remove();
+			return self;
+		};
+		var del = function () {
+			$(self).remove();
+			clone.remove();
+		}
+		clone[0].restore = restore;
+		clone[0].delete = del;
+		self.restore = restore;
+		self.delete = del;
+		// set up auto complete
+		$(self).autocomplete({
+			source: function (request, response) {
+				ajax.get({
+					url: "complex?keyword=" + encodeURIComponent(request.term),
+					headers: {Accept: "application/json"}
+				}).done(function(status, data, error, xhr){
+					if (!error && status == 200 && data.length) {
+						for(var i = 0; i < data.length; i++) {
+							data[i].label = data[i].title;
+							data[i].value = data[i].title;
+						}
+						response(data)
+					}
+				})
+			},
+			minLength: 2,
+			select: function(event, ui) {
+				clone.attr("value", ui.item.id);
+			}
+		});
+	}
+});
+
+$(document).on("blur", "input[type=metabolite], input[type=complex]", function () {
+	if (this.value.trim().length) {
+		if (this.clone.val().trim().length == 0) {
+			this.clone.val(this.value.trim());
+			$(this).css({
+				borderColor: "saddlebrown"
+			});
+		} else {
+			$(this).css({
+				borderColor: "green"
+			});
+		}
+	} else {
+		$(this).css({
+			borderColor: "red"
+		});
+	}
+});
 
 $(document).on("click", ".toggle-editor", function(){
 	var form = $(this).parents(".form-container").find("form");
