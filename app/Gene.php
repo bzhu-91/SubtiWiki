@@ -144,7 +144,11 @@ class Gene extends Model {
 					$key = strtolower($key);
 				}
 				foreach ($result as &$row) {
+<<<<<<< HEAD
 					$row = self::withData($row);
+=======
+					$row = static::withData($row);
+>>>>>>> 691ff84103532c648b319e7b1d03524a47868000
 				}
 				self::$lookupTable = array_combine($keys, $result);
 			}
