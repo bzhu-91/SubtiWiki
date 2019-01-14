@@ -134,23 +134,19 @@ class Gene extends Model {
 	public static function initLookupTable () {
 		// if use self::lookupTable, this will be shared between all classes 	which use this trait
 		// if use get_called_class()::lookupTable, each class will has its 		own copy
-		$primaryKeyName = self::$primaryKeyName;
-		if (!self::$lookupTable) {
+		$primaryKeyName = static::$primaryKeyName;
+		if (!static::$lookupTable) {
 			$con = Application::$conn;
-			if ($con && self::$tableName) {
-				$result = $con->select(self::$tableName, ["id", "title", "locus", "function"], "1");
+			if ($con && static::$tableName) {
+				$result = $con->select(static::$tableName, ["id", "title", "locus", "function"], "1");
 				$keys = array_column($result, $primaryKeyName);
 				foreach ($keys as &$key) {
 					$key = strtolower($key);
 				}
 				foreach ($result as &$row) {
-<<<<<<< HEAD
-					$row = self::withData($row);
-=======
 					$row = static::withData($row);
->>>>>>> 691ff84103532c648b319e7b1d03524a47868000
 				}
-				self::$lookupTable = array_combine($keys, $result);
+				static::$lookupTable = array_combine($keys, $result);
 			}
 		}
 	}

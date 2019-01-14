@@ -1,6 +1,8 @@
 <?php
 class Protein extends Gene {
 	static $tableName = "Gene";
+	static $lookupTable = [];
+	static $validateTable = [];
 
 	static $relationships = [
 		"paralogues" => [
