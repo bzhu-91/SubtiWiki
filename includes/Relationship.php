@@ -117,12 +117,12 @@ class Relationship {
 				foreach ($result as &$row) {
 					if ($e1) {
 						$row[$this->_col1] = $e1;
-						if ($this->_class2 != "mixed") $row[$this->_col2] = method_exists($this->_class2, "getRefWithId") ? $this->_class2::getRefWithId($row[$this->_col2]) : $this->_class2::simpleGet($row[$this->_col2]);
+						if ($this->_class2 != "mixed") $row[$this->_col2] = method_exists($this->_class2, "simpleGet") ? $this->_class2::simpleGet($row[$this->_col2]) : $this->_class2::get($row[$this->_col2]);
 						else $row[$this->_col2] = Model::parse($row[$this->_col2]);
 					}
 					if ($e2) {
 						$row[$this->_col2] = $e2;
-						if ($this->_class1 != "mixed") $row[$this->_col1] = method_exists($this->_class1, "getRefWithId") ? $this->_class1::getRefWithId($row[$this->_col1]) : $this->_class1::simpleGet($row[$this->_col1]);
+						if ($this->_class1 != "mixed") $row[$this->_col1] = method_exists($this->_class1, "simpleGet") ? $this->_class1::simpleGet($row[$this->_col1]) : $this->_class1::get($row[$this->_col1]);
 						else $row[$this->_col1] = Model::parse($row[$this->_col1]);
 					}
 					$row = $this->clone($row);

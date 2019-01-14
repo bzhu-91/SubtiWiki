@@ -533,7 +533,6 @@ class GeneController extends Controller {
 		} else $this->error("Unacceptable", 405, $accept);
 	}
 
-
 	/**
 	 * importer function, provides an interface for data import and handles the data import
 	 * @layout layout1.tpl

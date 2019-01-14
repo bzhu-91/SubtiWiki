@@ -5,6 +5,8 @@
             <input type="number" name="coefficient" value="{{:coefficient}}" />
             <label>Member: </label>
             <input type="text" value="{{:member->title}}" readonly/>
+            <label>Modification: </label>
+            <input type="text" value="{{:modification}}" readonly/>
             <input type="submit" />
         </p>
         <input type="hidden" name="member" value="{{:memberMarkup}}" />

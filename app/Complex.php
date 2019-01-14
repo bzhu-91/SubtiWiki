@@ -61,11 +61,12 @@ class Complex extends Model {
         }
     }
 
-    public function addMember ($member, $coefficient) {
+    public function addMember ($member, $coefficient, $modification) {
         if ($this->id) {
             $hasMember = $this->hasPrototype("member");
             $hasMember->complex = $this;
             $hasMember->coefficient = $coefficient;
+            $hasMember->modification = $modification;
             $hasMember->member = $member;
             $conn = Application::$conn;
             $conn->beginTransaction();

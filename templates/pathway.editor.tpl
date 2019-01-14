@@ -5,7 +5,7 @@
         <button id="btn-rename" title="Rename the current pathway">Rename</button>
         <button id="btn-save" title="Save the changes">Save</button>
         <button id="btn-add-reaction" title="Add a reaction in the database to the map">Add reaction to map</button>
-        <button onclick="window.open('reaction/editor?pathway={{:id}}')" title="Add a reaction to the database">Add reaction to the pathway</button>
+        <button id="btn-add-reaction-to-pathway" title="Add a reaction to the database">Add a new reaction</button>
         <button id="btn-help" title="Show help document">Help</button>
     </span>
     <span id="span-title" style="float:right"><select id="select-pathway"></select></span>
@@ -34,6 +34,7 @@
     <li><div id="btn-select-connected-components">Select all connected</div></li>
     <li><div id="btn-reverse-sides">Reverse sides</div></li>
     <li><div id="btn-change-layout">Change layout (v/h)</div></li>
+    <li><div id="btn-editor">Edit this reaction</div></li>
     <li><div id="btn-remove-reaction">Remove</div></li>
 </ul>
 <ul id="menu-metabolite" class="menu">
@@ -43,6 +44,8 @@
         <ul id="menu-metabolite-suggestions"></ul>
     </li>
 </ul>
+<div id="reaction-editor" style="height: 80%; width: 80%;"><iframe id="reaction-editor-iframe" style="width:100%; height: 100%"></iframe></div>
+<div id="reaction-creator" style="height: 80%; width: 80%;"><iframe id="reaction-creator-iframe" style="width:100%; height: 100%"></iframe></div>
 <form action="pathway?id={{:id}}" type="ajax" id="form-rename" method="put">
     <p><b>Rename Pathway</b></p>
     <input name="title" value="{{:title}}" placeholder="pathway name"/>

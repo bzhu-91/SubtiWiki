@@ -10,6 +10,8 @@
             <option value="complex">Protein Complex</option>
             <option value="object">Unspecified</option>
         </select>
-        <label>Catalyst: </label><input type="text" name="title" style='width:300px' /><input type="submit" />
+        <label>Catalyst: </label><input type="text" name="title" style='width:300px' />
+        <label>Modification: </label><input type="text" name="modification" style="width:100px" />
+        <input type="submit" />
     </form>
 </div>

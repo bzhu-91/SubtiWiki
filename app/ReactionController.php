@@ -5,7 +5,7 @@ class ReactionController extends Controller {
 	
     public function read ($input, $accept) {
         if ($input) {
-			if (array_key_exists("id", $input)) {
+			if ((array_key_exists("ids", $input)) || (array_key_exists("id", $input))) {
 				$this->view($input, $accept);
 			} elseif (array_key_exists("keyword", $input)) {
 				$this->search($input, $accept);
@@ -26,26 +26,97 @@ class ReactionController extends Controller {
 
 	protected function view ($input, $accept) {
 		if ($accept == JSON) {
-			$id = $this->filter($input, "id", "is_numeric", ["reaction id is required", 400, $accept]);
-			$reaction = Reaction::get($id);
-			if ($reaction) {
-				$reaction->reactants = array_column($reaction->hasReactants(), "metabolite");
-				$reaction->products = array_column($reaction->hasProducts(), "metabolite");
-				$reaction->catalysts = array_column($reaction->has("catalyst"), "catalyst");
-				foreach($reaction->catalysts as &$catalyst) {
-					if (get_class($catalyst) == "Complex") {
-						$catalyst->members = array_column($catalyst->has("member"), "member");
-						foreach($catalyst->members as &$member) {
-							$member->type = lcfirst(get_class($member));
-						}
-						$catalyst->type="complex";
-					} else {
-						$catalyst->type="protein";
+			$id = $this->filter($input, "id", "is_numeric");
+			$ids = $this->filter($input, "ids", "/^(\d+,?)+$/i");
+			if ($id) {
+				$reaction = Reaction::get($id);
+				if ($reaction) {
+					$reaction = $this->patchReaction($reaction);
+					$this->respond($reaction, 200, JSON);
+				} else $this->error("Reaction not found", 404, JSON);
+			} elseif ($ids) {
+				$ids = explode(",", $ids);
+				array_walk($ids, "trim");
+				$result = [];
+				foreach($ids as $id) {
+					$reaction = Reaction::get($id);
+					if ($reaction) {
+						$reaction = $this->patchReaction($reaction);
 					}
+					$result[$id] = $reaction;
 				}
-				$this->respond($reaction, 200, JSON);
-			} else $this->error("Reaction not found", 404, JSON);
+				$this->respond($result, 200, JSON);
+			} else $this->error("Id or ids are required", 400, JSON);
 		} else $this->error("Unaccepted", 400, $accept);
+	}
+
+	private function patchReaction ($reaction) {
+		$hasReactancts = $reaction->hasReactants();
+		$reactants = [];
+		foreach($hasReactancts as $hasReactanct){
+			$reactant = $hasReactanct->metabolite;
+			$reactant->type = $reactant->type ? $reactant->type : lcfirst(get_class($reactant));
+			$reactant->coefficient = $hasReactanct->coefficient;
+			if (get_class($reactant) == "Complex") {
+				$members = [];
+				foreach($reactant->has("member") as $hasMember) {
+					$member = $hasMember->member;
+					if ($hasMember->coefficient > 1) $member->coefficient = $hasMember->coefficient;
+					if ($hasMember->modification) $member->modification = $hasMember->modification;
+					$member->type = lcfirst(get_class($member));
+					$members[] = $member;
+				}
+				$reactant->members = $members;
+				$reactant->type="complex";
+			}
+			$reactants[] = $reactant;
+		}
+		$reaction->reactants = $reactants;
+
+		$hasProducts = $reaction->hasProducts();
+		$products = [];
+		foreach($hasProducts as $hasProduct){
+			$product = $hasProduct->metabolite;
+			$product->coefficient = $hasProduct->coefficient;
+			$product->type = $product->type ? $product->type : lcfirst(get_class($product));
+			if (get_class($product) == "Complex") {
+				$members = [];
+				foreach($product->has("member") as $hasMember) {
+					$member = $hasMember->member;
+					if ($hasMember->coefficient > 1) $member->coefficient = $hasMember->coefficient;
+					if ($hasMember->modification) $member->modification = $hasMember->modification;
+					$member->type = lcfirst(get_class($member));
+					$members[] = $member;
+				}
+				$product->members = $members;
+				$product->type="complex";
+			}
+			$products[] = $product;
+		}
+		$reaction->products = $products;
+		$hasCatalysts = $reaction->has("catalyst");
+		$catalysts = [];
+		foreach($hasCatalysts as $hasCatalyst) {
+			$catalyst = $hasCatalyst->catalyst;
+			if (get_class($catalyst) == "Complex") {
+				$members = [];
+				foreach($catalyst->has("member") as $hasMember) {
+					$member = $hasMember->member;
+					if ($hasMember->coefficient > 1) $member->coefficient = $hasMember->coefficient;
+					if ($hasMember->modification) $member->modification = $hasMember->modification;
+					$member->type = lcfirst(get_class($member));
+					$members[] = $member;
+				}
+				$catalyst->members = $members;
+				$catalyst->type="complex";
+			} else {
+				$catalyst->type="protein";
+			}
+			if ($hasCatalyst->modification) $catalyst->modification  = $hasCatalyst->modification;
+			$catalysts[] = $catalyst;
+		}
+		$reaction->catalysts = $catalysts;
+		return $reaction;
 	}
 
 	protected function list ($input, $accept) {
@@ -191,18 +262,52 @@ class ReactionController extends Controller {
 		if(is_null($reaction)) $this->error("Reaction not found", 404, JSON);
 		switch($method) {
 			case 'POST':
-				$metaboliteTitle = $this->filter($input, "metabolite", "has", ["Metabolite is required", 400, JSON]);
+				$identifier = $this->filter($input, "metabolite", "has", ["Metabolite is required", 400, JSON]);
+				$type = $this->filter($input, "type", "has", ["Metabolite type is required", 400, JSON]);
 				$side = $this->filter($input, "side", "/^L|R$/i", ["Metabolite type (product or reactanct) is required", 400, JSON]);
-				$metabolite = Metabolite::getAll(["title" => $metaboliteTitle]);
-				if ($metabolite) {
-					$metabolite = $metabolite[0];
-				} else {
-					$metabolite = new Metabolite;
-					$metabolite->title = $metaboliteTitle;
-					$metabolite->insert();
-					if (!$metabolite->id) {
-						$this->error("An internal error has happened, please contact admin.", 500, JSON);
-					}
+				switch($type) {
+					case "DNA":
+					case "RNA":
+						$metabolite = $type::get($identifier);
+						if ($metabolite === null) $this->error("Gene or operon not found", 404, JSON);
+						break;
+					case "protein":
+						$protein = Protein::get($identifier);
+						if ($protein === null) $this->error("Protein is not found", 404, JSON);
+						$metabolite = $protein;
+						break;
+					case "complex":
+						if ($input["metabolite_validated"]) {
+							$complex = Complex::get($identifier);
+							if ($complex == null) $this->error("Complex not found", 404, JSON);
+						} else {
+							$complex = new Complex;
+							$complex->title = $identifier;
+							$complex->insert();
+							if (!$complex->id) {
+								$this->error("An internal error has happened, please contact admin.", 500, JSON);
+							}
+						}
+						$metabolite = $complex;
+						break;
+					case "metabolite":
+						if ($input["metabolite_validated"]) {
+							$metabolite = Metabolite::get($identifier);
+							if ($metabolite == null) $this->error("Metabolite not found", 404, JSON);
+						} else {
+							$metabolite = Metabolite::getAll("title like ? or synonym regexp ?", [$identifier, $identifier."(,|$)"]);
+							if ($metabolite) {
+								$metabolite = $metabolite[0];
+							} else {
+								$metabolite = new Metabolite;
+								$metabolite->title = $identifier;
+								$metabolite->insert();
+								if (!$metabolite->id) {
+									$this->error("An internal error has happened, please contact admin.", 500, JSON);
+								}
+							}
+						}
+						break;
 				}
 				if ($reaction->addMetabolite($metabolite, $side, $input["coefficient"] ? $input["coefficient"]: 1)){
 					$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 201, JSON);
@@ -211,25 +316,21 @@ class ReactionController extends Controller {
 				}
 				break;
 			case 'PUT':
-				$metabolite = $this->filter($input, "metabolite", "is_numeric", ["Metabolite is required", 400, JSON]);
+				$hasMetabolite = $this->filter($input, "hasMetabolite", "is_numeric", ["Metabolite is required", 400, JSON]);
 				$coefficient = $this->filter($input, "coefficient", "is_numeric", ["Coefficient is required", 400, JSON]);
-				$reaction = Reaction::get($reaction);
-				$metabolite = Metabolite::get($metabolite);
-				if ($metabolite) {
-					if ($reaction->updateMetabolite($metabolite, $coefficient)) {
-						$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 200, JSON);
-					} else $this->error("Internal error", 500, JSON);
-				} else $this->error("Metabolite not found", 404, JSON);
+				if ($reaction->updateMetabolite($hasMetabolite, $coefficient)) {
+					$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 200, JSON);
+				} else {
+					$this->error("Metabolite not found", 404, JSON);
+				}
 				break;
 			case 'DELETE':
-				// delete metabolite here
-				$metabolite = $this->filter($input, "metabolite", "is_numeric", ["Metabolite is required", 400, JSON]);
-				$metabolite = Metabolite::get($metabolite);
-				if ($metabolite) {
-					if ($reaction->removeMetabolite($metabolite, $coefficient)) {
-						$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 200, JSON);
-					} else $this->error("Internal error", 500, JSON);
-				} else $this->error("Metabolite not found", 404, JSON);
+				$hasMetabolite = $this->filter($input, "hasMetabolite", "is_numeric", ["Metabolite is required", 400, JSON]);
+				if ($reaction->removeMetabolite($hasMetabolite, $coefficient)) {
+					$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 200, JSON);
+				} else {
+					$this->error("Metabolite not found", 404, JSON);
+				}
 				break;
 		}
 	}
@@ -252,7 +353,7 @@ class ReactionController extends Controller {
 						$protein = Protein::getAll(["title" => $title]);
 						if ($protein) {
 							$protein = $protein[0];
-							if ($reaction->addCatalyst($protein)){
+							if ($reaction->addCatalyst($protein, $input["modification"])){
 								$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
 							} else {
 								$this->error("An internal error has happened, please contact admin", 500, JSON);

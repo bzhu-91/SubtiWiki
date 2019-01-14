@@ -33,9 +33,11 @@
                         <option>Please select</option>
                         <option value="metabolite">Metabolite</option>
                         <option value="protein">Protein</option>
-                    </select>
+                    </select>&nbsp;
                     <label>Member: </label>
                     <input type="text" name="title" />
+                    <label>Modification: </label>
+                    <input type="text" name="modification" />
                     <input type="submit" />
                     <input type="hidden" name="complex" value="{{:id}}" />
                 </p>

@@ -6,6 +6,8 @@ class ComplexController extends Controller {
         if ($input) {
             if (array_key_exists("id", $input)) {
                 $this->view($input, $accept);
+            } elseif (array_key_exists("keyword", $input)) {
+                $this->search($input, $accept);
             } elseif (array_key_exists("page", $input)) {
                 $this->list($input, $accept);
             } else {
@@ -16,6 +18,22 @@ class ComplexController extends Controller {
                 "page" => 1,
                 "page_size" => 150
             ], $accept);
+        }
+    }
+
+    protected function search ($input, $accept) {
+        $keyword = $this->filter($input,"keyword", "/^.{2,}$/i");
+        if ($accept == JSON) {
+            if ($keyword) {
+                $data = Complex::getAll("title like ?", ["%".$keyword."%"]);
+                if ($data ){
+                    $this->respond($data, 200 ,JSON);
+                } else {
+                    $this->error("Not found", 404, JSON);
+                }
+            } else {
+                $this->error("Keyword is required and should belonger than 2 characters", 400, $accept);
+            }
         }
     }
 
@@ -224,7 +242,7 @@ class ComplexController extends Controller {
                     }
                 }
                 if ($member) {
-                    if ($complex->addMember($member, $coefficient)) {
+                    if ($complex->addMember($member, $coefficient, $input["modification"])) {
                         $this->respond(["uri" => "complex/editor?id={$complex->id}"], 201, JSON);
                     } else {
                         $this->error("An internal error has happened, please contact admin.", 500, JSON);

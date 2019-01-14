@@ -54,7 +54,8 @@ class PathwayController extends Controller {
 				}
 			} else {
 				$allPathways = Pathway::getAll(1);
-				$this->respond($allPathways, 200, JSON);
+				$data = Utility::arrayColumns($allPathways, ["id", "title"]);
+				$this->respond($data, 200, JSON);
 			}
 		}
 	}

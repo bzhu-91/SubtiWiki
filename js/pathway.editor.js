@@ -48,9 +48,9 @@ PathwayModel.loadIndex = function (callback) {
     });
 }
 
-PathwayModel.loadReaction = function (reactionId, callback) {
+PathwayModel.loadReaction = function (reactionId, callback, remote) {
     var self = this;
-    if (reactionId in self.reactionData) {
+    if ((reactionId in self.reactionData) && !remote) {
         callback(self.reactionData[reactionId]);
     } else {
         ajax.get({
@@ -193,7 +193,26 @@ var PathwayEditor = PathwayEditor || {
     elementsOnMembrane: {
         right: [],
         bottom: []
-    }
+    },
+    editorDialog: new SomeLightBox({
+        width: "80%",
+        height: "80%"
+    }).loadById("reaction-editor").ondismiss(function(ev){
+        // TODO: update the reactions
+        // requires the update function of Pathway.Reaction class
+        PathwayModel.loadIndex(); // equation change
+        PathwayEditor.updateReaction(this.reaction.id);
+    }),
+    creatorDialog: new SomeLightBox({
+        width: "80%",
+        height: "80%",
+    }).loadById("reaction-creator").ondismiss(function(ev){
+        // TODO: reload the reaction index
+        // should call methods in PathwayModel
+        PathwayModel.loadIndex();
+        return true;
+    }),
+    currentZ: 0
 }
 
 PathwayEditor.bubbleUp = function (element) {
@@ -246,9 +265,15 @@ PathwayEditor.processView = function () {
 PathwayEditor.drawReaction = function (reactionId) {
     var self = this;
     PathwayModel.loadReaction(reactionId, function(data){
+        data = JSON.parse(JSON.stringify(data).replace(/title/gi, "label").replace(/modification/gi, "extra"));
         data.width = 100; data.height = 200;
+        data.reversible = data.reversible == 1 ? true: false;
+        data.novel = data.novel == 1 ? true: false;
         var reaction = new Pathway.Reaction(data);
         reaction.appendTo(self.canvas);
+        // add z index
+        reaction.z = self.currentZ;
+        self.currentZ++;
         reaction.position(0,0,"left top");
         // set the position of the reaction to the center
         var screenW = $(document.body).width();
@@ -262,6 +287,26 @@ PathwayEditor.drawReaction = function (reactionId) {
             self.reactionViews[data.id].push(reaction);
         } else self.reactionViews[data.id] = [reaction]; // multiple copies of the same reaction can exist
     });
+}
+
+PathwayEditor.updateReaction = function (reactionId) {
+    var self = this;
+    PathwayModel.loadReaction(reactionId, function(data){
+        data = JSON.parse(JSON.stringify(data).replace(/title/gi, "label").replace(/extra/gi, "modification"));
+        data.width = 100; data.height = 200;
+        
+        // find the reaction
+        if (data.id in self.reactionViews) {
+            var reactions = self.reactionViews[data.id];
+            data.isDashed = data.novel;
+            data.hasArrow = !data.reversible;
+            reactions.forEach(function(each) {
+                each.update(data);
+            });
+        } else {
+            console.error("Reaction R" + data.id + " does not exist in this map");
+        }
+    }, true);
 }
 
 PathwayEditor.removeReaction = function (reaction) {
@@ -425,21 +470,34 @@ PathwayEditor.configCanvas = function () {
                 // pop up until the draggable/clickable unit
                 var view = self.bubbleUp(evt.target);
                 if (view && !(view instanceof Pathway.Canvas)) {
-                    // clicking on the other elements
-                    var isMac = window.navigator && window.navigator.platform && window.navigator.platform == "MacIntel";
-                    // if ctrl is pressed in windows/linus or command is pressed in Mac
-                    if ((isMac && evt.metaKey) || (!isMac && evt.ctrlKey)) {
-                        // toggle selection
-                        var idx = self.selectedViews.indexOf(view);
-                        if (idx == -1) {
-                            self.addToSelection(view);
-                        } else {
-                            self.removeFromSelection(view);
-                        }
+                    if (view.getState() == "error" || view.getState() == "warning") {
+                        // show error message instead of selection
+                        var dialogBox = $("<div title='Error'></div>").html(view.errorMessage.replace(/\n/gi, "<br>"));
+                        $(document.body).append(dialogBox);
+                        dialogBox.dialog({
+                            position: {
+                                my: "left top",
+                                of: evt
+                            }
+                        });
+                        view.setState("normal");
                     } else {
-                        // deselect and reselect
-                        self.clearSelection();
-                        self.addToSelection(view);
+                        // clicking on the other elements
+                        var isMac = window.navigator && window.navigator.platform && window.navigator.platform == "MacIntel";
+                        // if ctrl is pressed in windows/linus or command is pressed in Mac
+                        if ((isMac && evt.metaKey) || (!isMac && evt.ctrlKey)) {
+                            // toggle selection
+                            var idx = self.selectedViews.indexOf(view);
+                            if (idx == -1) {
+                                self.addToSelection(view);
+                            } else {
+                                self.removeFromSelection(view);
+                            }
+                        } else {
+                            // deselect and reselect
+                            self.clearSelection();
+                            self.addToSelection(view);
+                        }
                     }
                 } else {
                     // clear selection
@@ -480,7 +538,7 @@ PathwayEditor.loadCanvas = function () {
     var self = this;
     this.membrane = $("rect#membrane")[0];
     this.canvas = new Pathway.Canvas($("#editor svg")[0]);
-
+    self.currentZ = $(".reaction").length;
     // add all the reactions
     $(".reaction").each(function(idx, element){
         var reaction = new Pathway.Reaction(element);
@@ -489,17 +547,45 @@ PathwayEditor.loadCanvas = function () {
         } else {
             self.reactionViews[reaction.id] = [reaction];
         }
+        reaction.z = idx;
         // restore lock group
         var uuids = element.getAttribute("lock");
         if (uuids) {
             var views = [];
             uuids.split(",").forEach(function(uuid){
-                var element = document.querySelector("[uuid='"+uuid+"']");
-                if (element) {
-                    views.push(element.wrapper);
+                var el = document.querySelector("[uuid='"+uuid+"']");
+                if (el) {
+                    views.push(el.wrapper);
+                } else {
+                    console.error(uuid);
                 }
             });
             reaction.setLockGroup(views);
+        }
+    });
+    var ids = [];
+    for(var id in self.reactionViews) {
+      ids.push(id);
+    }
+
+    var box = SomeLightBox.alert("Update", "Pathway editor is checking for updates in reactions. Please wait.")
+
+    ajax.get({
+        url: "reaction?ids=" + ids.join(","),
+        headers: {Accept: "application/json"}
+    }).done(function(status,data,error,xhr){
+        data = JSON.parse(JSON.stringify(data).replace(/title/g, "label").replace(/modification/g, "extra"));
+        if (status == 200) {
+            for(var id in data){
+                var reactionData = data[id];
+                if (reactionData) {
+                    data.novel = data.novel == 1 ? true: false;
+                    data.reversible = !data.reversible == 1 ? true: false;
+                    self.reactionViews[id].forEach(function(each){each.update(reactionData)});
+                }
+            }
+            box.dismiss();
+            SomeLightBox.alert("Success", "Pathway editor has successfully updated the reactions. Reactions marked with red color requires manual update. Please delete the reaction and add it again. Reactions marked with orange color has been automatically update. However, manual layout of certain components are required.");
         }
     });
 
@@ -636,6 +722,7 @@ PathwayEditor.elementsFromPoint = function (x,y) {
 PathwayEditor.lockViews = function (els) {
     var allSync = [];
     els.forEach(function(el){
+        allSync.push(el);
         var group = el.getSyncGroup();
         if (group.length) {
             allSync = allSync.concat(el.getSyncGroup());
@@ -643,14 +730,19 @@ PathwayEditor.lockViews = function (els) {
         }
     });
 
-    var top = els.shift();
-    allSync = allSync.concat(els);
-
     // remove duplications
     allSync = allSync.filter(function(v,i,a){
 		return a.indexOf(v) === i;
     });
+
+    // sort it according to the reaction z-index
+    allSync = allSync.sort(function(a,b){
+        return b.parent.z - a.parent.z;
+    });
+
+    var top = allSync.shift();
     
+    delete top.top;
     top.setSyncGroup (allSync);
     top.parent.addToLockGroup(top);
     top.show();
@@ -661,7 +753,7 @@ PathwayEditor.lockViews = function (els) {
         view.parent.addToLockGroup(view);
     });
 }
-/// function to unlock locked metabolites incase of deletion or re-layout
+// function to unlock locked metabolites incase of deletion or re-layout
 // will unlock all metabolites in the reaction
 PathwayEditor.freeReaction = function (reaction) {
     var self = this;
@@ -669,29 +761,17 @@ PathwayEditor.freeReaction = function (reaction) {
     reaction.getLockGroup().forEach(function(view){
         var top = view.top ? view.top : view;
         var syncGroup = top.getSyncGroup();
-
-        view.parent.removeFromLockGroup(view);
-        top.removeFromSyncGroup(view);
-        view.show();
-
-        if (syncGroup.length == 1) {
-            // stack will be destroyed
-            if (view == top) {
-                var bottom = syncGroup[0];
-                bottom.show();
-                bottom.parent.removeFromLockGroup(bottom);
-                delete bottom.top;
-                view.clearSyncGroup();
+        if (view == top) {
+            if (syncGroup.length == 1) {
+                self.unlockViews(top);
             } else {
-                top.clearSyncGroup();
-                top.parent.removeFromLockGroup(top);
-                delete view.top;
+                self.lockViews(syncGroup);
+                view.clearSyncGroup();
             }
         } else {
-            if (view == top) {
-                syncGroup.shift();
-                self.lockViews(syncGroup);
-            }
+            top.removeFromSyncGroup(view);
+            top.removeFromSyncGroup(view);
+            view.show();
         }
     });
     reaction.clearLockGroup();
@@ -730,13 +810,13 @@ $(document).on("contextmenu", "rect#membrane", function(evt){
     });
 });
 
-$(document).on("contextmenu", ".metabolite", function(evt) {
+$(document).on("contextmenu", ".metabolite, .complex", function(evt) {
     evt.preventDefault();
     evt.stopPropagation();
     if ($(this).attr("class").indexOf("nested") == -1) {
         // clear all the suggestions
         $("#menu-metabolite-suggestions").html("");
-        var title = this.wrapper.title;
+        var title = this.wrapper.label;
         var reactionId = this.wrapper.parent.id;
         if (title) {
             var results = PathwayModel.searchReaction(title);
@@ -789,7 +869,7 @@ $(document).on("click", "#btn-lock-metabolites", function (evt) {
     $("#menu-metabolite").hide();
     var menuEvent = $("#menu-metabolite").prop("event");
     var x = menuEvent.clientX, y = menuEvent.clientY;
-    // get all DOM elements from the point
+    // get all DOM elements from the point, from bottom to top
     var elements = PathwayEditor.elementsFromPoint(x,y);
     var views = [];
     for(var i = 0; i < elements.length; i++) {
@@ -998,6 +1078,19 @@ $(document).on("click", "#btn-select-connected-components", function (ev) {
         if (els[uuid] instanceof Pathway.Reaction) PathwayEditor.addToSelection(els[uuid]);
     }
     $("#menu-reaction").hide();
+});
+
+$(document).on("click", "#btn-editor", function(ev) {
+    var reaction = $("#menu-reaction").prop("reaction");
+    PathwayEditor.editorDialog.show();
+    PathwayEditor.editorDialog.reaction = reaction;
+    $("#reaction-editor-iframe").prop("src", "reaction/editor?id=" + reaction.id);
+    $("#menu-reaction").hide();
+});
+
+$(document).on("click", "#btn-add-reaction-to-pathway", function(ev){
+    PathwayEditor.creatorDialog.show();
+    $("#reaction-creator-iframe").prop("src", "reaction/editor");
 });
 
 $(window).on("keydown", function(evt){

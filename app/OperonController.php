@@ -127,6 +127,7 @@ class OperonController extends Controller {
 				$operons = $gene->has("operons");
 				if ($operons) {
 					$data = array_column($operons, "operon");
+					Utility::decodeLinkForView($data);
 					$this->respond($data, 200, JSON);
 				} else {
 					$this->error("Not found", 404, JSON);

@@ -29,26 +29,15 @@
         <input type="hidden" name="id" value="{{:id}}" />
         <input type="submit" value="Delete" class="delBtn" style="background: red"/>
     </form>
+    <p style="clear: both"></p>
     {{:reactantsEditor}}
     {{:productsEditor}}
     {{:catalystsEditor}}
 </div>
 {{jsvars:vars}}
 <script type="text/javascript">
-    $(document).ready(function(){
-        $.ajax({
-            type: "get",
-            url: "pathway",
-            headers: {Accept: "application/json"},
-            success: function (data, status, xhr) {
-                // json object
-                data.forEach(function(pathway){
-                    $("#select-pathway").append($("<option></option>").html(pathway.title).attr("value", pathway.id));
-                });
-                if (pathway) {
-                    $("#select-pathway").val(pathway);
-                }
-            }
-        });
+    $(document).on("change", "select[name=type]", function () {
+        $(this).parents("form").find(".metabolite-type-select-options > input").hide();
+        $(this).parents("form").find("input[type=" + this.value + "]").show().attr("name", "metabolite")
     });
 </script>

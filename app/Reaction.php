@@ -6,7 +6,7 @@ class Reaction extends Model {
             "tableName" => "ReactionMetabolite",
             "mapping" => [
                 "reaction" => "Reaction",
-                "metabolite" => "Metabolite"
+                "metabolite" => "mixed"
             ],
             "position" => 1
         ],
@@ -31,7 +31,7 @@ class Reaction extends Model {
     private $fromEquation = false;
 
     // call this->update
-    protected function updateEquation () {
+    public function updateEquation () {
         if($this->id) {
             $metabolites = self::has("metabolite", true);
             if($metabolites) {
@@ -60,11 +60,14 @@ class Reaction extends Model {
                         $rhs[] = $hasMetabolite->metabolite->title;
                     }
                 }
-                $equal = " = ";
-                if ($this->reversible) $equal = " <=> ";
+                $equal = " ⟹ ";
+                if ($this->reversible) $equal = " ⟺ ";
                 $equation = implode(" + ", $lhs).$equal.implode(" + ", $rhs);
 
                 $this->equation = $equation;
+                return parent::update();
+            } else {
+                $this->equation = "";
                 return parent::update();
             }
         }
@@ -112,7 +115,7 @@ class Reaction extends Model {
         }
     }
     
-    public function addMetabolite (Metabolite $metabolite, $side, $coefficient = 1) {
+    public function addMetabolite ($metabolite, $side, $coefficient = 1) {
         # check duplicate
         if($this->id) {
             $data = [
@@ -135,59 +138,48 @@ class Reaction extends Model {
         }
     }
 
-    public function updateMetabolite (Metabolite $metabolite, $coefficient) {
+    public function updateMetabolite ($hasMetabolite, $coefficient) {
         if ($this->id) {
-            $metabolites = self::has("metabolite");
-            if($metabolites) {
-                $rows = array_values(array_filter($metabolites, function($each) use ($metabolite) {
-                    return $each->metabolite->id == $metabolite->id;
-                }));
-                if($rows) {
-                    $hasMetabolite = $row[0];
-                    $hasMetabolite->coefficient = $coefficient;
-                    $conn = Application::$conn;
-                    $conn->beginTransaction();
-                    if($hasMetabolite->update() && History::record($this, "update") && $this->updateEquation() ) {
-                        $conn->commit();
-                        return true;
-                    } else {
-                        $conn->rollback();
-                        return false;
-                    }
+            $hasMetabolite = self::hasPrototype("metabolite")->getWithId($hasMetabolite);
+            if ($hasMetabolite) {
+                $hasMetabolite->coefficient = $coefficient;
+                $conn = Application::$conn;
+                $conn->beginTransaction();
+                if($hasMetabolite->update() && History::record($this, "update") && $this->updateEquation() ) {
+                    $conn->commit();
+                    return true;
+                } else {
+                    $conn->rollback();
+                    return false;
                 }
-            }
+            } else return false;
         }
     }
 
-    public function removeMetabolite ($metabolite) {
+    public function removeMetabolite ($hasMetabolite) {
         if ($this->id) {
-            $metabolites = self::has("metabolite");
-            if($metabolites) {
-                $row = array_values(array_filter($metabolites, function($each) use ($metabolite) {
-                    return $each->metabolite->id == $metabolite->id;
-                }));
-                if($row) {
-                    $row = $row[0];
-                    $conn = Application::$conn;
-                    $conn->beginTransaction();
-                    if($row->delete() && History::record($this, "update") && $this->updateEquation()) {
-                        $conn->commit();
-                        return true;
-                    } else {
-                        $conn->rollback();
-                        return false;
-                    }
+            $hasMetabolite = self::hasPrototype("metabolite")->getWithId($hasMetabolite);
+            if ($hasMetabolite) {
+                $conn = Application::$conn;
+                $conn->beginTransaction();
+                if($hasMetabolite->delete() && History::record($this, "update") && $this->updateEquation() ) {
+                    $conn->commit();
+                    return true;
+                } else {
+                    $conn->rollback();
+                    return false;
                 }
-            }
+            } else return true;
         }
     }
 
-    public function addCatalyst ($catalyst) {
+    public function addCatalyst ($catalyst, $modification) {
         # check duplicate
         if($this->id) {
             $data = [
                 "reaction" => $this,
                 "catalyst" => $catalyst,
+                "modification" => $modification
             ];
             $prototype = self::hasPrototype("catalyst");
             $hasCatalyst = $prototype->clone($data);

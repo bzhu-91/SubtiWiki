@@ -516,10 +516,13 @@ RegulationBrowser.prototype.fade = function () {
 			color: "lightgray"
 		}
 	});
+	var toUpdate = [];
 	self.data.edges.forEach(function(edge){
 		edge.color = null;
-		self.data.edges.update(edge);
+		toUpdate.push(edge);
 	});
+	self.data.edges.update(toUpdate);
+
 }
 
 RegulationBrowser.prototype.restore = function () {
@@ -536,6 +539,7 @@ RegulationBrowser.prototype.restore = function () {
 			color: "blue"
 		}
 	});
+	var toUpdate = [];
 	self.data.edges.forEach(function(edge){
 		switch(sort(edge.mode)){
 			case "activative":
@@ -548,8 +552,9 @@ RegulationBrowser.prototype.restore = function () {
 				edge.color = self.edgeColorR;
 				break;
 		}
-		self.data.edges.update(edge);
+		toUpdate.push(edge);
 	});
+	self.data.edges.update(toUpdate);
 }
 
 RegulationBrowser.prototype.setRadius = function (radius) {
@@ -620,16 +625,16 @@ RegulationBrowser.prototype.addHighlight = function (gene) {
 
 RegulationBrowser.prototype.clearHighlight = function () {	
 	var self = this;
-	var update = [];
+	var toUpdate = [];
 	self.highlights = [];
 	self.data.nodes.forEach(function(node){
 		if (node.state == "highlight") {
 			node.color = null;
 			node.state = null;
-			update.push(node);
+			toUpdate.push(node);
 		}
 	});
-	self.data.nodes.update(update);
+	self.data.nodes.update(toUpdate);
 	self.restore();
 }
 
@@ -645,32 +650,38 @@ RegulationBrowser.prototype.setNodeColor = function (color) {
 
 RegulationBrowser.prototype.setEdgeColorR = function (color) {
 	var self = this;
+	var toUpdate = [];
 	self.data.edges.forEach(function (edge) {
 		if("repressive" == sort(edge.mode)) {
 			edge.color = color;
-			self.data.edges.update(edge);
+			toUpdate.push(edge);
 		}
 	})
+	self.data.edges.update(toUpdate);
 }
 
 RegulationBrowser.prototype.setEdgeColorO = function (color) {
 	var self = this;
+	var toUpdate = [];
 	self.data.edges.forEach(function (edge) {
 		if("other" == sort(edge.mode)) {
 			edge.color = color;
-			self.data.edges.update(edge);
+			toUpdate.push(edge);
 		}
 	})
+	self.data.edges.update(toUpdate);
 }
 
 RegulationBrowser.prototype.setEdgeColorA = function (color) {
 	var self = this;
+	var toUpdate = [];
 	self.data.edges.forEach(function (edge) {
 		if("activative" == sort(edge.mode)) {
 			edge.color = color;
-			self.data.edges.update(edge);
+			toUpdate.push(edge);
 		}
 	})
+	self.data.edges.update(toUpdate);
 }
 
 RegulationBrowser.prototype.getOmicsData = function (conditionId) {
