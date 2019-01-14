@@ -284,14 +284,17 @@ GenomeBrowser.prototype.createContextBrowser = function () {
 	}
 
 	self.contextBrowser.diagram.on("click", function(ev){
-		if (ev.currentGene) {
-			self.gene = ev.currentGene;
-			self.clearDNASequence();
-			self.clearProteinSequence();
-			self.loadSequenceDataByGene(function(){
-				self.showDNASequence(ev.currentGene);
-				self.showProteinSequence(ev.currentGene);
-			});
+		if (ev.currentViews) {
+			var view = ev.currentViews[0];
+			if (view.id && view.type == "gene") {
+				self.gene = view;
+				self.clearDNASequence();
+				self.clearProteinSequence();
+				self.loadSequenceDataByGene(function(){
+					self.showDNASequence(ev.currentGene);
+					self.showProteinSequence(ev.currentGene);
+				});
+			}
 		}
 	});
 }

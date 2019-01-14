@@ -53,6 +53,8 @@ class GeneController extends Controller {
 			} else {
 				$this->error("not found", 404, JSON);
 			}
+		} else {
+			$this->error("Unaccepted", 406, $accept);
 		}
 	}
 

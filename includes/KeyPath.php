@@ -88,6 +88,14 @@ class KeyPath implements Iterator {
 		}
 		return $value;
 	}
+	
+	public function toArray () {
+		return $this->segments;
+	}
+
+	public function segmentAt($i) {
+		return $this->segments[$i];
+	}
 
 	public function last () {
 		return $this->segments[$this->length-1];

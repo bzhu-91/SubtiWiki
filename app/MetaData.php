@@ -12,25 +12,36 @@ class MetaData extends Model {
 		$meta = self::get($className);
 		if ($meta) {
 			$scheme = $meta->scheme;
-			$previous = []; 
+			$previousCandidates = []; 
 			foreach($scheme as &$each) {
 				$each->path = new KeyPath($each->path);
 				if ($each->path->equalsTo($keypath)) {
 					break;
 				} else {
-					array_unshift($previous, $each->path);
+					array_unshift($previousCandidates, $each->path);
 				}
 			}
 			
 			$inserted = false;
-			foreach($previous as $path) {
+			foreach($previousCandidates as $path) {
 				if (Utility::hasKeypath($object, $path)) {
-					Utility::insertAfter($object, $keypath, $value, $path);
-					$inserted = true;
+					$previous = $path;
 					break;
 				}
 			}
-			if (!$inserted) {
+			if ($previous) {
+				// compare the previous and current keypath
+				$after = new KeyPath;
+				for($i = 0; $i < $previous->length(); $i++) {
+					$after = $after->push($previous->segmentAt($i));
+					if ($previous->segmentAt($i) == $keypath->segmentAt($i)) {
+						$keypath = $keypath->shift();
+					} else {
+						break;
+					}
+				}
+				Utility::insertAfter($object, $keypath, $value, $after);
+			} else {
 				Utility::setValueFromKeypath($object, $keypath, $value);
 			}
 		}

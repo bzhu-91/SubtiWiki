@@ -25,8 +25,9 @@ $(document).ready(function(){
 			} else if(status == 200) {
 				browser.setData(data, genomeLength);
 				browser.on("click", function(ev){
-					if (ev.currentGene) {
-						window.open("gene/?id=" + ev.currentGene.id);
+					if (ev.currentViews) {
+						var view = ev.currentViews[0];
+						if (view.id && view.type == "gene") window.open("gene?id=" + view.id);
 					}
 				});
 				browser.diagram.focus(geneId);
@@ -139,7 +140,7 @@ $(document).ready(function(){
 			url: "regulation?radius=1&sigA=true&gene=" + geneId,
 			headers: {Accept: "application/json"}
 		}).done(function(status, data, error, xhr){
-			if (!error && status == 200 && data.nodes.length > 1) {
+			if (!error && status == 200 && data.nodes.length >= 1) {
 				// regulation diagrams
 				$("#regulation-diagram").append(view);
 				var _nodes = {};
@@ -163,13 +164,13 @@ $(document).ready(function(){
 				}).map(function(n){
 					if (n.id.match(/^[a-f0-9]{40}$/i)) {
 						// is a gene
-						return "<a href='regulon?type=protein&id="+n.id+"' target='_blank'>" + ucfirst(n.title) + " regulon</a>";
+						return "<a href='regulon?id=protein:"+n.id+"' target='_blank'>" + ucfirst(n.title) + " regulon</a>";
 					} else {
-						return "<a href='regulon?type=riboswitch&id="+n.id+"' target='_blank'>" + ucfirst(n.title) + "</a>";
+						return "<a href='regulon?id=riboswitch:"+n.id+"' target='_blank'>" + ucfirst(n.title) + "</a>";
 					}
 				});
 				if (count) {
-					regulons.push("<a href='regulon?type=protein&id="+geneId+"'>" + ucfirst(geneTitle) + " regulon</a>");
+					regulons.push("<a href='regulon?id=protein:"+geneId+"'>" + ucfirst(geneTitle) + " regulon</a>");
 				}
 				$("#regulon-container").html(regulons.join(", "));
 
