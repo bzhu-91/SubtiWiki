@@ -15,7 +15,7 @@ $(window).on("load", function(){
 	}
 	window.showSearch = function(){
 		var el = $("#search");
-		var container = $.element("div");
+		var container = $("<div></div>");
 		container.css("background", "white");
 		container.css("padding", "10px");
 		container.append(el);
