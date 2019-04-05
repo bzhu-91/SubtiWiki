@@ -147,15 +147,15 @@ class AdministrationController extends Controller {
 
 	public function repair ($input, $accept, $method) {
 		UserController::authenticate(3, $accept);
-		if ($method == "GET" && $accept == HTML) {
+		if ($method == "GET" && $accept == JSON) {
 			$tableName = $this->filter($input, "tableName", "has", ["Table name is required", 400, $accept]);
 			$conn = Application::$conn;
 			if ($conn->getColumnNames($tableName)) {
 				$added = MetaData::fix($tableName);
 				if ($added) {
-					header("Location: ".$GLOBALS["WEBROOT"]."/administration/schema?className=$tableName");
+					$this->respond(["message" => "okay"], 200, JSON);
 				} else {
-					Log::debug("Not okay");
+					$this->error("repair is not successful", 500, JSON);
 				}
 			} else $this->error("Table not found", 404, $accept);
 		} else $this->error("Unaccepted", 406, $accept);
@@ -334,6 +334,9 @@ class AdministrationController extends Controller {
 					"content" => "{{administration.scheme.editor.tpl}}",
 					"method" => "put",
 					"scheme" => str_replace("},", "},\n", json_encode($meta->scheme)),
+					"vars" => [
+						"tableName" => $className
+					],
 					"jsAfterContent" => ["administration.schema.editor","all.editor"]
 				]);
 				$this->respond($view, 200, HTML);	
