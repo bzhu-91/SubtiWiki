@@ -10,4 +10,8 @@ The source code the popular model organism database SubtiWiki.
 
 Documentations are under res/doc
 
+## Demonstrations
+
+### Pathway editor
+
 ![demo for the pathway editor](https://github.com/bzhu-91/SubtiWiki/blob/master/img/pathwayEditor-demo.gif?raw=true)
