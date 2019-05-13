@@ -9,3 +9,5 @@ The source code the popular model organism database SubtiWiki.
 - MySQL 5.8+
 
 Documentations are under res/doc
+
+![demo for the pathway editor](https://github.com/bzhu-91/SubtiWiki/blob/master/img/pathwayEditor-demo.gif?raw=true)
