@@ -105,7 +105,7 @@ class Protein extends Gene {
 	}
 
 	public function getStructures () {
-		$s = $this->structure;
+		$s = $this->Structure;
 		$matches = array();
 		preg_match_all("/\[PDB\|(.+?)\]/i", $s[0], $matches);
 		return $matches[1];

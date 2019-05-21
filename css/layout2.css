@@ -130,7 +130,7 @@ input {
 }
 
 #middle {
-	flex: 1; margin:50px 60px 50px 50px; width: 95%; position: relative;
+	flex: 1; margin:50px auto; width: 95%; position: relative;max-width: 1200px;
 }
 
 .inline {

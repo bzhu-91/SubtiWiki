@@ -90,15 +90,4 @@ function statistics () {
 	echo $view->generate(1,1);
 }
 
-function people () {
-	$view = \View::loadFile("layout1.tpl");
-	$view->set([
-		"pageTitle" => "People behind ".$GLOBALS["SITE_NAME"],
-		"title" => "People behind <i>Listi</i>Wiki",
-		"content" => "{{people.tpl}}",
-		"showFootNote" => "none"
-	]);
-	echo $view->generate(1,1);	
-}
-
 ?>

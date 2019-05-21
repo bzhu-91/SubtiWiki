@@ -302,7 +302,7 @@ class Utility {
 				$cur = &$cur[$key];
 			}
 			if ($strict) {
-				if (!$cur || (self::isAssoc($cur) && !is_numeric($lastKey))) {
+				if (!$cur || (self::isAssociateArray($cur) && !is_numeric($lastKey))) {
 					$cur[$lastKey] = $val;
 				} else if ($errorMode == "exception") {
 					throw new BaseException("Type conflict in the input");

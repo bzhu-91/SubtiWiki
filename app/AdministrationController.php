@@ -327,6 +327,7 @@ class AdministrationController extends Controller {
 			$className = $this->filter($input, "className", "has", ["Class name is required", 400, $accept]);
 			$meta = MetaData::get($className);
 			if ($meta) {
+				Utility::decodeLinkForEdit($meta);
 				$view = View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Edit template: ".$className,

@@ -1,4 +1,12 @@
 <?php
+/**
+ * this class exists because in MySQL, JSON data type is unordered 
+ * well according to the standard, JSON should be unordered, but in PHP and JavaScript it is implemented in a ordered way and we just took advantage of that
+ * So to make sure all pages are consistant in key orders, this class comes to existance.
+ * In short terms, the user input (a ordered JSON data) will be splited to two parts: the pure data and the structure of the data
+ * the pure data part got saved in the table, and the structure will be processed (merged with other structures to keep all entries from the same table compatible with each other) and saved in the MetaData table
+ * This is the necessary evil we must accept to make data manipulation on the SQL level possible.
+ */
 class MetaData extends Model {
 	static $tableName = "MetaData";
 	static $primaryKeyName = "className";
@@ -156,7 +164,7 @@ class MetaData extends Model {
 			foreach ($template as $path) {
 				$keypath = new KeyPath($path);
 				$val = $keypath->get($object);
-				if (!is_null($val) && !is_object($val) && !(is_array($val) && Utility::isAssoc($val))) {
+				if (!is_null($val) && !is_object($val) && !(is_array($val) && Utility::isAssociateArray($val))) {
 					$sorted[(string) $keypath] = $val;
 				}
 			}
@@ -170,13 +178,16 @@ class MetaData extends Model {
 		$className = get_class($object);
 		$meta = self::get($className);
 		$sorted = [];
-
 		if ($meta) {
 			foreach ($meta->scheme as $entry) {
 				$keypath = new KeyPath($entry->path);
 				$val = $keypath->get($object);
+				// exclude the situation when $val is an obj (assoc. array)
+				// so that the template could be compatible?
 				if (!is_null($val)) {
-					$sorted[(string) $keypath] = $val;
+					if (!Utility::isAssociateArray($val)) {
+						$sorted[(string) $keypath] = $val;
+					}
 				} elseif (!$entry->ignore) {
 					if ($entry->default) {
 						// use default if it is defined
@@ -189,7 +200,7 @@ class MetaData extends Model {
 				}
 			}
 			return Utility::inflate($sorted, true); // use strict mode
-		}	
+		}
 	}
 
 	// deflate the object, different from Utility::deflate, multidimentional array is not allowed
@@ -331,6 +342,7 @@ class MetaData extends Model {
 				$a = $alignment[$i];
 				$b = $alignment[$j];
 				if (self::pathEqual($a->path, $b->path)) {
+					Log::debug($a->path);
 					return false;
 				}
 			}

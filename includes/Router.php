@@ -55,20 +55,44 @@ class Router {
 
 	public static function getAccept() {
 		$accept = strtolower($_SERVER['HTTP_ACCEPT']);
+		$options = ["application/json", "text/html_partial", "text/csv","text/plain", "text/html"];
+		$positions = [];
+		foreach($options as $option) {
+			$index = strpos($accept, $option);
+			if ($index !== false) {
+				$positions[] = [
+					"option" => $option,
+					"position" => $index
+				];
+			}
+		}
+		usort($positions, function($a, $b){
+			return $a->position - $b->position;
+		});
+		
+		$first = array_values($positions)[0];
+		$accept = $first["option"];
 		// sort out accept
 		// can be json /html /html_partial
-		if ($accept == "application/json") {
+		switch ($accept) {
+			case "application/json":
 			$accept = JSON;
 			header("Content-type: application/json");
-		} else if ($accept == "text/html_partial") {
+			break;
+			case "text/html_partial":
 			$accept = HTML_PARTIAL;
-		} else if (strpos($accept, "text/html") !== false) {
-			$accept = HTML;
-			header("Content-type: text/html");
-		} elseif ($accept == "text/csv") {
+			break;
+			case "text/csv":
 			$accept = CSV;
 			header("Content-type: text/csv");
-		} else $accept = HTML; // by default html
+			break;
+			case "text/plain":
+			$accept = TEXT;
+			header("Content-type: text/html");
+			break;
+			default:
+			$accept = HTML;
+		}
 		return $accept;
 	}
 

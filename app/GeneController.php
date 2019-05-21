@@ -480,7 +480,6 @@ class GeneController extends Controller {
 					"jsAfterContent" => [
 						"libs/monkey", 
 						"tabs", 
-						"gene.template",
 						"all.editor", 
 						"gene.editor", 
 						"operon.editor", 

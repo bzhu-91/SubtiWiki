@@ -32,14 +32,18 @@ trait UtilityExtra {
 			return false;
 		}
 	}
-
-	public static function isAssoc (array $arr) {
-		if (array() === $arr) return false;
-   		return array_keys($arr) !== range(0, count($arr) - 1);
+	
+	public static function isAssociateArray ($arr) {
+		if (is_array($arr)) {
+			if (array() === $arr) return false;
+			   return array_keys($arr) !== range(0, count($arr) - 1);
+		} else return false;
 	}
 
+	
+
 	public static function toObject (&$data) {
-		if (is_array($data) && self::isAssoc($data)) {
+		if (is_array($data) && self::isAssociateArray($data)) {
 			$data = (object) $data;
 		}
 		if (is_object($data) || is_array($data)) {

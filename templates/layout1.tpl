@@ -77,15 +77,20 @@
 				<div id="highlights">
 					<h3>Highlights</h3>
 					<ul style="padding-left: 0" id="highlights">
-					<li><a href="gene/random">Random gene</a></li>
+					<li><a href="wiki?title=Conferences">Conferences</a></li>
+					<li><a href="wiki?title=Paper%20of%20the%20month">Paper of the month</a></li>
+					<li><a href="wiki?title=labs">Bacillus labs</a></li>
 					<li><a href="category">All categories</a></li>
-					<li><a href="people">People</a></li>
+					<li><a href="gene/random">Random gene</a></li>
+					<li><a href="https://academic.oup.com/nar/article/46/D1/D743/4372578" target="_blank" style="color: #E65100">Please cite us ^_^</a></li>
+					<li><a href="wiki?title=People">Credits</a></li>
 				</div><!-- highlights -->
 				<div id="special">
 					<h3>Special pages</h3>
 					<ul style="padding-left: 0" id="specialPages">
 						<li><a href="gene/exporter">Gene export wizard</a></li>
 						<li><a href="exports">Exports</a></li>
+						<li><a href="user">User list</a></li>
 						<li><a href="history">History</a></li>
 						<li><a href="statistics">Statistics</a></li>
 					</ul>

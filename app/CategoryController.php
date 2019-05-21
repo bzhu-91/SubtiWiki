@@ -15,6 +15,8 @@ class CategoryController extends Controller {
 				$this->view($input, $accept);
 			} else if (array_key_exists("gene", $input)) {
 				$this->findForGene($input, $accept);
+			} elseif (array_key_exists("keyword", $input)) {
+				$this->search($input, $accept);
 			}
 		} else $this->index($accept);
 		$this->error("Page not found", 404, $accept);
@@ -56,6 +58,54 @@ class CategoryController extends Controller {
 				]);
 				$this->respond($view);
 			default:
+				break;
+		}
+	}
+
+	protected function search ($input, $accept) {
+		$keyword = $input["keyword"];
+		$messages = [400 => "Keyword too short", 404 => "No results found"];
+		$error = null;
+		if (strlen($keyword) < 2) {
+			$error = 400;
+		} else {
+			$results = Category::getAll("title like ? ", ["%{$keyword}%"]);
+			if (!$results) {
+				$error = 404;
+			}
+		}
+		switch ($accept) {
+			case HTML:
+				if (count($results) == 1) {
+					header("Location: ".$GLOBALS["WEBROOT"]."/category?id=".$results[0]->id);
+				} else {
+					$view = View::loadFile("layout1.tpl");
+					$view->set([
+						"pageTitle" => "Search: $keyword",
+						"showFootNote" => "none"
+					]);
+					if ($error) {
+						$view->set([
+							"content" => $messages[$error],
+							"title" => "Search: $keyword (0 result)"
+						]);
+					} else {
+						$view->set([
+							"title" => "Search: $keyword (".count($results)." results)",
+							"genes" => $results,
+						]);
+					}
+					$this->respond($view, 200, HTML);
+				}
+				break;
+			case JSON:
+				if ($error) {
+					$this->error($messages[$error], $error, JSON);
+				} else {
+					$results = Utility::arrayColumns($results, ["id", "title"]);
+					Utility::decodeLinkForView($results);
+					$this->respond($results, 200, JSON);
+				}
 				break;
 		}
 	}

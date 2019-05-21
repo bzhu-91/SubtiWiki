@@ -45,7 +45,7 @@
 
 .m_object .m_key, .m_array .m_key {
 	font-size: 13pt;
-	margin: 15px 0 5px 0;
+	margin: 20px 0 5px 0;
 }
 
 .m_block {
@@ -80,7 +80,7 @@
 }
 
 .m_inner_block {
-	width: 120px;
+	width: 100px;
 	display: inline-block;
 	padding: 0;
 }
@@ -157,4 +157,49 @@ table.m_table tr:first-child{
 
 .delBtn {
 	background: red;
+}
+
+.table-row {
+	padding: 10px 0;
+	border-bottom: 1px solid #ededed;
+	position: relative;
+	margin: 0;
+}
+
+.table-row:last-child {
+	border-bottom: none;
+}
+
+.table-row:first-child {
+	border-top: 1px solid #ededed;
+}
+
+.table-row > * {
+	display: inline-block;
+	vertical-align: middle;
+	position: relative;
+}
+
+.table-row > label {
+	width: 150px;
+	margin-right: 10px;
+}
+
+.table-row > *:not(label) {
+	width: calc(100% - 170px);
+}
+
+.table-row > *:not(label) > input[type=text]:only-child, 
+.table-row > *:not(label) > input[type=email]:only-child,
+.table-row > *:not(label) > input[type=number]:only-child,
+.table-row > *:not(label) > input[type=date]:only-child {
+	width: 100%;
+}
+
+*:disabled {
+	border: none; background: transparent;
+}
+
+.table-row input, .table-row textarea,.table-row select {
+	padding: 4px 8px;border-radius: 5px; background: #eee;border: none; outline: none;
 }
