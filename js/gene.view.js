@@ -16,13 +16,10 @@ $(document).ready(function(){
 	(function(){
 		var container = $("#context-browser-wrapper");
 		var browser = new ContextBrowser(container);
-		ajax.get({
+		$.ajax({
 			url: "genome/context?gene=" + geneId + "&span=30000",
-			headers: {Accept: "application/json"}
-		}).done(function (status, data, error, xhr){
-			if (error) {
-				browser.setMessage("Connection lost.");
-			} else if(status == 200) {
+			dataType:"json",
+			success: function (data) {
 				browser.setData(data, genomeLength);
 				browser.on("click", function(ev){
 					if (ev.currentViews) {
@@ -31,7 +28,8 @@ $(document).ready(function(){
 					}
 				});
 				browser.diagram.focus(geneId);
-			} else {
+			},
+			error: function (data) {
 				browser.setMessage(data.message);
 			}
 		});
@@ -39,11 +37,10 @@ $(document).ready(function(){
 	// interactions
 	(function(){
 		var view = $('<h3>Interactions</h3><div style="margin-top: 10px; width: 100%;"></div><div></div><br><br>');
-		ajax.get({
+		$.ajax({
 			url: "interaction?radius=1&gene=" + geneId,
-			headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr){
-			if (!error && status == 200) {
+			dataType:"json",
+			success: function (data) {
 				$("#interaction-diagram").append(view);
 				for (var i = 0; i < data.nodes.length; i++) {
 					data.nodes[i].label = ucfirst(data.nodes[i].title);
@@ -118,17 +115,17 @@ $(document).ready(function(){
 	// categories
 	(function(){
 		// categories
-		ajax.get({
+		$.ajax({
 			url: "category?gene=" + geneId,
-			headers: {Accept: "text/html_partial"}
-		}).done(function(status, data, error, xhr){
-			if (!error && status == 200) {
+			headers: {Accept: "text/html_partial"},
+			success: function (data) {
 				var view = $(parseMarkup(data));
 				for (var i = 0; i < view.length; i++) {
 					view[i] = $("<li class='m_value'>" + view[i].innerHTML + "</li>");
 					$("#categories-container").append(view[i]);
 				}
-			} else {
+			},
+			error: function () {
 				$("#categories-wrapper").hide();
 			}
 		});
@@ -136,11 +133,10 @@ $(document).ready(function(){
 	// regulations and regulons
 	(function(){
 		var view = $('<h3>Regulations</h3><div style="margin-top: 15px; width: 100%;"></div style="margin-top: 15px; width: 100%;"><div style="margin-top: 15px; width: 100%;"></div><div></div>');
-		ajax.get({
+		$.ajax({
 			url: "regulation?radius=1&sigA=true&gene=" + geneId,
-			headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr){
-			if (!error && status == 200 && data.nodes.length >= 1) {
+			dataType:"json",
+			success: function (data) {
 				// regulation diagrams
 				$("#regulation-diagram").append(view);
 				var _nodes = {};
@@ -227,12 +223,13 @@ $(document).ready(function(){
 					$("#mainnav").find("li:contains('Regulon')").remove();
 					$("#floatTop nav").find("li:contains('Regulon')").remove();
 				}
-			} else {
+			},
+			error: function () {
 				$("#regulon-wrapper").hide();
 				$("#mainnav").find("li:contains('Regulon')").remove();
 				$("#floatTop nav").find("li:contains('Regulon')").remove();
 			}
-		})
+		});
 	})();
 
 	$(".m_object").each(function(){

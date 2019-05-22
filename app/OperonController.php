@@ -214,7 +214,8 @@ class OperonController extends Controller {
 						"headerTitle" => "Add Operon:",
 						"content" => "{{operon.editor.blank.tpl}}",
 						"updateMode" => "redirect",
-						"jsAfterContent" => ["libs/monkey", "all.editor", "operon.editor", "regulation.editor"]
+						"jsAfterContent" => ["libs/monkey", "all.editor", "operon.editor", "regulation.editor"],
+						"styles" => ["all.editor"]
 					]);
 					$this->respond($view, 200, HTML);
 				}
@@ -249,7 +250,8 @@ class OperonController extends Controller {
 						"jsAfterContent" => ["operon.editor", "libs/monkey", "all.editor"],
 						"vars" => [
 							"showDelBtn" => User::getCurrent()->privilege > 1
-						]
+						],
+						"styles" => ["all.editor"]
 					]);
 					$this->respond($view, 200, HTML);
 				}

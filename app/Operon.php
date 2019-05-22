@@ -74,10 +74,10 @@ class Operon extends Model {
  		$genes = explode("-", $this->genes);
  		foreach ($genes as &$each) {
  			if (strlen($each) != 49) {
- 				throw new BaseException("Can not parse $each.", 1);
- 			}
+				throw new BaseException("There is an error in the genes of this operon", 1);
+			}
  		}
- 		$this->hash = strtoupper(sha1($this->genes));
+		$this->hash = strtoupper(sha1($this->genes));
 	}
 
 	/**

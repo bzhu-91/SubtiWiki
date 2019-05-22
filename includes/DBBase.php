@@ -62,7 +62,7 @@ class DBBase {
 			return $stmt;
 		} catch (Exception $e) {
 			// Log::debug($e->getMessage());
-			$this->lastError = $e->getMessage();
+			$this->lastError = $sql."; --".$e->getMessage();
 			return false;
 		}
 	}

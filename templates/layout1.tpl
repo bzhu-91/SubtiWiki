@@ -21,12 +21,11 @@
 		<link rel="stylesheet" href="css/layout1.css" type="text/css" />
 		<link rel="stylesheet" href="css/common.css" type="text/css" />
 
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 		<script type="text/javascript" src="js/libs/md5.js"></script>
 		<script type="text/javascript" src="js/libs/Lucille.js"></script>
 		<script type="text/javascript" src="js/markup.js"></script>
-		<script type="text/javascript" src="js/patch_AJAX.js"></script>
 		<script type="text/javascript" src="js/patch_textarea.js"></script>
 		{{css:css}}{{js:jsBeforeContent}}
 	</head>

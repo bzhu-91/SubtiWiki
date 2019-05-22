@@ -162,12 +162,9 @@ ContextBrowser.prototype.configDiagram = function () {
 		document.body.cursor = "waiting";
 		self.showMessage("Loading...");
 		var url = "genome/context?span="+self.span+"&position=" + (self.diagram.left - self.span);
-		ajax.get({
-			url:url, headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost.");
-			} else if (status == 200) {
+		$.ajax({
+			url:url, dataType:"json",
+			success: function (data) {
 				data.forEach(function(each){
 					each.label = each.title;
 				})
@@ -176,6 +173,9 @@ ContextBrowser.prototype.configDiagram = function () {
 					inJob = false;
 					document.body.cursor = "auto";
 				});
+			},
+			error: function () {
+				SomeLightBox.error("Connection failed");
 			}
 		});
 	});
@@ -188,12 +188,9 @@ ContextBrowser.prototype.configDiagram = function () {
 		if (ev.next > self.genomeLength) ev.next -= self.genomeLength;
 		self.showMessage("Loading...");
 		var url = "genome/context?span="+self.span+"&position=" + (self.diagram.left + self.span);
-		ajax.get({
-			url:url, headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost.");
-			} else if (status == 200) {
+		$.ajax({
+			url:url, dataType:"json",
+			success: function (data) {
 				data.forEach(function(each){
 					each.label = each.title;
 				})
@@ -201,6 +198,9 @@ ContextBrowser.prototype.configDiagram = function () {
 					self.hideMessage();
 					inJob = false
 				});
+			},
+			error: function () {
+				SomeLightBox.error("Connection to server lost.");
 			}
 		});
 	});

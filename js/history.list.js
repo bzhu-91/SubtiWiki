@@ -32,13 +32,10 @@ $(document).ready(function(){
 	}
 	
 		// get all the users and populate the select tag
-	ajax.get({
+	$.ajax({
 		url: "user?page=1&page_size=500000",
-		headers: {Accept: "application/json"}
-	}).done(function(status, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (status == 200) {
+		dataType:"json",
+		success: function (data) {
 			data = data.sort(function(a,b){
 				if (a.name == b.name) return 0;
 				return a.name > b.name ? 1 : -1;
@@ -48,6 +45,9 @@ $(document).ready(function(){
 				$("#users").append($("<option value='"+encodeURIComponent(user.name)+"'>"+user.name+"</option>"));
 			});
 			initCtrlPanel();
+		},
+		error: function (){
+			SomeLightBox.error("Connection to server lost");
 		}
 	})
 });

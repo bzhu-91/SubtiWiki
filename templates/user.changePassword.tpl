@@ -34,7 +34,7 @@
 				$.ajax({
 					url: "user?name=" + encodeURIComponent(name) + "&password=" + md5(p1) + "&token="+token,
 					type: "put",
-					headers: {Accept: "application/json"},
+					dataType:"json",
 					success: function (data, xhr) {
 	
 					},

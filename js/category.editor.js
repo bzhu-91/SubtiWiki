@@ -1,5 +1,5 @@
 $(document).ready(function(){
-	window.Editor.init(".editor");
+	$("textarea").monkey();
 	window.blankForm = new SomeLightBox({
 		width: "400px",
 		height: "auto"
@@ -12,17 +12,23 @@ $(document).on("click", "button.addBtn[target=category]", function() {
 });
 
 var deleteGene = function (geneId) {
-	ajax.delete({
+	$.ajax({
+		type: "delete",
 		url: "category/assignment?gene=" + geneId + "&category=" + categoryId,
-		headers: {Accept: "application/json"}
-	}).done(function(status, data, error, xhr) {
-		if (status == 204) {
-			$(self).parents("tr").remove();
-			if ($("tr").length == 2) {
-				window.location.reload();
+		dataType:"json",
+		statusCode: {
+			204: function () {
+				$(self).parents("tr").remove();
+				if ($("tr").length == 2) {
+					window.location.reload();
+				}
+			},
+			500: function () {
+				SomeLightBox.error("An unexpected error has happened. Deletion is not successful");
+			},
+			403: function () {
+				SomeLightBox.error("Permission denied");
 			}
-		} else {
-			SomeLightBox.error("An unexpected error has happened. Deletion is not successful");
 		}
 	})
 }
@@ -70,20 +76,18 @@ var createRow = function (gene) {
 }
 
 var validateName = function (name) {
-	ajax.get({
+	$.ajax({
 		url: "gene?keyword=" + encodeURIComponent(name),
-		headers: {Accept: "application/json"}
-	}).done(function(status, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (status == 200) {
+		dataType:"json",
+		success: function (data) {
 			if (data.length != 1) {
 				SomeLightBox.error("Gene " + name + " is ambigous")
 			} else {
 				var gene = data[0];
 				addGene(gene)
 			}
-		} else {
+		},
+		error: function () {
 			SomeLightBox.error("Gene " + name + " does not exit");
 		}
 	})
@@ -94,17 +98,18 @@ var addGene = function (gene) {
 		gene: gene.id,
 		category: categoryId
 	}
-	ajax.post({
+	$.ajax({
+		type:"post",
 		url: "category/assignment",
-		data: ajax.serialize(assignment),
-		headers: {Accept: "application/json"}
-	}).done(function(status, data, error, xhr){
-		if (status == 201) {
-			updateView(gene);
-		} else if (error) {
-			SomeLightBox.error("An unexpected error has happened. Addition is not successful");
-		} else {
-			SomeLightBox.error(data.message);
+		data: assignment,
+		dataType:"json",
+		statusCode: {
+			201: function () {
+				updateView(gene);
+			},
+			500: function (data) {
+				SomeLightBox.error(data.message);
+			}
 		}
 	});
 }
@@ -127,17 +132,20 @@ $(document).on("click", "button.addBtn[target=gene]", function() {
 });
 
 var deleteCategory = function () {
-	ajax.delete({
+	$.ajax({
+		type: "delete",
 		url: "category?id=" + categoryId,
-		headers: {Accept: "application/json"}
-	}).done(function(status, data, error, xhr){
-		if (status == 204) {
-			SomeLightBox.alert("Success", "Deletion is successful");
-			setTimeout(function(){
-				window.location = "category"
-			},300);
-		} else {
-			SomeLightBox.error(data.message);
+		dataType:"json",
+		statusCode: {
+			204: function () {
+				SomeLightBox.alert("Success", "Deletion is successful");
+				setTimeout(function(){
+					window.location = "category"
+				},300);
+			},
+			500: function (data) {
+				SomeLightBox.error(data.message);
+			}
 		}
 	})
 }

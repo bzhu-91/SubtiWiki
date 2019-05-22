@@ -61,17 +61,18 @@ $(document).on("submit", "#email", function(ev) {
 	invitation.body = this.body.value.trim();
 	invitation.sendEmail = !this.sendEmail.checked;
 
-	ajax.post({
+	$.ajax({
+		type:"post",
 		url: "user/invitation",
-		headers: {Accept: "application/json"},
-		data: ajax.serialize(invitation)
-	}).done(function(status, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (status == 201) {
-			SomeLightBox.alert("Success", data.message);
-		} else {
-			SomeLightBox.error(data.message);
+		dataType:"json",
+		data: invitation,
+		statusCode: {
+			201: function (data) {
+				SomeLightBox.alert("Success", data.message);
+			},
+			500: function (data) {
+				SomeLightBox.error(data.message);
+			}
 		}
 	});
 })

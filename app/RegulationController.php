@@ -169,15 +169,14 @@ class RegulationController extends Controller {
 				$id = $this->filter($input, "id", "is_numeric", ["Invalid id", 400, JSON]);
 				$mode = $this->filter($input, "mode", "has", ["Mode is required", 400, JSON]);
 
-				$regulation = new Regulation();
-				$regulation->id = $id;
+				$regulation = (new Regulation())->getWithId($id);
 				$regulation->mode = $mode;
 				$regulation->description = $input["description"];
 
 				if ($regulation->update()) {
 					$this->respond(null, 200, JSON);
 				} else {
-					$this->error("Operon with the same genes already exists", 500, JSON);
+					$this->error(Application::$conn->lastError, 500, JSON);
 				}
 		}
 	}

@@ -13,7 +13,9 @@
 		<p><b>Author of last update: </b>{{:lastAuthor}}</p>
 	</div>
 	<script type="text/javascript">
-		window.Editor.init(".editor");
+		$(document).ready(function(){
+			$("textarea").monkey();
+		})
 	</script>
 </div>
 

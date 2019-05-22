@@ -189,10 +189,10 @@ class GeneController extends Controller {
 
 		$view->registerAdapter("Expression and Regulation->Operons->each", function($each) {
 			$segment = View::loadFile("operon.view.tpl");
-			$each->button = '<a href="operon?id={{:id}}" class="button" style="float:right;">Open in new tab</a>';
 			$operon = Operon::withData($each);
 			$data = MetaData::sort($operon);
 			$segment->set($data);
+			$segment->set("button", '<a href="operon?id={{:id}}" class="button" style="float:right;">Open in new tab</a>');
 			return "<div class='box'>".$segment->generate(true, true)."</div>";
 		});
 
@@ -228,7 +228,7 @@ class GeneController extends Controller {
 					$results = Gene::getAll(["locus" => "%{$keyword}%"]);
 					break;
 				case "title":
-					$results = Gene::getAll("title like ? or _synonyms like ?", [$keyword, "%{$keyword}%"]);
+					$results = Gene::getAll("title like ? or _synonyms REGEXP ?", [$keyword, "(^|,)".$keyword."(,|$)"]);
 					break;
 				case "id":
 					$results = Gene::getAll(["id" => $keyword]);

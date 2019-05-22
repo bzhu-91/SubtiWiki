@@ -83,21 +83,19 @@ $(document).on("submit", "#search", function(ev){
 	var geneName = this.geneName.value.trim();
 
 	if (geneName.length >= 2) {
-		ajax.get({
+		$.ajax({
 			url:"gene?keyword="+geneName+"&mode=title",
-			headers: {Accept: "application/json"}
-		}).done(function(state, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost");
-			} else if (state == 200) {
-				if (data.length > 1) {
+            dataType:"json",
+            success: function (data) {
+                if (data.length > 1) {
 					SomeLightBox.error("Gene name " + geneName + " is ambigious");
 				} else {
 					pathwaySearch(data[0].id);
 				}
-			} else {
+            },
+            error: function () {
 				SomeLightBox.error("Gene " + geneName + " not found");
-			}
+            }
 		})
 	}
 	return false;
@@ -289,15 +287,15 @@ PathwayBrowser.loadPathways = function () {
     if (window.pathways) {
         new Select("all-pathways", window.pathways);
         $("#all-pathways").val(pathwayId);
-    } else ajax.get({
+    } else $.ajax({
         url: "pathway",
-        headers: {Accept: "application/json"}
-    }).done(function(status, data, error, xhr){
-        if (error) {
-            SomeLightBox.error("Connection to server lost");
-        } else if (status == 200){
+        dataType:"json",
+        success: function (data) {
             new Select("all-pathways", data);
             $("#all-pathways").val(pathwayId);
+        },
+        error: function () {
+            SomeLightBox.error("Connection to server lost");
         }
     });
 }
@@ -425,40 +423,38 @@ PathwayBrowser.clearHighlight = function () {
 }
 
 PathwayBrowser.loadGene = function (geneId, callback) {
-    ajax.get({
+    $.ajax({
         url: "gene/summary?id="+geneId,
-    }).done(function(status, data, error, xhr){
-        if (status == 200) {
+        success: function (data) {
             if (callback) callback(data);
-        } else {
+        },
+        error: function (data) {
             SomeLightBox.error(data.message);
         }
     })
 }
 
 PathwayBrowser.loadMetabolite = function (metaboliteId, callback) {
-    ajax.get({
+    $.ajax({
         url: "metabolite?id=" + metaboliteId,
-        headers: {Accept: "application/json"}
-    }).done(function(status, data, error, xhr){
-        if (error) {
-            SomeLightBox.error("Connection to server lost");
-        } else if (status == 200) {
+        dataType:"json",
+        success: function (data) {
             if (callback) callback(data);
-        } else SomeLightBox.error(data.message);
+        },
+        error: function (data) {
+            SomeLightBox.error(data.message);
+        }
     })
 }
 
 PathwayBrowser.loadOmicsData = function (conditionId, callback) {
-    ajax.get({
+    $.ajax({
         url: "expression?condition=" + conditionId,
-        headers: {Accept: "application/json"}
-    }).done(function(status, data, error, xhr){
-        if (error) {
-            SomeLightBox.error("Connection to server lost");
-        } else if (status = 200) {
+        dataType:"json",
+        success: function (data) {
             if (callback) callback(data);
-        } else {
+        },
+        error: function (data) {
             SomeLightBox.error(data.message);
         }
     });

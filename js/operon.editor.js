@@ -1,5 +1,5 @@
 $(document).ready(function(){
-	window.Editor.init(".editor");
+	$("textarea[name=data]").monkey();
 	if (!window.showDelBtn) $(".delBtn").hide();
 });
 
@@ -20,25 +20,25 @@ $(document).on("click", ".delBtn[target=operon]", function(){
 			title: "Delete",
 			color: "red",
 			onclick : function () {
-				ajax.delete({
+				$.ajax({
+					type: "delete",
+					dataType: "json",
 					url: "operon?id=" + id,
-					headers: {Accept: "application/json"}
-				}).done(function(status, data, error, xhr){
-					if (status == 204) {
-						if (mode == "redirect") {
+					statusCode:{
+						204: function () {
 							SomeLightBox.alert("Success", "Deletion is succcessful");
 							setTimeout(function(){
 								window.location = "operon";
 							}, 300);
-						} else {
-							container.remove();
+						},
+						500: function (error) {
+							SomeLightBox.error(error.message);
+						},
+						400: function (error) {
+							SomeLightBox.error(error.message);
 						}
-					} else if (error) {
-						SomeLightBox.error("Server connection is lost.");
-					} else {
-						SomeLightBox.error(data.message);
 					}
-				});
+				})
 			}
 		},
 		cancel: {
@@ -46,4 +46,3 @@ $(document).on("click", ".delBtn[target=operon]", function(){
 		}
 	})
 });
-

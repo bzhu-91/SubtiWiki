@@ -1,169 +1,138 @@
-var empty = [
-	"insert text here",
-	"\\[pubmed\\|\\]",
-	"<pubmed></pubmed>",
-	"\\[\\[gene\\|\\]\\]",
-	"\\[\\[protein\\|\\]\\]",
-	"\\[SW\\|\\]",
-	"\\[PDB\\|\\]",
-	"\\[\\]",
-	"\\[external_url text_to_be_shown\\]"
-];
-
-var removeEmpty = function(str) {
-	for (var i = 0; i < empty.length; i++) {
-		str = str.replace(new RegExp(empty[i], "gi"), "");
-	}
-	return str;
-}
-
-$(document).on("click", ".updateBtn[target=regulation]", function(){
-	var row = $(this).parents("tr");
-	var mode = row.find("input[name=mode]").val().trim();
-	var description = row.find("textarea[name=description]").val().replace(/\[pubmed\|\]/gi, "").trim();
+$(document).on("click","tr.regulation .updateBtn", function(){
 	var id = this.id;
-
-	if (description.length) {
-		description = removeEmpty(description);
-	}
-
-	if (mode.length == 0) {
-		SomeLightBox.error("Mode is required");
-	} else {
-		ajax.put({
-			url: "regulation?id=" + id,
-			data: ajax.serialize({
-				mode: mode,
-				description: description
-			}),
-			headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr){
-			if (status == 200) {
-				SomeLightBox.alert("Success", "Update is succcessful.");
-			} else if (error) {
-				SomeLightBox.error("Server connection is lost.");
-			} else {
-				SomeLightBox.error(data.error);
-			}
-		});
-	}
-});
-
-$(document).on("click", ".delBtn[target=regulation]", function(){
-	var id = this.id;
-	var row = $(this).parents("tr");
-	SomeLightBox.alert({
-		title: {
-			title: "Delete",
-			color: "red"
-		},
-		message: "Do you want to remove this regulation?",
-		confirm: {
-			title: "Delete",
-			color: "red",
-			onclick : function () {
-				ajax.delete({
-					url: "regulation?id=" + id,
-					headers: {Accept: "application/json"}
-				}).done(function(status, data, error, xhr){
-					if (status == 204) {
-						row.remove();
-					} else if (error) {
-						SomeLightBox.error("Server connection is lost.");
-					} else {
-						SomeLightBox.error(data.error);
-					}
-				});
+	var data = {};
+	$(this).parents("tr.regulation").find("[name]").each(function(idx){
+		data[$(this).attr("name")] = $(this).val();
+	});
+	$.ajax({
+		type: "put",
+		dataType: "json",
+		url:"regulation?id=" + encodeURIComponent(id),
+		data: data,
+		statusCode: {
+			200: function () {
+				var l = SomeLightBox.alert("Success", "Update successful");
+				setTimeout(function(){
+					l.dissmiss();
+				}, 300);
+			},
+			500: function (error) {
+				var l = SomeLightBox.error(error.message);
+				setTimeout(function(){
+					l.dissmiss();
+				}, 300);
+			},
+			400: function (error) {
+				var l = SomeLightBox.error(error.message);
+				setTimeout(function(){
+					l.dissmiss();
+				}, 300);
 			}
 		},
-		cancel: {
-			title: "Cancel"
-		}
 	})
 });
 
-var createView = function (id, regulator, mode, description) {
-	if (description.length == 0) {
-		description = "[pubmed|]";
-	}
-	var row = $("<tr id='"+id+"'></tr>");
-	var cell1 = $("<td><label>Type: </label><span>"+regulator.type+"</span><br><label>Name: </label><span>"+regulator.title+"</span></td>");
-	var cell2 = $("<td><input name='mode' value='" + mode + "' /></td>");
-	var cell3 = $("<td><textarea name='description'>" + description + "</textarea></td>");
-	var cell4 = $("<td><button class='updateBtn' target='regulation' id='"+id+"'>Update</button> "+(showDelBtn ? "<button class='delBtn' target='regulation' id='"+id+"'>Delete</button>": "")+"</td>");
-	row.append(cell1, cell2, cell3, cell4);
-	return row;
-}
-
-// this could be problematic when there are multiple operons in the gene.editor.js
-var addRegulation = function (tableView, regulator, regulated,  mode, description) {
-	var data = {
-		regulator: "{" + regulator.type + "|" + regulator.id + "}",
-		regulated: regulated,
-		mode: mode,
-		description: description
-	}
-	ajax.post({
-		url: "regulation",
-		headers: {Accept: "application/json"},
-		data: ajax.serialize(data)
-	}).done(function(status, data, error, xhr) {
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (status == 201) {
-			var view = createView(data.newid, regulator, mode, description);
-			view.insertAfter(tableView[0].rows[1]);
-			$("tr.regulation.blank").find("input, textarea").val("");
-		} else {
-			SomeLightBox.error(data.message);
-		}
+$(document).on("click","tr.regulation.blank .addBtn", function(){
+	var $tr = $(this).parents("tr.regulation")
+	var data = {};
+	$tr.find("[name]").each(function(idx){
+		data[$(this).attr("name")] = $(this).val();
 	});
-}
-
-$(document).on("click", ".addBtn[target=regulation]", function(){
-	var table = $(this).parents("table");
-	var row = $(this).parents("tr");
-	var regulated = row.attr("regulated");
-	var type = row.find("select[name=_regulatorType]").val();
-	var name = row.find("input[name=_regulatorName]").val().trim();
-	var mode = row.find("input[name=mode]").val().trim();
-	var description = row.find("textarea[name=description]").val().trim();
-
-	if (description.length) {
-		description = removeEmpty(description);
-	}
-
-	if (mode.length == 0) {
-		SomeLightBox.error("Mode is required");
-	} else if (name.length < 2) {
-		SomeLightBox.error("Please give the name of the regulator.");
-	} else if (type == "protein") {
-		ajax.get({
-			url: "gene?keyword=" + name + "&mode=title",
-			headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost.");
-			} else if(status == 200) {
-				if (data.length > 1) {
-					SomeLightBox.error("Protein " + name + " is ambigious.");
-				} else {
-					var protein = data[0];
-					protein.type = "protein";
-					addRegulation(table, protein, regulated, mode, description);
+	data.regulated = $tr.attr("regulated");
+	data.description = data.description.replace(/\[pubmed\|\]/g,"");
+	var sendForm = function (data) {
+		$.ajax({
+			type: "post",
+			dataType: "json",
+			url:"regulation",
+			data: data,
+			statusCode: {
+				201: function (data) {
+					$.ajax({
+						url:"regulation/editor?id=" + data.newid,
+						headers: {Accept: "text/html_partial"},
+						success: function (html){
+							$tr.after(html);
+							$tr.find("[name]").each(function(idx){
+								$(this).val("");
+							});
+						}
+					})
+				},
+				500: function (error) {
+					var l = SomeLightBox.error(error.message);
+					setTimeout(function(){
+						l.dissmiss();
+					}, 300);
+				},
+				400: function (error) {
+					var l = SomeLightBox.error(error.message);
+					setTimeout(function(){
+						l.dissmiss();
+					}, 300);
 				}
-			} else if (status == 404) {
-				SomeLightBox.error("Protein " + name + " is not found.");
-			}
+			},
+		})
+	}
+	if (data._regulatorType == "protein") {
+		$.ajax({
+			url: "gene?keyword=" + encodeURIComponent(data._regulatorName) + "&mode=title",
+			dataType: "json",
+			success:function(searchResult){
+				var gene;
+				if (searchResult.length != 1) {
+					var exactMatch = searchResult.filter(function(gene){
+						return gene.title.toLowerCase() == data._regulatorName.toLowerCase();
+					});
+					if (exactMatch.length != 1) {
+						SomeLightBox.error("Protein name " + data._regulatorName + " is ambigious.");
+					} else gene = exactMatch[1];
+				} else {
+					gene = searchResult[0];
+				}
+				data.regulator = "{protein|" + gene.id + "}";
+				sendForm(data);
+			} 
 		})
 	} else {
-		addRegulation(
-		table,
-		{
-			type:"riboswitch",
-			title: name,
-			id: name
-		}, regulated, mode, description);
+		data.regulator = "{riboswitch|" + data._regulatorName + "}"
+		sendForm(data);
 	}
 	
-})
+});
+
+$(document).on("click","tr.regulation .delBtn", function(){
+	var id = this.id;
+	var $tr = $(this).parents("tr.regulation")
+	SomeLightBox.alert({
+		title: "Delete",
+		message: "Are you sure to delete this regulation?",
+		confirm: {
+			title: "Delete",
+			color: "red",
+			onclick: function () {
+				$.ajax({
+					type: "delete",
+					dataType: "json",
+					url:"regulation?id=" + encodeURIComponent(id),
+					statusCode: {
+						204: function () {
+							$tr.remove();
+						},
+						400: function (error) {
+							var l = SomeLightBox.error(error.message);
+							setTimeout(function(){
+								l.dissmiss();
+							}, 300);
+						}
+					},
+				})
+			}
+		},
+		cancel: {
+			title: "Cancel",
+			color: "gray"
+		},
+		theme: "red"
+	})
+});

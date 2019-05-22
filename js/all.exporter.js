@@ -85,13 +85,10 @@ $(document).on("click", "#submit", function(){
 		queries.push(checkbox.name);
 	});
 	if (queries.length) {
-		ajax.get({
+		$.ajax({
 			url: "gene?query=" + queries.join(";"),
-			headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost.");
-			} else if(status == 200) {
+			dataType:"json",
+			success: function (data) {
 				var csvFile = [];
 				for (var i = 0; i < data.length; i++) {
 					var line = data[i].slice(1).map(function(each){
@@ -116,7 +113,9 @@ $(document).on("click", "#submit", function(){
 				    a.click();  // IE: "Access is denied"; see: https://connect.microsoft.com/IE/feedback/details/797361/ie-10-treats-blob-url-as-cross-origin-and-denies-access
 				    document.body.removeChild(a);
 				}
-				
+			},
+			error: function () {
+				SomeLightBox.error("Data export not successful");
 			}
 		});
 	} else SomeLightBox.error("Nothing selected");

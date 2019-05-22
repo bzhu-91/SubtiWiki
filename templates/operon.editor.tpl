@@ -3,7 +3,7 @@
 	<br>
 	<form action="operon" method="put" type="ajax" mode="{{:updateMode}}">
 		<input type="hidden" name="id" value="{{:id}}" />
-		<div class="editor"><textarea type="monkey" name="data">{{::rest}}</textarea></div>
+		<textarea type="monkey" name="data">{{::rest}}</textarea>
 		<p style="text-align: right;">
 			<a target="operon" class="button delBtn" id="{{:id}}" style="float: left;" mode="{{:delMode}}">Delete</a>
 			<input type="submit" />

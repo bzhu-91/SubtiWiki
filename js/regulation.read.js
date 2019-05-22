@@ -117,19 +117,17 @@ $(document).on("submit", "#search", function(ev){
 	var geneName = this.geneName.value.trim();
 
 	if (geneName.length >= 2) {
-		ajax.get({
+		$.ajax({
 			url:"gene?keyword="+geneName+"&mode=title",
-			headers: {Accept: "application/json"}
-		}).done(function(state, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost");
-			} else if (state == 200) {
+			dataType:"json",
+			success: function (data) {
 				if (data.length > 1) {
 					SomeLightBox.error("Gene name " + geneName + " is ambigious");
 				} else {
 					window.location = $("base").attr("href") + "regulation?gene=" + data[0].id;
 				}
-			} else {
+			},
+			error: function() {
 				SomeLightBox.error("Gene " + geneName + " not found");
 			}
 		})
@@ -168,19 +166,17 @@ $(document).on("submit", "#highlight", function(ev){
 	var geneName = this.geneName.value.trim();
 
 	if (geneName.length >= 2) {
-		ajax.get({
+		$.ajax({
 			url:"gene?keyword="+geneName+"&mode=title",
-			headers: {Accept: "application/json"}
-		}).done(function(state, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost");
-			} else if (state == 200) {
+			dataType:"json",
+			success: function (data) {
 				if (data.length > 1) {
 					SomeLightBox.error("Gene name " + geneName + " is ambigious");
 				} else {
 					browser.addHighlight(data[0]);
 				}
-			} else {
+			},
+			error: function () {
 				SomeLightBox.error("Gene " + geneName + " not found");
 			}
 		})
@@ -702,7 +698,7 @@ RegulationBrowser.prototype.getOmicsData = function (conditionId) {
 	ajax.bigGet({
 		url: url,
 		data: data,
-		headers: {Accept: "application/json"}
+		dataType:"json",
 	}).done(function(state, data, error, xhr){
 		self.omicsData = data;
 		self.showOmicsData(conditionId);
@@ -774,15 +770,13 @@ RegulationBrowser.prototype.cluster = function (id) {
 } 
 
 RegulationBrowser.prototype.showPoppup = function (geneId) {
-	ajax.get({
+	$.ajax({
 		url: "gene/summary?id=" + geneId,
-	}).done(function(state, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost.");
-		} else if (state == 200) {
+		success: function (data) {
 			$("#info-box").html(parseMarkup(data));
 			$("#popup").show();
-		} else {
+		},
+		error: function () {
 			SomeLightBox.error("Gene not found");
 		}
 	})

@@ -35,15 +35,15 @@ var PathwayModel = PathwayModel || {
 
 PathwayModel.loadIndex = function (callback) {
     var self = this;
-    ajax.get({
+    $.ajax({
         url: "reaction?page=1&page_size=max",
-        headers: {Accept: "application/json"}
-    }).done(function(status,data,error,xhr){
-        if (error) {
-            SomeLightBox.error("connection to server lost");
-        } else if(status == 200) {
+        dataType:"json",
+        success: function (data) {
             self.reactionIndex = data;
             if (callback) callback();
+        },
+        error: function () {
+            SomeLightBox.error("connection to server lost");
         }
     });
 }
@@ -53,17 +53,15 @@ PathwayModel.loadReaction = function (reactionId, callback, remote) {
     if ((reactionId in self.reactionData) && !remote) {
         callback(self.reactionData[reactionId]);
     } else {
-        ajax.get({
+        $.ajax({
             url: "reaction?id="+reactionId,
-            headers: {Accept: "application/json"}
-        }).done(function(status, data, error, xhr){
-            if (error) {
-                SomeLightBox.error("Connection to server lost");
-            } else if (status == 200) {
+            dataType:"json",
+            success: function (data) {
                 self.reactionData[data.id] = data; // cache the result
                 callback(data);
-            } else {
-                SomeLightBox.error(data.message);
+            },
+            error: function () {
+                SomeLightBox.error("Connection to server lost");
             }
         });
     }
@@ -229,13 +227,10 @@ PathwayEditor.init = function () {
 }
 
 PathwayEditor.loadPathways = function () {
-    ajax.get({
+    $.ajax({
         url: "pathway",
-        headers: {Accept: "application/json"}
-    }).done(function(status, data, error, xhr) {
-        if (error) {
-            SomeLightBox.error("Connection to server lost");
-        } else if (status == 200) {
+        dataType:"json",
+        success: function (data) {
             $("#select-pathway").html("<option>Please select</option>");
             data.forEach(function(pathway){
                 $("#select-pathway").append($("<option></option>").html(pathway.title).val(pathway.id));
@@ -243,6 +238,9 @@ PathwayEditor.loadPathways = function () {
             if (window.pathwayId) {
                 $("#select-pathway").val(pathwayId);
             }
+        },
+        error: function () {
+            SomeLightBox.error("Connection to server lost");
         }
     })
 }
@@ -570,12 +568,11 @@ PathwayEditor.loadCanvas = function () {
 
     var box = SomeLightBox.alert("Update", "Pathway editor is checking for updates in reactions. Please wait.")
 
-    ajax.get({
+    $.ajax({
         url: "reaction?ids=" + ids.join(","),
-        headers: {Accept: "application/json"}
-    }).done(function(status,data,error,xhr){
-        data = JSON.parse(JSON.stringify(data).replace(/title/g, "label").replace(/modification/g, "extra"));
-        if (status == 200) {
+        dataType:"json",
+        success: function (data) {
+            data = JSON.parse(JSON.stringify(data).replace(/title/g, "label").replace(/modification/g, "extra"));
             for(var id in data){
                 var reactionData = data[id];
                 if (reactionData) {
@@ -958,19 +955,20 @@ $(document).on("click", "#btn-save", function(evt){
     }
     PathwayEditor.clearSelection();
     var outerHTML = $("#editor svg")[0].outerHTML;
-    ajax.put({
+    $.ajax({
+        type: "put",
         url: "pathway",
-        headers: {Accept: "application/json"},
-        data: ajax.serialize({
+        dataType:"json",
+        data: {
             map: outerHTML,
             id: pathwayId,
             reactions: reactions.join(",")
-        })
-    }).done(function(status, data, error, xhr){
-        if (error) {
-            SomeLightBox.error("Connection to server lost");
-        } else if (status == 200) {
+        },
+        success: function (data) {
             SomeLightBox.alert("Save", "Pathway map has been successfully saved");
+        },
+        error: function (data) {
+            SomeLightBox.error(data.message);
         }
     })
 });
