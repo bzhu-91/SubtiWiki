@@ -505,10 +505,17 @@ class GeneController extends Controller {
 		$genes = Gene::getAll(1);
 		foreach ($genes as $gene) {
 			if ($gene->names) {
-				Utility::insertAfter($gene, "synonyms", implode(", ", $gene->names), "names");
+				$syns = array_filter($gene->names, function($name){
+					return $name !== $gene->title;
+				});
+				$gene->synonyms = implode(", ", $syns);
 				unset($gene->names);
-				$gene->replace(true);
-				Log::debug($gene->title);
+				$conn = Application::$conn;
+				if ($conn->replace("Gene", $gene, ["id" => $gene->id])) {
+					Log::debug($gene->title);
+				} else {
+					Log::debug("x: ".$gene->title);
+				}
 			}
 		}
 	}
