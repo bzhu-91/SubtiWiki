@@ -3,6 +3,17 @@ $(window).on("load", function(){
 
 	// load operons
 	$.ajax({
+		url:"genome/editor?object={gene|"+geneId+"}",
+		headers: {Accept: "text/html_partial"},
+		success: function(html){
+			var $editors = $(html);
+			$editors.addClass("box");
+			$("#content-genomic-context").append($editors);
+		}
+	});
+
+	// load operons
+	$.ajax({
 		url:"operon/editor?gene="+geneId,
 		headers: {Accept: "text/html_partial"},
 		success: function(html){

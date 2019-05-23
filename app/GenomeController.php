@@ -39,7 +39,28 @@ class GenomeController extends Controller {
 	}
 
 	public function update ($input, $accept) {
-		$this->error("Forbidden", 403, $accept);
+		if ($accept == JSON) {
+			$object = $this->filter($input, "object", "/^\{gene\|[0-9a-f]{40}\}$/i", ["object is required", 400, HTML]);
+			$contextObject = Genome::get($object);
+			if ($contextObject) {
+				$start = $this->filter($input, "start", "/^\d+$/", ["Start should be a positive number", 400, JSON]);
+				$stop = $this->filter($input, "stop", "/^\d+$/", ["Stop should be a positive number", 400, JSON]);
+				$strand = $this->filter($input, "strand", "/^(0|1)$/", ["Strand should be 0 or 1", 400, JSON]);
+				if ($start > $stop) {
+					$contextObject->stop = $start;
+					$contextObject->start = $stop;
+				} else {
+					$contextObject->start = $start;
+					$contextObject->stop = $stop;
+				}
+				$contextObject->$strand = $strand;
+				if ($contextObject->update()) {
+					$this->respond(["message" => "Update successful"], 200, JSON);
+				}  else {
+					$this->error("Internal error", 500, JSON);
+				}
+			} else $this->error("Not found", 404, JSON);
+		} else $this->error("Unaccepted", 406, $accept);
 	}
 
 	public function context ($input, $accept, $method) {
@@ -225,6 +246,29 @@ class GenomeController extends Controller {
 			"errors" => $errors
 		]);
 		$this->respond($view, 200, HTML);
+	}
+
+	public function editor ($input, $accept, $method) {
+		if ($method == "GET") {
+			if ($accept == HTML || $accept == HTML_PARTIAL) {
+				$object = $this->filter($input, "object", "has", ["object is required", 400, HTML]);
+				$contextObject = Genome::get($object);
+				if ($contextObject) {
+					if ($accept == HTML) {
+						$view = View::loadFile("layout1.tpl");
+						$view->set([
+							"jsAfterContent" => ["all.editor"],
+							"title" => "Edit genomic context",
+							"pageTitle" => "Edit genomic context"
+						]);
+					} else {
+						$view = View::loadFile("genome.context.editor.tpl");
+					}
+					$view->set($contextObject);
+					$this->respond($view, 200, HTML);
+				} else $this->error("Not found", 404, $accept);
+			} else $this->error("Unaccepted", 406, $accept);
+		} else $this->error("Unaccepted method", 405, $accept);
 	}
 }
 ?>

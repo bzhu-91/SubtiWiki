@@ -1,6 +1,7 @@
 <div>
 	<div id="side-bar">
 		<a href="javascript:void(0);" class="tab is-active">Gene</a>
+		<a href="javascript:void(0);" class="tab">Genomic context</a>
 		<a href="javascript:void(0);" class="tab">Category</a>
 		<a href="javascript:void(0);" class="tab">Paralogues protein(s)</a>
 		<a href="javascript:void(0);" class="tab">Interactions</a>
@@ -31,6 +32,9 @@
 				<p><b>Time of last update: </b>{{:lastUpdate}}</p>
 				<p><b>Author of last update: </b>{{:lastAuthor}}</p>
 			</div>
+		</div>
+		<div class="tab-content" id="content-genomic-context">
+
 		</div>
 		<div class="tab-content">
 			<div class="content" id="content-category"></div>

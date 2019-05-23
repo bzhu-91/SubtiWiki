@@ -86,6 +86,9 @@ class Gene extends Model {
 			if ($keypath == "Expression and Regulation->Other regulations") {
 				$data = $this->fetchOtherRegulations();
 			}
+			if ($keypath == "Gene->Coordinates") {
+				$data = $this->fetchCoordinates();
+			}
 			if ($keypath == "regulons") {
 				$data = "{{this}}";
 			}
@@ -110,6 +113,13 @@ class Gene extends Model {
 				}
 				return array_column($relationships, "operon");
 			}
+		}
+	}
+
+	public function fetchCoordinates() {
+		$pos = Genome::getAll(["object" => (string) $this]);
+		if ($pos) {
+			return $pos[0]->start." - ".$pos[0]->stop." (".($pos[0]->strand == 1? "+" :"-").")";
 		}
 	}
 

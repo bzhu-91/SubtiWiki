@@ -2,6 +2,7 @@
 class Genome extends Model {
 	static $tableName = "GenomicContext";
 	static $fileName = "res/genome.txt";
+	static $primaryKeyName = "object"; // Not exactly the primary key in the table, but can be used to update gene coordinates
 
 	public static function findContextByGene ($id, $span) {
 		if ($id) {
