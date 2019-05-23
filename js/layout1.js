@@ -1,9 +1,9 @@
 $(window).on("load", function(){
 	var width = $("#floatTop").width() + 40;
-	window.onresize = function(){
+	$(window).on("resize", function(){
 		var width = $("#floatTop").width() + 40;
-	}
-	window.onscroll = function(){
+	})
+ $(window).on("scroll", function(){
 	  if (window.pageYOffset > $("#content").position().top) {
 		$("#floatTop").show();
 		$("#floatTop").css("width", width + "px");
@@ -12,7 +12,7 @@ $(window).on("load", function(){
 		$("#floatTop").hide();
 		$("#floatTop").css("position", "relative");
 	  }
-	}
+	})
 	window.showSearch = function(){
 		var el = $("#search");
 		var container = $("<div></div>");
@@ -28,4 +28,8 @@ $(window).on("load", function(){
 		});
 		l.show();
 	}
+
+	$("section#content > #content-wrapper").animate({
+		opacity: 1
+	},50)
 });

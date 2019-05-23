@@ -58,18 +58,20 @@
 				<nav>{{navlink:navlinks}}</nav>
 			</div>
 			<section id="content">
-				{{banner.php}}
-				<h1>
-					<span>{{:title}}</span>
-					<span style="float:right; font-size: smaller">{{:titleExtra}}</span>
-				</h1>
-				{{:content}}
-				<div class="footnote box" style="margin-top: 50px; display: {{:showFootNote}}">
-					<p style="display: none;">{{:bank_id}}</p>
-					<p style="display: none;">{{:id}}</p>
-					<p><b>Page visits: </b>{{:count}}</p>
-					<p><b>Time of last update: </b>{{:lastUpdate}}</p>
-					<p><b>Author of last update: </b>{{:lastAuthor}}</p>
+				<div id="content-wrapper">
+					{{banner.php}}
+					<h1>
+						<span>{{:title}}</span>
+						<span style="float:right; font-size: smaller">{{:titleExtra}}</span>
+					</h1>
+					{{:content}}
+					<div class="footnote box" style="margin-top: 50px; display: {{:showFootNote}}">
+						<p style="display: none;">{{:bank_id}}</p>
+						<p style="display: none;">{{:id}}</p>
+						<p><b>Page visits: </b>{{:count}}</p>
+						<p><b>Time of last update: </b>{{:lastUpdate}}</p>
+						<p><b>Author of last update: </b>{{:lastAuthor}}</p>
+					</div>
 				</div>
 			</section>
 			<aside>

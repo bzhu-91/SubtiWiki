@@ -221,7 +221,11 @@ section: before {
 }
 
 section#content {
-	float: left; width: 75%; padding: 20px; background-color: #fff; min-height:600px; 
+	float: left; width: 75%; padding: 20px; background-color: #fff; min-height:600px;background: white;
+}
+
+section#content > #content-wrapper {
+	opacity: 0;
 }
 /* -------------- side infos ------------- */
 
