@@ -14,25 +14,26 @@
 	<div id="control-block">
 		<img src="img/settings_1.png" id="collapsed"/>
 		<div id="full">
-	 		<p style="margin-top: 20px">
-	 			<form id="highlight">
-	 				<label>Highlight: </label><input type="text" name="geneName" /><input type="submit" />
-	 			</form>
-	 		</p>
-			<p style="margin-top: 10px">
-				<label class="inline">Radius: </label>
+			<form id="highlight">
+				<label>Highlight: </label><input type="text" name="geneName" /><input type="submit" />
+			</form>
+			<p>
+				<label>Radius: </label>
 					<img src="img/zoomIn.svg" id="increase-radius"  class="icon" />
 					<img src="img/zoomOut.svg" id="decrease-radius" class="icon" />
-				<label class="inline" id="spacingDis" style="margin-left: 10px">Spacing: </label>
+				<label id="spacingDis" style="margin-left: 10px">Spacing: </label>
 					<img src="img/zoomIn.svg" id="increase-spacing"  class="icon" />
 					<img src="img/zoomOut.svg" id="decrease-spacing" class="icon" />
 			</p>
 			<p id="omics-data-select-container"></p>
 			<p>
-				<input type="checkbox" id="sigA-Regulon" {{:sigA}}/><label class="inline">Include SigA Regulon</label>
-				<button id="open-settings" style="padding-bottom: 8px;margin-left: 10px"><img src="img/settings_0.png" class="icon" /> Settings</button>
-				<img src="img/close.png" id="control-collapse" class="icon" style="float:right"/>
+				<input type="checkbox" id="sigA-Regulon" {{:sigA}}/><label>Include SigA Regulon</label>
+				<button id="open-settings" style="margin-left: 10px"><img src="img/settings_0.png" style="width:12px"/> Settings</button>
+				<button id="save-cache" style="margin-left: 10px">
+					<img src="img/save.svg" style="width: 12px" />
+					Save the cache of this network</button>
 			</p>
+			<img src="img/close.png" id="control-collapse" class="icon" style="float:right"/>
 			<p style="clear:both"></p>
 		 	</div>
 	</div>
@@ -47,6 +48,7 @@
 			<p><input id="edge-other" class="jscolor" value="808080" /><label style="margin-left: 20px">Other regulations</label></p>
 		</div>
 	</div>
+	<div id="config"></div>
 	<div id="popup">
 		<div id="info-box"></div>
 		<img src="img/close.png" id="popup-cancel" class="icon" />

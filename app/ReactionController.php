@@ -63,7 +63,9 @@ class ReactionController extends Controller {
 					$member = $hasMember->member;
 					if ($hasMember->coefficient > 1) $member->coefficient = $hasMember->coefficient;
 					if ($hasMember->modification) $member->modification = $hasMember->modification;
-					$member->type = lcfirst(get_class($member));
+					if (!property_exists($member, "type")) {
+						$member->type = lcfirst(get_class($member));
+					}
 					$members[] = $member;
 				}
 				$reactant->members = $members;
@@ -85,7 +87,9 @@ class ReactionController extends Controller {
 					$member = $hasMember->member;
 					if ($hasMember->coefficient > 1) $member->coefficient = $hasMember->coefficient;
 					if ($hasMember->modification) $member->modification = $hasMember->modification;
-					$member->type = lcfirst(get_class($member));
+					if (!property_exists($member, "type")) {
+						$member->type = lcfirst(get_class($member));
+					}
 					$members[] = $member;
 				}
 				$product->members = $members;

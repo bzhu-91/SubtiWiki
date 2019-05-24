@@ -9,10 +9,10 @@ class DNA extends Model {
 	public $type = "DNA";
 
 	public static function get ($id) {
-		$instance = new DNA;
+		$className = get_called_class();
+		$instance = new $className;
 		if (Utility::startsWith($id, "gene")) {
 			$gene = Gene::simpleGet(substr($id, 5));
-			Log::debug($gene);
 			if ($gene === null) return null;
 			$instance->id = $id;
 			$instance->subtype = "gene";
@@ -35,6 +35,9 @@ class DNA extends Model {
 		return static::get($id);
 	}
 	public function toObjectMarkup() {
+		return "{DNA|".$this->id."}";
+	}
+	public function __toString(){
 		return "{DNA|".$this->id."}";
 	}
 }

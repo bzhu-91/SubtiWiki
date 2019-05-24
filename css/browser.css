@@ -1,5 +1,5 @@
 #middle {
-	margin: 0; position: relative; width: 100%; padding: 0;
+	margin: 0; position: relative; width: 100%; padding: 0; max-width: unset;
 }
 
 h2.title {
@@ -51,7 +51,11 @@ h2.title {
 }
 
 #full {
-	border: 1px solid #ddd; padding:0px 15px; display: none; background: white;
+	border: 1px solid #ddd; padding:10px; display: none; background: white;
+}
+
+#full > * {
+	margin: 0; line-height: 2.5em;
 }
 
 #collapsed {
@@ -63,7 +67,7 @@ h2.title {
 }
 
 .icon {
-	cursor: pointer;width: 25px;opacity: 0.6;
+	cursor: pointer;width: 24px;opacity: 0.6;
 }
 
 .icon:hover {

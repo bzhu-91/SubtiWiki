@@ -10,7 +10,6 @@
 	<link rel="stylesheet" type="text/css" href="css/common.css">
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="js/patch_AJAX.js"></script>
 	<script type="text/javascript" src="js/libs/Lucille.js"></script>
 	<script type="text/javascript" src="js/libs/md5.js"></script>
     {{js:jsBeforeContent}}

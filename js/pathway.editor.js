@@ -807,7 +807,7 @@ $(document).on("contextmenu", "rect#membrane", function(evt){
     });
 });
 
-$(document).on("contextmenu", ".metabolite, .complex", function(evt) {
+$(document).on("contextmenu", ".metabolite, .complex, .RNA, .DNA", function(evt) {
     evt.preventDefault();
     evt.stopPropagation();
     if ($(this).attr("class").indexOf("nested") == -1) {

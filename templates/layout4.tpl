@@ -24,7 +24,6 @@
       <script type="text/javascript" src="js/libs/Lucille.js"></script>
       <script type="text/javascript" src="js/patch_IE.js"></script>
       <script type="text/javascript" src="js/patch_textarea.js"></script>
-      <script type="text/javascript" src="js/patch_AJAX.js"></script>
       <script type="text/javascript" src="js/Editor.js"></script>
 
       <link rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" >

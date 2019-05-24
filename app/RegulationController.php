@@ -273,5 +273,42 @@ class RegulationController extends Controller {
 			}
 		} else $this->error("Unaccpeted method", 406, $accept);
 	}
+
+	public function cache ($input, $accept, $method) {
+		if ($accept == JSON) {
+			$target = $this->filter($input, "target", "/^[0-9a-f]{40}$/i", ["Target is required", 400, JSON]);
+			$radius = $this->filter($input, "radius", "/^\d$/", ["Radius is required", 400, JSON]);
+			if ($method == "POST") {
+					$content = $this->filter($input, "content");
+					$conn = Application::$conn;
+					if ($input["chunkNr"]) {
+						$re = $conn->doQuery("insert into RegulationNetworkCache (target, radius, content) values (?,?,?) on duplicate key update content = JSON_MERGE_PRESERVE(content, ?)", [$target, $radius, $content, $content]);
+					} else {
+						$re = $conn->doQuery("insert into RegulationNetworkCache (target, radius, content) values (?,?,?) on duplicate key update content = ?", [$target, $radius, $content, $content]);
+					}
+					if ($re) {
+						$this->respond(["message" => "okay"], 200, JSON);
+					} else {
+						$this->error("Internal error", 500, JSON);
+					}
+			} elseif ($method == "GET") {
+				$conn = Application::$conn;
+				$result = $conn->doQuery("select content from RegulationNetworkCache where target = ? and radius = ?", [$target, $radius]);
+				if ($result) {
+					$this->respond($result[0]["content"], 200, JSON);
+				} elseif ($radius >= 3) {
+					// for high radius subnetworks , use cache from other networks with the similar radius;
+					$result = $conn->doQuery("select content from RegulationNetworkCache where and radius = ?", [$radius]);
+					if ($result) {
+						$this->respond($result[0]["content"], 200, JSON);
+					} else {
+						$this->error("Not found", 404, JSON);
+					}
+				} else {
+					$this->error("Not found", 404, JSON);
+				}
+			} else $this->error("Unaccepted methods", 405, $accept);
+		} else $this->error("Not accepted", 406, $accept);
+	}
 }
 ?>

@@ -92,11 +92,17 @@ $(document).ready(function(){
 		} else {
 			$("#display-block, #loading, #control-block").hide();
 		}
-		lightbox = new SomeLightBox({
+		lightBoxSettings = new SomeLightBox({
 			width: "400px",
 			height: "auto",
 			animation: false
 		});
+		lightBoxConfig = new SomeLightBox({
+			maxWidth: "80%",
+			height: "auto",
+			animation: false
+		});
+		lightBoxConfig.loadById("config");
 	});
 });
 
@@ -148,7 +154,7 @@ $(document).on("click", "#decrease-radius", function () {
 });
 
 $(document).on("click", "#increase-spacing", function () {
-	if (browser.spacing < 29) {
+	if (browser.spacing < 50) {
 		browser.setSpacing(browser.spacing + 1);
 	}
 });
@@ -158,6 +164,10 @@ $(document).on("click", "#decrease-spacing", function () {
 		browser.setSpacing(browser.spacing - 1);
 	}
 });
+
+$(document).on("click", "#save-cache", function(){
+	browser.saveCache();
+})
 
 $(document).on("submit", "#highlight", function(ev){
 	ev.stopPropagation();
@@ -197,9 +207,13 @@ $(document).on("change", "#sigA-Regulon", function(){
 
 $(document).on("click", "#open-settings", function () {
 	if ($("#settings").length) {
-		lightbox.loadById("settings");
+		lightBoxSettings.loadById("settings");
 	}
-	lightbox.show();
+	lightBoxSettings.show();
+});
+
+$(document).on("click", "#open-config", function () {
+	lightBoxConfig.show();
 });
 
 $(document).on("change", "#node-color", function () {
@@ -368,8 +382,8 @@ RegulationBrowser.prototype.load = function () {
 }
 
 RegulationBrowser.prototype.createData = function () {
-	// create network according to the radius
 	var self = this;
+	// create network according to the radius
 	var rNodes = {}; var rEdges = [];
 	for (var id in self.rawData.distances) {
 		var distance = self.rawData.distances[id];
@@ -407,58 +421,96 @@ RegulationBrowser.prototype.createData = function () {
 		}
 	}
 
-	self.data.nodes.clear();
-	self.data.nodes.update(nodes);
-	self.data.edges.clear();
-	self.data.edges.update(edges);
+	
 
-	self.createNetwork();
-
-	$("#radius-display").html(self.radius);
-	$("#coverage-display").html((self.data.nodes.length / 6012 * 100 + "").substr(0,4) + "%");
-
-	$("#gene-display").html(self.data.nodes.get(self.target).label);
+	// get the cache according to the radius
+	$.ajax({
+		url: "regulation/cache",
+		dataType: "json",
+		data: {
+			target: self.target,
+			radius: self.radius
+		},
+		success: function (cache) {
+			var toUpdate = [];
+			var c = 0;
+			nodes.forEach(function(n){
+				if (n.id in cache) {
+					n.x = cache[n.id].x;
+					n.y = cache[n.id].y;
+				} else {
+					c++
+				}
+			});
+			console.log(c + " nodes are newly added");
+			self.hasCache = true;
+			self.data.nodes.clear();
+			self.data.nodes.update(nodes);
+			self.data.edges.clear();
+			self.data.edges.update(edges);
+			self.createNetwork();
+		},
+		error: function () {
+			self.hasCache = false;
+			self.data.nodes.clear();
+			self.data.nodes.update(nodes);
+			self.data.edges.clear();
+			self.data.edges.update(edges);
+			self.createNetwork();
+		}
+	})
 }
 
 RegulationBrowser.prototype.createNetwork = function () {
 	var self = this;
+	self.coverage = self.data.nodes.length / 6012;
+	// show metadata
+	$("#radius-display").html(self.radius);
+	$("#coverage-display").html((self.coverage * 100 + "").substr(0,4) + "%");
+	$("#gene-display").html(self.data.nodes.get(self.target).label);
+
 	var options = {
 		nodes: {
 			shape: 'dot',
 			color: self.nodeColor,
-			size: 22,
+			size: 22 * Math.pow(3, self.data.nodes.length / 1000),
 			font: {
-				size: 22,
-				color: "gray"
+				size: 22 * Math.pow(3, self.data.nodes.length / 1000),
+				color: "black"
 			},
 		},
 		edges: {
 			smooth: true,
-			width: 2,
+			width: 1.5,
 			arrows: {
 				to:true
 			}
 		},
 		physics: {
 			enabled: true,
+			maxVelocity: 50,
 			stabilization: false,
 			barnesHut: {
-				springLength: 200,
-				gravitationalConstant: Math.pow(2, self.spacing) * - 2750 * self.data.nodes.length / 10,
+				damping: .3,
+				gravitationalConstant: self.calcG(),
+				springLength: 200
 			}
 		},
 		layout: {
 			improvedLayout: false,
 			randomSeed:55
-		}
+		},
 	};
 	$("#loading").hide();
 
 	if (self.network && self.network instanceof vis.Network) {
 		self.network.setOptions(options);
+		self.setSpacing(self.spacing);
+		self.network.fit();
 	} else {
 		self.network = new vis.Network(self.container, self.data, options);
-		self.network.moveTo({scale:0.7});
+		self.setSpacing(self.spacing);
+		self.network.fit();
 
 		self.network.on("click", function (ev) {
 			$("#popup").hide();
@@ -518,7 +570,6 @@ RegulationBrowser.prototype.fade = function () {
 		toUpdate.push(edge);
 	});
 	self.data.edges.update(toUpdate);
-
 }
 
 RegulationBrowser.prototype.restore = function () {
@@ -560,13 +611,18 @@ RegulationBrowser.prototype.setRadius = function (radius) {
 	self.createData();
 }
 
+RegulationBrowser.prototype.calcG = function () {
+	var self = this;
+	return Math.pow(2,self.spacing) * -375 * self.data.nodes.length
+}
+
 RegulationBrowser.prototype.setSpacing = function (spacing) {
 	var self = this;
 	self.spacing = spacing;
 	self.network.setOptions({
 		physics: {
 			barnesHut: {
-				gravitationalConstant: Math.pow(2, self.spacing) * - 2750 * self.data.nodes.length / 10,
+				gravitationalConstant: self.calcG(),
 			}
 		}
 	})
@@ -852,7 +908,7 @@ RegulationBrowser.prototype.getNetwork = function () {
 				stabilization: false,
 				barnesHut: {
 					damping: .3,
-					gravitationalConstant: Math.pow(2,self.spacing) * -3750 * data.nodes.length / 10,
+					gravitationalConstant: self.calcG(),
 					springLength: 200
 				}
 			},
@@ -862,4 +918,46 @@ RegulationBrowser.prototype.getNetwork = function () {
 		}
 	}
 	return nvis;
+}
+
+RegulationBrowser.prototype.saveCache = function () {
+	var self = this;
+	self.network.storePositions();
+	var cache = [];
+	var c = 0;
+	self.data.nodes.forEach(function(n){
+		var chunkNr = c / 200 | 0;
+		if (!(chunkNr in cache)) {
+			cache[chunkNr] = {};
+		}
+		cache[chunkNr][n.id] = {
+			x: n.x,
+			y: n.y
+		}
+		c++;
+	});
+	cache.forEach(function(chunk,i){
+		$.ajax({
+			url: "regulation/cache",
+			data: {
+				target: self.target,
+				radius: self.radius,
+				content: chunk,
+				chunkNr:i
+			},
+			type: "post",
+			dataType: "json",
+			success: function () {
+				console.log("chunk " + i + " okay");
+			},
+			error: function () {
+				console.log("chunk " + i + " not okay");
+			}
+		})
+	});
+	var l = SomeLightBox.alert("Success", "Regulation network succcessfully cached");
+	setTimeout(function(){
+		l.dismiss();
+	}, 800)
+	
 }

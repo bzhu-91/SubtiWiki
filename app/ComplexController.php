@@ -184,11 +184,17 @@ class ComplexController extends Controller {
             }
             $view = View::loadFile("layout2.tpl");
             if ($complex) {
+                $hasMembers = $complex->has("member");
+                foreach($hasMembers as &$hasMember) {
+                    if (!property_exists($hasMember->member, "type")) {
+                        $hasMember->member->type = lcfirst(get_class($hasMember->member));
+                    }
+                }
                 $view->set([
                     "pageTitle" => "Edit complex",
                     "headerTitle" => "Edit complex",
                     "method" => "put",
-                    "members" => $complex->has("member"),
+                    "members" => $hasMembers,
                     "showDelForm" => User::getCurrent()->privilege > 2 ? "block" : "none",
                     "showMembers" => "block",
                     "floatButtons" => [
@@ -208,7 +214,7 @@ class ComplexController extends Controller {
             $view->set([
                 "content" => "{{complex.editor.tpl}}",
                 "styles" => ["all.editor"],
-                "jsAfterContent" => ["all.editor"],
+                "jsAfterContent" => ["complex.editor","all.editor"],
                 
             ]);
             $this->respond($view, 200, HTML);
@@ -226,33 +232,60 @@ class ComplexController extends Controller {
         $coefficient = array_key_exists("coefficient", $input) ? $input ["coefficient"] : 1; // by default 1
         switch ($method) {
             case "POST":
-                $type = $this->filter($input, "type", "/(protein)|(metabolite)/i", ["Type is required for the complex member", 400, JSON]);
-                $title = $this->filter($input, "title", "has", ["Title is required for the complex member", 400, JSON]);
-                if ($type == "protein") {
-                    $member = Protein::getAll(["title" => $title]);
-                    if ($member) $member = $member[0];
+                $type = $this->filter($input, "type", "/(protein)|(metabolite|DNA|RNA)/i", ["Type is required for the complex member", 400, JSON]);
+                $identifier = $this->filter($input, "member", "has", ["Member is required for the complex member", 400, JSON]);
+                switch($type) {
+					case "DNA":
+					case "RNA":
+						$member = $type::get($identifier);
+						if ($member === null) $this->error("Gene or operon not found", 404, JSON);
+						break;
+					case "protein":
+						$protein = Protein::get($identifier);
+						if ($protein === null) $this->error("Protein is not found", 404, JSON);
+						$member = $protein;
+						break;
+					case "complex":
+						if ($input["member_validated"]) {
+							$complex = Complex::get($identifier);
+							if ($complex == null) $this->error("Complex not found", 404, JSON);
+						} else {
+							$complex = new Complex;
+							$complex->title = $identifier;
+							$complex->insert();
+							if (!$complex->id) {
+								$this->error("An internal error has happened, please contact admin.", 500, JSON);
+							}
+						}
+						$member = $complex;
+						break;
+					case "metabolite":
+						if ($input["member_validated"]) {
+							$member = Metabolite::get($identifier);
+							if ($member == null) $this->error("Metabolite not found", 404, JSON);
+						} else {
+							$member = Metabolite::getAll("title like ? or synonym regexp ?", [$identifier, $identifier."(,|$)"]);
+							if ($member) {
+								$member = $member[0];
+							} else {
+								$member = new Metabolite;
+								$member->title = $identifier;
+								$member->insert();
+								if (!$member->id) {
+									$this->error("An internal error has happened, please contact admin.", 500, JSON);
+								}
+							}
+						}
+						break;
+				}
+                if ($complex->addMember($member, $coefficient, $input["modification"])) {
+                    $this->respond(["uri" => "complex/editor?id={$complex->id}"], 201, JSON);
                 } else {
-                    $member = Metabolite::getAll(["title" => $title]);
-                    if ($member) {
-                        $member = $member[0];
-                    } else {
-                        $member = new Metabolite;
-                        $member->title = $title;
-                        $member->insert();
-                    }
-                }
-                if ($member) {
-                    if ($complex->addMember($member, $coefficient, $input["modification"])) {
-                        $this->respond(["uri" => "complex/editor?id={$complex->id}"], 201, JSON);
-                    } else {
-                        $this->error("An internal error has happened, please contact admin.", 500, JSON);
-                    }
-                } else {
-                    $this->error("Complex member not found", 404, JSON);
+                    $this->error("An internal error has happened, please contact admin.", 500, JSON);
                 }
                 break;
             case "PUT":
-                $member = $this->filter($input, "member", "/\{(protein)|(metabolite)\|[^\{|}\|]+\}/i", ["Complex member is required", 400, JSON]);
+                $member = $this->filter($input, "member", "has", ["Complex member is required", 400, JSON]);
                 $member = Model::parse($member);
                 if ($member) {
                     if ($complex->updateMember($member, $coefficient)) {
@@ -265,7 +298,7 @@ class ComplexController extends Controller {
                 }
                 break;
             case "DELETE":
-                $member = $this->filter($input, "member", "/\{(protein)|(metabolite)\|[^\{|}\|]+\}/i", ["Complex member is required", 400, JSON]);
+                $member = $this->filter($input, "member", "has", ["Complex member is required", 400, JSON]);
                 $member = Model::parse($member);
                 if ($member) {
                     if ($complex->removeMember($member)) {

@@ -435,16 +435,26 @@ Pathway.Complex.prototype.__createView = function () {
 
     if (self.members) {
         self.members.forEach(function(each){
-            if (each.type == "protein") {
-                var protein = new Pathway.Protein(each);
-                protein._isNested = true;
-                self._components.push(protein);
-            } else if (each.type = "metabolite") {
-                var metabolite = new Pathway.Metabolite(each);
-                metabolite._isNested = true;
-                self._components.push(metabolite);
+            var el;
+            switch (each.type) {
+                case "protein":
+                    el = new Pathway.Protein(each);
+                    break;
+                case "metabolite":
+                    el = new Pathway.Metabolite(each);
+                    break;
+                case "DNA":
+                    el = new Pathway.DNA(each);
+                    break;
+                case "RNA":
+                    el = new Pathway.RNA(each);
+                    break;
+            }
+            if (el) {
+                el.__isNested = true;
+                self._components.push(el);
             } else {
-                console.log("unknown complex member");
+                console.log("unknown type of complex member");
             }
         });
     }

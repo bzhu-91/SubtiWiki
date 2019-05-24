@@ -7,5 +7,8 @@ class RNA extends DNA {
 	public function toObjectMarkup() {
 		return "{RNA|".$this->id."}";
 	}
+	public function __toString(){
+		return "{RNA|".$this->id."}";
+	}
 }
 ?>
