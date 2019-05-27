@@ -399,7 +399,7 @@ Pathway.Complex.prototype.fromSVGElement = function (dom) {
             throw new Error("Complex text not found", dom);
         }
 
-        var memberDoms = dom.querySelectorAll("g.protein, g.metabolite");
+        var memberDoms = dom.querySelectorAll("g.protein, g.metabolite, g.DNA, g.RNA");
         memberDoms.forEach(function(each){
             if (each.getAttribute("class") && each.getAttribute("class").indexOf("protein") > -1){
                 var protein = new Pathway.Protein(each);
@@ -409,6 +409,14 @@ Pathway.Complex.prototype.fromSVGElement = function (dom) {
                 var metabolite = new Pathway.Metabolite(each);
                 self._components.push(metabolite);
                 metabolite.parent = self;
+            } else if (each.getAttribute("class") && each.getAttribute("class").indexOf("DNA") > -1) {
+                var DNA = new Pathway.DNA(each);
+                self._components.push(DNA);
+                DNA.parent = self;
+            } else if (each.getAttribute("class") && each.getAttribute("class").indexOf("RNA") > -1) {
+                var RNA = new Pathway.RNA(each);
+                self._components.push(RNA);
+                RNA.parent = self;
             } else {
                 console.error("Unknown type, ignored", each);
             }
@@ -1471,47 +1479,43 @@ Pathway.Reaction.prototype.fromSVGElement = function (dom) {
         }
 
         // get all proteins
-        var doms = dom.querySelectorAll("g.protein");
+        var doms = dom.querySelectorAll("g.protein:not(.nested)");
         if (doms) doms.forEach(function(each){
-            if (each.getAttribute("class").indexOf("nested") == -1) {
-                // exclude nested protein dom in the complex
-                var protein = new Pathway.Protein(each);
-                protein.parent = self;
-            }
+            // exclude nested protein dom in the complex
+            var protein = new Pathway.Protein(each);
+            protein.parent = self;
         });
 
         // get all protein class
-        var doms = dom.querySelectorAll("g.proteinClass");
+        var doms = dom.querySelectorAll("g.proteinClass:not(.nested)");
         if (doms) doms.forEach(function(each){
-            if (each.getAttribute("class").indexOf("nested") == -1){
-                var proteinClass = new Pathway.ProteinClass(each);
-                proteinClass.parent = self;
-            }
+            var proteinClass = new Pathway.ProteinClass(each);
+            proteinClass.parent = self;
         })
 
         // get all complexes
-        var doms = dom.querySelectorAll("g.complex");
+        var doms = dom.querySelectorAll("g.complex:not(.nested)");
         if (doms) doms.forEach(function(each){
             var complex = new Pathway.Complex(each);
             complex.parent = self;
         });
 
         // get all metabolites
-        var doms = dom.querySelectorAll("g.metabolite");
+        var doms = dom.querySelectorAll("g.metabolite:not(.nested)");
         if (doms) doms.forEach(function(each){
             var metabolite = new Pathway.Metabolite(each);
             metabolite.parent = self;
         });
 
         // get all DNA
-        var doms = dom.querySelectorAll("g.DNA");
+        var doms = dom.querySelectorAll("g.DNA:not(.nested)");
         if (doms) doms.forEach(function(each){
             var DNA = new Pathway.DNA(each);
             DNA.parent = self;
         });
 
          // get all RNA
-         var doms = dom.querySelectorAll("g.RNA");
+         var doms = dom.querySelectorAll("g.RNA:not(.nested)");
          if (doms) doms.forEach(function(each){
              var RNA = new Pathway.RNA(each);
              RNA.parent = self;

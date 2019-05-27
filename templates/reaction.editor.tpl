@@ -6,7 +6,7 @@
 <div class="box">
     <h3>Reaction</h3>
     <p>{{:message}}</p>
-    <form action="reaction" method="{{:method}}" type="ajax" style="background:#eee; padding:10px">
+    <div class="form" action="reaction" method="{{:method}}" type="ajax" style="background:#eee; padding:10px">
         <input type="hidden" name="id" value="{{:id}}" />
         <p><label>Equation: </label>{{:equation}}<i> (This is automatic generated)</i></p>
         <p>
@@ -21,15 +21,15 @@
             <label>E.C.: </label>
             <input type="text" name="EC" value="{{:EC}}"/>(optional)
         </p>
-        <p style="text-align: right">
+        <div style="text-align: right">
+            <form action="reaction" method="delete" type="ajax" style="float:left; display: inline-block" class="form-ignore">
+                <input type="hidden" name="id" value="{{:id}}" />
+                <input type="submit" value="Delete" class="delBtn" style="background: red"/>
+            </form>
             <input type="submit" />
-        </p>
-    </form>
-    <form action="reaction" method="delete" type="ajax" style="position: relative; float:left; top: -45px; left: 5px">
-        <input type="hidden" name="id" value="{{:id}}" />
-        <input type="submit" value="Delete" class="delBtn" style="background: red"/>
-    </form>
-    <p style="clear: both"></p>
+            <p style="clear: both"></p>
+        </div>
+    </div>
     {{:reactantsEditor}}
     {{:productsEditor}}
     {{:catalystsEditor}}

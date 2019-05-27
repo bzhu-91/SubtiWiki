@@ -393,23 +393,12 @@ View::registerAdapter("reactionMetabolites",function($data){
 	$str = "";
 	if($data) {
 		foreach($data as $hasMetabolite) {
-			$str .= "<form action='reaction/metabolite' method='put' type='ajax' style='display:inline-block'>";
-			$str .= "<input type='hidden' name='reaction' value='{$hasMetabolite->reaction->id}'/>";
-			$str .= "<input type='hidden' name='hasMetabolite' value='{$hasMetabolite->id}'/>";
-			$str .= "<p><label>Coefficient: </label><input type='number' name='coefficient' value='{$hasMetabolite->coefficient}'/>";
-			$type = $hasMetabolite->metabolite->type? $hasMetabolite->metabolite->type : lcfirst(get_class($hasMetabolite->metabolite));
-			$str .= " <label>Type: </label><span style='display:inline-block; width: 120px; margin-left: 5px'>$type</span>";
-			$str .= " <label>Name: </label> <span style='display:inline-block;width:300px;margin-left:5px'>{$hasMetabolite->metabolite->title}</span>";
-			$str .= " <input type='submit' />";
-			$str .= "</form>";
-			$str .= "<form action='reaction/metabolite' method='delete' type='ajax' style='display:inline-block'>";
-			$str .= "<input type='hidden' name='reaction' value='{$hasMetabolite->reaction->id}' />";
-			$str .= "<input type='hidden' name='hasMetabolite' value='{$hasMetabolite->id}' />";
-			$str .= "<input type='submit' value='Delete' style='background:red' />";
-			$str .= "</form>";
-			if ($type == "complex") {
-				$str .= "<a href='complex/editor?id={$hasMetabolite->metabolite->id}' class='button'>Edit complex</a>";
+			$view = View::loadFile("reaction.metabolite.editor.tpl");
+			$view->set($hasMetabolite);
+			if ($hasMetabolite->metabolite->type == "complex") {
+				$view->set("comlpexEditBtn", "<a href='complex/editor?id={$hasMetabolite->metabolite->id}' class='button'>Edit complex</a>");
 			}
+			$str .= $view->generate(1,1);
 		}
 	}
 	return $str;
@@ -419,19 +408,10 @@ View::registerAdapter("reactionCatalysts",function($data){
 	$str = "";
 	if($data) {
 		foreach($data as $hasCatalyst){
-			$type = get_class($hasCatalyst->catalyst);
-			$catalyst = (string) $hasCatalyst->catalyst;
-			$str .= "<form action='reaction/catalyst' method='delete' type='ajax' style='display:inline-block'>";
-			$str .= "<p><label>Catalyst type: </label><input style='width:200px; display:inline-block' value='$type' readonly/>";
-			$str .= " <label>Catalyst: </label><input value='{$hasCatalyst->catalyst->title}' title='{$hasCatalyst->catalyst->title}' style='width:300px' readonly/>";
-			$modification = ($hasCatalyst->modification) ? $hasCatalyst->modification : "None";
-			$str .= " <label>Modification:</label><span style='width:100px; display:inline-block; margin-right: 5px;'>{$modification}</span>";
-			$str .= "<input type='hidden' value='{$catalyst}' name='catalyst'/>";
-			$str .= "<input type='hidden' value='{$hasCatalyst->reaction->id}' name='reaction'/>";
-			$str .= " <input type='submit' value='delete' style='background:red'/></p>";
-			$str .= "</form>";
-			if ($type == "Complex") {
-				$str .= "<a href='complex/editor?id={$hasCatalyst->catalyst->id}' class='button'>Edit complex</a>";
+			$view = View::loadFile("reaction.metabolite.editor.tpl");
+			$view->set($hasCatalyst);
+			if ($hasCatalyst->metabolite->type == "complex") {
+				$view->set("comlpexEditBtn", "<a href='complex/editor?id={$hasCatalyst->catalyst->id}' class='button'>Edit complex</a>");
 			}
 		}
 		return $str;

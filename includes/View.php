@@ -96,7 +96,7 @@ class View {
 			$keypath = new KeyPath($keys);
 			$val = $keypath->get($this->data);
 			if ($val !== null) {
-				$replacement = $val;
+				$replacement = (string) $val;
 				// consume the first level key
 				$this->key_consumption[$keypath->first()] = true;
 			} else $replacement = "";

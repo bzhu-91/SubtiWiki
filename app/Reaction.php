@@ -195,25 +195,19 @@ class Reaction extends Model {
         }
     }
 
-    public function removeCatalyst ($catalyst) {
+    public function removeCatalyst ($hasCatalyst) {
         if ($this->id) {
-            $catalysts = self::has("catalyst");
-            if($catalysts) {
-                $row = array_values(array_filter($catalysts, function($each) use ($catalyst) {
-                    return (string) $catalyst == (string) $each->catalyst;
-                }));
-                if($row) {
-                    $row = $row[0];
-                    $conn = Application::$conn;
-                    $conn->beginTransaction();
-                    if(History::record($row, "remove") && $row->delete()) {
-                        $conn->commit();
-                        return true;
-                    } else {
-                        $conn->rollback();
-                        return false;
-                    }
-                } else return true;
+            $hasCatalyst = self::hasPrototype("catalyst")->getWithId($hasCatalyst);
+            if ($hasCatalyst) {
+                $conn = Application::$conn;
+                $conn->beginTransaction();
+                if(History::record($row, "remove") && $row->delete()) {
+                    $conn->commit();
+                    return true;
+                } else {
+                    $conn->rollback();
+                    return false;
+                }
             } else return true;
         }
     }

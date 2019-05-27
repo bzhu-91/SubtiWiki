@@ -7,7 +7,10 @@ var handleResponse = function (jqXHR, container) {
 	} else {
 		if (status >= 200 && status < 300) {
 			if (status == 200) {
-				SomeLightBox.alert("Success", "Operation is successful");
+				var l = SomeLightBox.alert("Success", "Operation is successful");
+				setTimeout(function(){
+					l.dismiss()
+				}, 400);
 			} else if (status == 204) {
 				if (mode == "reload") {
 					window.location.reload();
@@ -33,12 +36,21 @@ var handleResponse = function (jqXHR, container) {
 						window.location = data.uri
 					}
 				} else if (data && data.message) {
-					SomeLightBox.alert("Success", data.message);
+					var l = SomeLightBox.alert("Success", data.message);
+					setTimeout(function(){
+						l.dismiss
+					}, 400);
 				} else {
-					SomeLightBox.alert("Success", "Operation is successful");
+					var l = SomeLightBox.alert("Success", "Operation is successful");
+					setTimeout(function(){
+						l.dismiss()
+					}, 400);
 				}
 			} else {
-				SomeLightBox.alert("Success", "Operation is successful");
+				var l = SomeLightBox.alert("Success", "Operation is successful");
+				setTimeout(function(){
+					l.dismiss()
+				}, 400);
 			}
 		} else if (status >= 400) {
 			SomeLightBox.error(data.message);
@@ -307,20 +319,20 @@ $(document).on("click", ".toggle-editor", function(){
 	}
 });
 
-$(document).on("click", "tr.form [type=submit]", function (){
+$(document).on("click", ".form [type=submit]", function (){
 	var $self = $(this);
 	// handle form-ignore class
-	if ($self.parentsUntil("tr.form").filter(".form-ignore").length) {
+	if ($self.parentsUntil(".form").filter(".form-ignore").length) {
 		return;
 	}
 	var l = SomeLightBox.alert("Waiting", "Data is being sent to server...")
 	// fake form submission
-	$tr = $($self.parents("tr.form").get(0));
+	$formEl = $($self.parents(".form").get(0));
 	var data = [];
 	// serialize the form
-	$tr.find("[name]").each(function(){
+	$formEl.find("[name]").each(function(){
 		var $el = $(this);
-		if ($el.parentsUntil($tr).filter(".form-ignore").length) {
+		if ($el.parentsUntil($formEl).filter(".form-ignore").length) {
 			return;
 		}
 		data.push({
@@ -328,9 +340,9 @@ $(document).on("click", "tr.form [type=submit]", function (){
 			value: $el.val()
 		});
 	});
-	$tr.find("[name][type=checkbox]:not(:checked)").each(function(){
+	$formEl.find("[name][type=checkbox]:not(:checked)").each(function(){
 		var $el = $(this);
-		if ($el.parentsUntil($tr).filter(".form-ignore").length) {
+		if ($el.parentsUntil($formEl).filter(".form-ignore").length) {
 			return;
 		}
 		data.push({
@@ -338,15 +350,14 @@ $(document).on("click", "tr.form [type=submit]", function (){
 			value: "off"
 		});
 	});
-	console.log(data);
 	$.ajax({
-		url: $tr.attr("action"),
+		url: $formEl.attr("action"),
 		dataType: "json",
-		type: $tr.attr("method"),
+		type: $formEl.attr("method"),
 		data: data,
 		complete: function(jqXHR) {
 			l.dismiss();
-			handleResponse(jqXHR, $tr.parent());
+			handleResponse(jqXHR, $formEl.parent());
 		}
 	})
-})
+});

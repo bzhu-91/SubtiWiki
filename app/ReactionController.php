@@ -216,6 +216,7 @@ class ReactionController extends Controller {
 		}
 		if($accept == HTML && $method == "GET") {
 			if ($reaction) {
+				$reaction = $this->patchReaction($reaction);
 				$hasReactancts = $reaction->hasReactants();
 				$hasProducts = $reaction->hasProducts();
 				$hasCatalyst = $reaction->has("catalyst"); 
@@ -393,17 +394,12 @@ class ReactionController extends Controller {
 				}
 				break;
 			case 'DELETE':
-				// delete metabolite here
-				$catalyst = $this->filter($input, "catalyst", "/\{(protein)|(complex)\|[^\{\}\|]+?\}/i", ["Catalyst is required", 400, JSON]);
-				$catalyst = Model::parse($catalyst);
-				if ($catalyst){
-					if ($reaction->removeCatalyst($catalyst)) {
-						$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 200, JSON);
-					} else {
-						$this->error("An internal error has happened, please contact admin", 500, JSON);
-					}
+				// delete catalyst here
+				$hasCatalyst = $this->filter($input, "hasCatalyst", "/^\d+$/i", ["Catalyst is required", 400, JSON]);
+				if ($reaction->removeCatalyst($hasCatalyst)) {
+					$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 200, JSON);
 				} else {
-					$this->error("The given catalyst is not found", 404, JSON);
+					$this->error("An internal error has happened, please contact admin", 500, JSON);
 				}
 				break;
 		}
