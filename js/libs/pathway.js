@@ -1503,6 +1503,20 @@ Pathway.Reaction.prototype.fromSVGElement = function (dom) {
             metabolite.parent = self;
         });
 
+        // get all DNA
+        var doms = dom.querySelectorAll("g.DNA");
+        if (doms) doms.forEach(function(each){
+            var DNA = new Pathway.DNA(each);
+            DNA.parent = self;
+        });
+
+         // get all RNA
+         var doms = dom.querySelectorAll("g.RNA");
+         if (doms) doms.forEach(function(each){
+             var RNA = new Pathway.RNA(each);
+             RNA.parent = self;
+         });
+
         // get all join points
         var doms = dom.querySelectorAll("ellipse.joinPoint");
         if (doms) doms.forEach(function(each){
