@@ -421,6 +421,9 @@ RegulationBrowser.prototype.createData = function () {
 		}
 	}
 
+	nodes.sort(function(n,m){
+		return n.id.localeCompare(n.id);
+	})
 	
 
 	// get the cache according to the radius
@@ -453,8 +456,9 @@ RegulationBrowser.prototype.createData = function () {
 		error: function () {
 			self.hasCache = false;
 			self.data.nodes.clear();
-			self.data.nodes.update(nodes);
 			self.data.edges.clear();
+			self.createInitLayout(nodes);
+			self.data.nodes.update(nodes);
 			self.data.edges.update(edges);
 			self.createNetwork();
 		}
@@ -613,7 +617,19 @@ RegulationBrowser.prototype.setRadius = function (radius) {
 
 RegulationBrowser.prototype.calcG = function () {
 	var self = this;
-	return Math.pow(2,self.spacing) * -375 * self.data.nodes.length
+	return Math.pow(2,self.spacing) * -375 * self.data.nodes.length * (self.data.edges.length / self.data.nodes.length)
+}
+
+RegulationBrowser.prototype.createInitLayout = function (nodes) {
+	var self = this;
+	var nodeSize = 22 * Math.pow(3, self.data.nodes.length / 1000) * 2;
+	var cir = nodeSize * nodes.length;
+	var dir = cir / 2 / Math.PI;
+	var deg = 2 * Math.PI / nodes.length;
+	nodes.forEach(function(n,i){
+		n.x = dir * Math.cos(deg * i);
+		n.y = dir * Math.sin(deg * i);
+	});
 }
 
 RegulationBrowser.prototype.setSpacing = function (spacing) {

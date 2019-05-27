@@ -115,11 +115,13 @@ class RegulationController extends Controller {
 				$this->error("Not acceptable", 406, HTML);
 				break;
 			case JSON:
-				$regulator = $this->filter($input, "regulator", "/^\{(protein|riboswitch)\|[^\[\]\|]+\}$/i", ["Invalid regulator", 400, JSON]);
+				$regulator = $this->filter($input, "regulator", "has", ["Invalid regulator", 400, JSON]);
+				$type = $this->filter($input, "type", "/^(protein)|(riboswitch)$/i", ["Regulator type is required", 400, JSON]);
+
 				$regulated = $this->filter($input, "regulated", "/^\{(gene|operon)\|[0-9a-f]{40}+\}$/i", ["Invalid regulated object", 400, JSON]);
 				$mode = $this->filter($input, "mode", "has", ["Mode is required", 400, JSON]);
 
-				$regulator = Model::parse($regulator);
+				$regulator = Model::parse("{".$type."|".$regulator."}");
 				$regulated = Model::parse($regulated);
 
 
@@ -130,9 +132,9 @@ class RegulationController extends Controller {
 					$this->error("Regulated object can not be parsed", 404, JSON);
 				}
 
-				$regulation = new Regulation($regulator, $mode, $regulated, $input["description"]);
+				$regulation = new Regulation($regulator, $mode, $regulated, str_replace("[pubmed|]", "", $input["description"]));
 				if ($regulation->insert()) {
-					$this->respond(["newid" => $regulation->id], 201, JSON);
+					$this->respond(["uri" => $_SERVER['HTTP_REFERER']], 201, JSON);
 				} else {
 					$this->error("This regulation already exists.", 400, JSON);
 				}

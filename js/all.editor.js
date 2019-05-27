@@ -6,9 +6,19 @@ var handleResponse = function (jqXHR, container) {
 		self.done(jqXHR.status, data,null, jqXHR);
 	} else {
 		if (status >= 200 && status < 300) {
-			if (data && data.uri) {
-				switch (mode) {
-					case "replace":
+			if (status == 200) {
+				SomeLightBox.alert("Success", "Operation is successful");
+			} else if (status == 204) {
+				if (mode == "reload") {
+					window.location.reload();
+				} else if (mode == "back") {
+					window.location.back();
+				} else if (mode.startsWith("goto:")) {
+					window.location = mode.replace("goto:","");
+				}
+			} else if (status == 201) {
+				if (data && data.uri) {
+					if (mode == "replace") {
 						$.ajax({
 							type: "get",
 							url: data.uri,
@@ -19,17 +29,14 @@ var handleResponse = function (jqXHR, container) {
 								container.remove();
 							}
 						});
-						break;
-					case "alert":
-						SomeLightBox.alert("Success", "Operation is successful");
-						break;
-					default:
+					} else {
 						window.location = data.uri
-						break;
-					
+					}
+				} else if (data && data.message) {
+					SomeLightBox.alert("Success", data.message);
+				} else {
+					SomeLightBox.alert("Success", "Operation is successful");
 				}
-			} else if (data && data.message) {
-				SomeLightBox.alert("Success", data.message);
 			} else {
 				SomeLightBox.alert("Success", "Operation is successful");
 			}

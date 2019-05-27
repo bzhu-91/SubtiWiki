@@ -3,6 +3,7 @@ define("JSON", "JSON");
 define("HTML", "HTML");
 define("HTML_PARTIAL", "HTML_PARTIAL");
 define("CSV", "CSV");
+define("TEXT", "TEXT");
 
 class Router {
 	public static function getWebRoot() {

@@ -2,7 +2,7 @@ $(document).ready(function(){
 	var container = $("#exporter");
 	var currentPerfix = null;
 	scheme.forEach(function(each){
-		if (each.default == "[[this]]") {
+		if (each.default == "[[this]]" || each.path[each.path.length-1] == "id") {
 			return;
 		}
 		if (each.path.length == 1) {
@@ -13,7 +13,7 @@ $(document).ready(function(){
 			if (!currentPerfix || !arrayEqual(currentPerfix, prefix)) {
 				currentPerfix = prefix;
 				for (var i = 0; i < prefix.length; i++) {
-					var view = createLabel(prefix[i], i);
+					var view = createLabel(prefix.slice(0,i+1));
 					container.append(view);
 				}
 			}
@@ -21,8 +21,6 @@ $(document).ready(function(){
 			container.append(view);
 		}
 	});
-	container.append("<button id='reset' style='float:right;background:orange'>Reset</button>");
-	container.append("<button id='submit' style='float:right'>Submit</button>");
 });
 
 var randomId = function () {
@@ -33,29 +31,27 @@ var randomId = function () {
 };
 
 var createCheckbox = function (keypath) {
-	var view = $("<div></div>");
-	view.css("margin-left", (keypath.length - 1) * 30 + "px");
-	view.css("margin-bottom", "10px");
-	var label = $("<label></label>");
 	var id = randomId();
-	label.prop("for", id);
-	label.html(keypath[keypath.length-1]);
-	var checkbox = $("<input type='checkbox' />");
-	checkbox.prop("id", id);
-	checkbox.prop("name", keypath.join("->"));
-	view.append(checkbox);
-	view.append(label);
-	return view;
+	var view = $("<div></div>")
+		.css("margin-left", (keypath.length - 1) * 30 + "px")
+		.css("margin-bottom", "10px");
+	var label = $("<label></label>").prop("for",id).html(keypath[keypath.length-1]);
+	var checkbox = $("<input type='checkbox' />").prop("id", id).prop("name", keypath.join("->"));
+	return view.append(checkbox,label);
 }
 
-var createLabel = function (text, indent) {
-	var view = $("<div></div>");
-	view.css("margin-left", indent * 30 + "px");
-	view.css("margin-bottom", "10px");
-	var label = $("<label></label>");
-	label.html(text);
-	view.append(label);
-	return view;
+var createLabel = function (keypath) {
+	var id = randomId();
+	var view = $("<div></div>").css("margin-left", (keypath.length-1) * 30 + "px").css("margin-bottom", "10px");
+	var label = $("<label></label>").html(keypath[keypath.length-1]).css({color: "black", fontSize: "larger"}).attr("for", id);
+	var checkbox = $("<input type='checkbox'>").on("change", function(){
+		var checked = this.checked;
+		$("#exporter").find("[type=checkbox][name]").each(function(){
+			var $el = $(this);
+			if ($el.attr("name") != keypath.join("->") && $el.attr("name").startsWith(keypath.join("->"))) $el.prop("checked", checked);
+		});
+	}).prop("id", id);
+	return view.append(label, checkbox);
 }
 
 function addslashes( str ) {
@@ -81,42 +77,11 @@ $(document).on("click", "#reset", function(){
 
 $(document).on("click", "#submit", function(){
 	var queries = [];
-	$("input[type=checkbox]:checked").each(function(i,checkbox){
+	$("#exporter input[type=checkbox][name]:checked").each(function(i,checkbox){
 		queries.push(checkbox.name);
 	});
 	if (queries.length) {
-		$.ajax({
-			url: "gene?query=" + queries.join(";"),
-			dataType:"json",
-			success: function (data) {
-				var csvFile = [];
-				for (var i = 0; i < data.length; i++) {
-					var line = data[i].slice(1).map(function(each){
-						if (each instanceof Array) {
-							each = each.join("; ");
-						}
-						return '"' + addslashes(each) + '"';
-					}).join(",");
-					csvFile.push(line);
-				}
-				csvFile = csvFile.join("\n");
-				csvFile = csvFile.replace(/[[this]]/i, "");
-				fileName = "gene" + (new Date().toLocaleDateString()) + ".csv";
-				var blob = new Blob([csvFile]);
-				if (window.navigator.msSaveOrOpenBlob) {// IE hack; see http://msdn.microsoft.com/en-us/library/ie/hh779016.aspx
-				    window.navigator.msSaveBlob(blob, fileName);
-				} else {
-				    var a = window.document.createElement("a");
-				    a.href = window.URL.createObjectURL(blob, {type: "text/plain"});
-				    a.download = fileName;
-				    document.body.appendChild(a);
-				    a.click();  // IE: "Access is denied"; see: https://connect.microsoft.com/IE/feedback/details/797361/ie-10-treats-blob-url-as-cross-origin-and-denies-access
-				    document.body.removeChild(a);
-				}
-			},
-			error: function () {
-				SomeLightBox.error("Data export not successful");
-			}
-		});
+		$("#hidden-form input[name=query]").val(queries.join(";"));
+		$("#hidden-form").trigger("submit");
 	} else SomeLightBox.error("Nothing selected");
 });

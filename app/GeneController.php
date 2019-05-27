@@ -21,7 +21,7 @@ class GeneController extends Controller {
 	protected function query ($input, $accept) {
 		if ($accept == HTML) {
 			// exporter
-		} elseif ($accept == JSON) {
+		} elseif ($accept == JSON || $accept == CSV) {
 			$query = $this->filter($input, "query", "has", ["Invalid query", 400, JSON]);
 			// increment the count
 			Statistics::increment("geneExport");
@@ -49,9 +49,24 @@ class GeneController extends Controller {
 					}
 					$table[] = $row;
 				}
-				$this->respond($table, 200, JSON);
+				if ($accept == JSON) $this->respond($table, 200, JSON);
+				else {
+					// create csv
+					$csv = "";
+					foreach ($table as $row) {
+						array_walk($row, function($str){
+							return '"'.addslashes($str).'"';
+						});
+						$csv .= implode(", ", $row)."\n";
+					}
+					$csv = rtrim($csv);
+					// header();
+					$this->respond($csv, 200, CSV, [
+						"Content-Disposition: attachment; filename=subtiwiki.gene.export.".date("Y-m-d").".csv"
+					]);
+				}
 			} else {
-				$this->error("not found", 404, JSON);
+				$this->error("not found", 404, $accept);
 			}
 		} else {
 			$this->error("Unaccepted", 406, $accept);
@@ -525,8 +540,9 @@ class GeneController extends Controller {
 			if ($method == "GET") {
 				$view = View::loadFile("layout1.tpl");
 				$view->set([
+					"pageTitle" => "Gene export wizard",
 					"title" => "Gene export wizard",
-					"content" => "<div id='exporter'></div>{{jsvars:vars}}",
+					"content" => "{{gene.exporter.tpl}}{{jsvars:vars}}",
 					"vars" => [
 						"scheme" => MetaData::get("Gene")->scheme
 					],
