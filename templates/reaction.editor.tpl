@@ -35,9 +35,3 @@
     {{:catalystsEditor}}
 </div>
 {{jsvars:vars}}
-<script type="text/javascript">
-    $(document).on("change", "select[name=type]", function () {
-        $(this).parents("form").find(".metabolite-type-select-options > input").hide();
-        $(this).parents("form").find("input[type=" + this.value + "]").show().attr("name", "metabolite")
-    });
-</script>

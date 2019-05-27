@@ -201,7 +201,7 @@ class Reaction extends Model {
             if ($hasCatalyst) {
                 $conn = Application::$conn;
                 $conn->beginTransaction();
-                if(History::record($row, "remove") && $row->delete()) {
+                if(History::record($hasCatalyst, "remove") && $hasCatalyst->delete()) {
                     $conn->commit();
                     return true;
                 } else {

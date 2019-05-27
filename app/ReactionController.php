@@ -235,11 +235,10 @@ class ReactionController extends Controller {
 				"reactants" => $hasReactancts,
 				"products" => $hasProducts,
 				"catalysts" => $hasCatalyst,
-				"jsAfterContent" => ["all.editor"],
+				"jsAfterContent" => ["reaction.editor","all.editor"],
 				"styles" => ["all.editor"],
 				"checkReversible" => ($reaction && $reaction->reversible) ? "checked" : "",
-				"checkNovel" => ($reaction && $reaction->novel) ? "checked" : ""
-				
+				"checkNovel" => ($reaction && $reaction->novel) ? "checked" : "",
 			]);
 			if (!$reaction) {
 				$view->set([

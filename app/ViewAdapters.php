@@ -396,7 +396,7 @@ View::registerAdapter("reactionMetabolites",function($data){
 			$view = View::loadFile("reaction.metabolite.editor.tpl");
 			$view->set($hasMetabolite);
 			if ($hasMetabolite->metabolite->type == "complex") {
-				$view->set("comlpexEditBtn", "<a href='complex/editor?id={$hasMetabolite->metabolite->id}' class='button'>Edit complex</a>");
+				$view->set("complexEditBtn", "<a href='complex/editor?id={$hasMetabolite->metabolite->id}' class='button'>Edit complex</a>");
 			}
 			$str .= $view->generate(1,1);
 		}
@@ -408,11 +408,12 @@ View::registerAdapter("reactionCatalysts",function($data){
 	$str = "";
 	if($data) {
 		foreach($data as $hasCatalyst){
-			$view = View::loadFile("reaction.metabolite.editor.tpl");
+			$view = View::loadFile("reaction.catalyst.editor.tpl");
 			$view->set($hasCatalyst);
-			if ($hasCatalyst->metabolite->type == "complex") {
-				$view->set("comlpexEditBtn", "<a href='complex/editor?id={$hasCatalyst->catalyst->id}' class='button'>Edit complex</a>");
+			if ($hasCatalyst->catalyst->type == "complex") {
+				$view->set("complexEditBtn", "<a href='complex/editor?id={$hasCatalyst->catalyst->id}' class='button'>Edit complex</a>");
 			}
+			$str .= $view->generate(1,1);
 		}
 		return $str;
 	}
