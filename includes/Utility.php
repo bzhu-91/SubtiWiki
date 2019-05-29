@@ -386,6 +386,36 @@ class Utility {
 		return $all;
 	}
 
+	public static function deepFilter ($object, $comp, $keypath = array()) {
+		$all = [];
+		foreach ($object as $key => $value) {
+			$keypath[] = $key;
+			if ($comp($keypath, $value)) {
+				// end case
+				$keypath_string =  implode("->", $keypath);
+				$all[] = $keypath_string;
+			} else if (is_array($value) || is_object($value)) {
+				// recursion
+				$all = array_merge($all, self::deepFilter($value, $val, $keypath));
+			}
+			array_pop($keypath);
+		}
+		return $all;
+	}
+
+	public static function deepWalk (&$object, $func, $keypath = array()) {
+		$all = [];
+		foreach ($object as $key => &$value) {
+			$keypath[] = $key;
+			$func($keypath, $value);
+			if (is_array($value) || is_object($value)) {
+				// recursion
+				self::deepWalk($value, $func, $keypath);
+			}
+			array_pop($keypath);
+		}
+	}
+
 	public static function startsWith($haystack, $needle) {
 	     $length = strlen($needle);
 	     return (substr($haystack, 0, $length) === $needle);

@@ -5,6 +5,7 @@
         <th>Coefficient</th>
         <th>Type</th>
         <th>Name</th>
+        <th>Modification</th>
         <th>Operations</th>
     </tr>
     {{reactionMetabolites:products}}
@@ -31,6 +32,9 @@
                 <input type="RNA" style="width: 300px; display: none" placeholder="gene name" />
                 <input type="complex" style="width: 300px; display: none" placeholder="complex name" />
             </div>
+        </td>
+        <td>
+            <input name="modification" value="{{:modification}}" />
         </td>
         <td>
             <button type="submit">Add</button>

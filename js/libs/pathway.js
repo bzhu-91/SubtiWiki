@@ -1778,6 +1778,7 @@ Pathway.Reaction.prototype.__createView = function () {
                     view = new Pathway.Complex(c);
                     break;
                 case "class":
+                case "object":
                     view = new Pathway.ProteinClass(c);
                     break;
                 default:
@@ -2151,8 +2152,9 @@ Pathway.Reaction.prototype.update = function (data) {
             });
             for(var i = 0; i < self["_lhs"].length; i++){
                 var each = self["_lhs"][i];
-                var className = each.view.getAttribute("class").replace("nested", "").replace(" ", "");
-                var compositId = className + "-" + each.id;
+                var type = each.view.getAttribute("class").replace("nested", "").replace(" ", "");
+                var compositId = type + "-" + each.id;
+                console.log(compositId in dict);
                 if (!(compositId in dict) && self.isInLockGroup(each)) {
                     canAutoUpdate = false;
                     break;
@@ -2166,8 +2168,8 @@ Pathway.Reaction.prototype.update = function (data) {
             });
             for(var i = 0; i < self["_rhs"].length; i++){
                 var each = self["_rhs"][i];
-                var className = each.view.getAttribute("class").replace("nested", "").replace(" ", "");
-                var compositId = className + "-" + each.id;
+                var type = each.view.getAttribute("class").replace("nested", "").replace(" ", "");
+                var compositId = type + "-" + each.id;
                 if (!(compositId in dict) && self.isInLockGroup(each)) {
                     canAutoUpdate = false;
                     break;
@@ -2188,8 +2190,8 @@ Pathway.Reaction.prototype.update = function (data) {
                     });
                     for(var i = 0; i < self[b].length; i++){
                         var each = self[b][i];
-                        var className = each.view.getAttribute("class").replace("nested", "").replace(" ", "");
-                        var compositId = className + "-" + each.id;
+                        var type = each.view.getAttribute("class").replace("nested", "").replace(" ", "");
+                        var compositId = type + "-" + each.id;
                         if (compositId in dict) {
                             each.update(dict[compositId]);
                             delete dict[compositId];

@@ -11,6 +11,9 @@
 		<span>{{:metabolite->title}}</span>
 	</td>
 	<td>
+		<input name="modification" value="{{:modification}}"/>
+	</td>
+	<td>
 		<p>
 			<button type="submit">Update</button>
 			{{:complexEditBtn}}

@@ -8,7 +8,7 @@
 		<span>{{:catalyst->title}}</span>
 	</td>
 	<td>
-		<span>{{:catalyst->modification}}</span>
+		<span>{{:modification}}</span>
 	</td>
 	<td>
 		<span>{{:isNovel}}</span>

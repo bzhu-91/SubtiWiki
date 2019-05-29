@@ -46,19 +46,29 @@ class Reaction extends Model {
                 $equation = "";
                 $lhs = [];
                 foreach($left as $hasMetabolite) {
+                    $name = "";
                     if ($hasMetabolite->coefficient > 1) {
-                        $lsh[] = $hasMetabolite->coefficient." ".$hasMetabolite->metabolite->title;
+                        $name = $hasMetabolite->coefficient." ".$hasMetabolite->metabolite->title;
                     } else {
-                        $lhs[] = $hasMetabolite->metabolite->title;
+                        $name = $hasMetabolite->metabolite->title;
                     }
+                    if ($hasMetabolite->modification) {
+                        $name .= "<sup>".$hasMetabolite->modification."</sup>";
+                    }
+                    $lhs[] = $name;
                 }
                 $rhs = [];
                 foreach($right as $hasMetabolite) {
+                    $name = "";
                     if ($hasMetabolite->coefficient > 1) {
-                        $rhs[] = $hasMetabolite->coefficient." ".$hasMetabolite->metabolite->title;
+                        $name = $hasMetabolite->coefficient." ".$hasMetabolite->metabolite->title;
                     } else {
-                        $rhs[] = $hasMetabolite->metabolite->title;
+                        $name = $hasMetabolite->metabolite->title;
                     }
+                    if ($hasMetabolite->modification) {
+                        $name .= "<sup>".$hasMetabolite->modification."</sup>";
+                    }
+                    $rhs[] = $name;
                 }
                 $equal = " ⟹ ";
                 if ($this->reversible) $equal = " ⟺ ";
@@ -140,14 +150,15 @@ class Reaction extends Model {
         return $re;
     }
     
-    public function addMetabolite ($metabolite, $side, $coefficient = 1) {
+    public function addMetabolite ($metabolite, $side, $coefficient = 1, $modification) {
         # check duplicate
         if($this->id) {
             $data = [
                 "reaction" => $this,
                 "metabolite" => $metabolite,
                 "side" => $side,
-                "coefficient" => $coefficient
+                "coefficient" => $coefficient,
+                "modification" => $modification
             ];
             $prototype = self::hasPrototype("metabolite");
             $hasMetabolite = $prototype->clone($data);
@@ -163,11 +174,12 @@ class Reaction extends Model {
         }
     }
 
-    public function updateMetabolite ($hasMetabolite, $coefficient) {
+    public function updateMetabolite ($hasMetabolite, $coefficient, $modification) {
         if ($this->id) {
             $hasMetabolite = self::hasPrototype("metabolite")->getWithId($hasMetabolite);
             if ($hasMetabolite) {
                 $hasMetabolite->coefficient = $coefficient;
+                $hasMetabolite->modification = $modification;
                 $conn = Application::$conn;
                 $conn->beginTransaction();
                 if($hasMetabolite->update() && History::record($this, "update") && $this->updateEquation() ) {

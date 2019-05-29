@@ -16,6 +16,50 @@ if (Object.assign) {
     }
 }
 
+var findAll = function (obj,key, keypath, count) {
+    keypath = keypath || [];
+    count = count || 0;
+    count++;
+    var result = [];
+    if (count > 1000) return result;
+    for(var k in obj) {
+        if (obj.hasOwnProperty(k)) {
+            keypath.push(k);
+            if (k == key) {
+                result.push(keypath.slice(0));
+            }
+            if (obj[k] && (typeof obj[k] == "object" || obj[k] instanceof Object)) {
+                result = result.concat(findAll(obj[k], key, keypath, count));
+            }
+            keypath.pop();
+        }
+    }
+    return result;
+}
+
+var setProperty = function (obj, keypath, val) {
+    var last = keypath.pop();
+    var o = obj;
+    for(var i = 0; i < keypath.length; i++){
+        var k = keypath[i];
+        if (k in o) {
+            o = o[k];
+        } else return false;
+    }
+    o[last] = val;
+}
+
+var getProperty = function (obj, keypath) {
+    var o = obj;
+    for(var i = 0; i < keypath.length; i++){
+        var k = keypath[i];
+        if (k in o) {
+            o = o[k];
+        } else return false;
+    }
+    return o;
+}
+
 $(document).ready(function(){
     $("#top-menu-bar").tooltip();
     if (window.pathwayId) {
@@ -48,6 +92,61 @@ PathwayModel.loadIndex = function (callback) {
     });
 }
 
+PathwayModel.prepareReactionData = function (data) {
+    data = JSON.parse(JSON.stringify(data).replace(/title/gi, "label").replace(/modification/gi, "extra"))
+    // process data
+    var reactants = [];
+    data.reactants.forEach(function(r){
+        var keys = ["coefficient", "extra"];
+        keys.forEach(function(k){
+            r.metabolite[k] = r[k];
+        })
+        reactants.push(r.metabolite);
+    });
+    data.reactants = reactants;
+
+    var products = [];
+    data.products.forEach(function(r){
+        var keys = ["coefficient", "extra"];
+        keys.forEach(function(k){
+            r.metabolite[k] = r[k];
+        })
+        products.push(r.metabolite);
+    });
+    data.products = products;
+
+    var catalysts = [];
+    if (data.catalysts) data.catalysts.forEach(function(r){
+        var keys = ["novel", "extra"];
+        keys.forEach(function(k){
+            r.catalyst[k] = r[k];
+        })
+        catalysts.push(r.catalyst);
+    });
+    data.catalysts = catalysts;
+
+    // handle complex members
+    var keypaths = findAll(data, "members");
+    keypaths.sort(function(a,b){
+        return b.length - a.length;
+    });
+    keypaths.forEach(function(keypath){
+        var membersOld = getProperty(data, keypath);
+        if (membersOld) {
+            var members = [];
+            membersOld.forEach(function(r){
+                var keys = ["coefficient", "extra"];
+                keys.forEach(function(k){
+                    r.member[k] = r[k];
+                })
+                members.push(r.member);
+            });
+            setProperty(data, keypath, members);
+        }
+    });
+    return data;
+}
+
 PathwayModel.loadReaction = function (reactionId, callback, remote) {
     var self = this;
     if ((reactionId in self.reactionData) && !remote) {
@@ -57,6 +156,7 @@ PathwayModel.loadReaction = function (reactionId, callback, remote) {
             url: "reaction?id="+reactionId,
             dataType:"json",
             success: function (data) {
+                data = self.prepareReactionData(data);
                 self.reactionData[data.id] = data; // cache the result
                 callback(data);
             },
@@ -286,10 +386,7 @@ PathwayEditor.processView = function () {
 PathwayEditor.drawReaction = function (reactionId) {
     var self = this;
     PathwayModel.loadReaction(reactionId, function(data){
-        data = JSON.parse(JSON.stringify(data).replace(/title/gi, "label").replace(/modification/gi, "extra"));
         data.width = 100; data.height = 200;
-        data.reversible = data.reversible == 1 ? true: false;
-        data.novel = data.novel == 1 ? true: false;
         var reaction = new Pathway.Reaction(data);
         reaction.appendTo(self.canvas);
         // add z index
@@ -313,9 +410,6 @@ PathwayEditor.drawReaction = function (reactionId) {
 PathwayEditor.updateReaction = function (reactionId) {
     var self = this;
     PathwayModel.loadReaction(reactionId, function(data){
-        data = JSON.parse(JSON.stringify(data).replace(/title/gi, "label").replace(/extra/gi, "modification"));
-        data.width = 100; data.height = 200;
-        
         // find the reaction
         if (data.id in self.reactionViews) {
             var reactions = self.reactionViews[data.id];
@@ -594,14 +688,9 @@ PathwayEditor.loadCanvas = function () {
         url: "reaction?ids=" + ids.join(","),
         dataType:"json",
         success: function (data) {
-            data = JSON.parse(JSON.stringify(data).replace(/title/g, "label").replace(/modification/g, "extra"));
-            for(var id in data){
-                var reactionData = data[id];
-                if (reactionData) {
-                    data.novel = data.novel == 1 ? true: false;
-                    data.reversible = !data.reversible == 1 ? true: false;
-                    self.reactionViews[id].forEach(function(each){each.update(reactionData)});
-                }
+            for(var id in data) {
+                var each = PathwayModel.prepareReactionData(data[id]);
+                self.reactionViews[id].forEach(function(each){each.update(each)});
             }
         }
     });
@@ -827,7 +916,7 @@ $(document).on("contextmenu", "rect#membrane", function(evt){
     });
 });
 
-$(document).on("contextmenu", ".metabolite:not(.nested), .complex:not(.nested), .RNA:not(.nested), .DNA:not(.nested)", function(evt) {
+$(document).on("contextmenu", ".protein:not(.nested), .metabolite:not(.nested), .complex:not(.nested), .RNA:not(.nested), .DNA:not(.nested)", function(evt) {
     evt.preventDefault();
     evt.stopPropagation();
     // clear all the suggestions
