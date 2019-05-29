@@ -109,6 +109,7 @@ class ReactionController extends Controller {
 					if ($hasMember->coefficient > 1) $member->coefficient = $hasMember->coefficient;
 					if ($hasMember->modification) $member->modification = $hasMember->modification;
 					$member->type = lcfirst(get_class($member));
+					$member->novel = $hasMember->novel;
 					$members[] = $member;
 				}
 				$catalyst->members = $members;
@@ -117,6 +118,7 @@ class ReactionController extends Controller {
 				$catalyst->type="protein";
 			}
 			if ($hasCatalyst->modification) $catalyst->modification  = $hasCatalyst->modification;
+			$catalyst->novel = $hasCatalyst->novel;
 			$catalysts[] = $catalyst;
 		}
 		$reaction->catalysts = $catalysts;
@@ -357,12 +359,14 @@ class ReactionController extends Controller {
 				// add metabolite here
 				$type = $this->filter($input, "type", "/(protein)|(complex|object)/i", ["Type of the catalyst is required", 400, JSON]);
 				$title = $this->filter($input, "title", "has", ["Name of the catalyst is required", 400, JSON]);
+				$novel = $this->filter($input, "novel", "has", ["Novel is required", 400, JSON]);
+				$novel = $novel == "on" ? 1:0;
 				switch($type) {
 					case "protein":
 						$protein = Protein::getAll(["title" => $title]);
 						if ($protein) {
 							$protein = $protein[0];
-							if ($reaction->addCatalyst($protein, $input["modification"])){
+							if ($reaction->addCatalyst($protein, $novel, $input["modification"])){
 								$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
 							} else {
 								$this->error("An internal error has happened, please contact admin", 500, JSON);
@@ -381,7 +385,7 @@ class ReactionController extends Controller {
 								$this->error("An internal error has happened, please contact admin", 500, JSON);
 							}
 						}
-						if ($reaction->addCatalyst($complex)){
+						if ($reaction->addCatalyst($complex, $novel)){
 							$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
 						} else {
 							$this->error("An internal error has happened, please contact admin", 500, JSON);
@@ -389,7 +393,7 @@ class ReactionController extends Controller {
 						break;
 					case "object":
 						$object = new Object($title);
-						if ($reaction->addCatalyst($object)){
+						if ($reaction->addCatalyst($object, $novel)){
 							$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
 						} else {
 							$this->error("An internal error has happened, please contact admin", 500, JSON);

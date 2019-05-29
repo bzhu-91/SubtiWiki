@@ -589,7 +589,8 @@ PathwayEditor.loadCanvas = function () {
       ids.push(id);
     }
 
-    $.ajax({
+
+    if (ids.length) $.ajax({
         url: "reaction?ids=" + ids.join(","),
         dataType:"json",
         success: function (data) {

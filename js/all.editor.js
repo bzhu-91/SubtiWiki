@@ -1,7 +1,6 @@
-var handleResponse = function (jqXHR, container) {
+var handleResponse = function (jqXHR, mode, container) {
 	var data = jQuery.parseJSON(jqXHR.responseText || "{}");
 	var status = jqXHR.status;
-	var mode = $(self).attr("mode");
 	if (self.done) {
 		self.done(jqXHR.status, data,null, jqXHR);
 	} else {
@@ -85,7 +84,7 @@ $(document).on("submit", "form[type=ajax]", function(ev) {
 		data: data,
 		complete: function(jqXHR) {
 			l.dismiss();
-			handleResponse(jqXHR, container);
+			handleResponse(jqXHR, $(self).attr("mode"), container);
 		}
 	});
 	return false;
@@ -357,7 +356,7 @@ $(document).on("click", ".form [type=submit]", function (){
 		data: data,
 		complete: function(jqXHR) {
 			l.dismiss();
-			handleResponse(jqXHR, $formEl.parent());
+			handleResponse(jqXHR, $formEl.attr("mode"), $formEl.parent());
 		}
 	})
 });

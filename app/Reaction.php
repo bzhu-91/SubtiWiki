@@ -198,12 +198,13 @@ class Reaction extends Model {
         }
     }
 
-    public function addCatalyst ($catalyst, $modification) {
+    public function addCatalyst ($catalyst, $novel, $modification) {
         # check duplicate
         if($this->id) {
             $data = [
                 "reaction" => $this,
                 "catalyst" => $catalyst,
+                "novel" => $novel,
                 "modification" => $modification
             ];
             $prototype = self::hasPrototype("catalyst");

@@ -11,6 +11,9 @@
 		<span>{{:catalyst->modification}}</span>
 	</td>
 	<td>
+		<span>{{:isNovel}}</span>
+	</td>
+	<td>
 		{{:complexEditBtn}}
 		<button style="background: red" type="submit">Delete</button>
 	</td>

@@ -1789,7 +1789,7 @@ Pathway.Reaction.prototype.__createView = function () {
                     from: view,
                     to: self._jpCatalysts,
                     isCurved: false,
-                    isDashed: self.novel,
+                    isDashed: c.novel,
                     hasArrow: false
                 });
                 self._internalLinks.push(link);
@@ -2313,6 +2313,9 @@ Pathway.Reaction.prototype.update = function (data) {
             // update the current catalyst
             for(var compId in toUpdate) {
                 toUpdate[compId].update(catalystDictData[compId]);
+                self.link(toUpdate[compId], self._jpCatalysts, {
+                    hasArrow: false, isCurved: false, isDashed: catalystDictData[compId].novel
+                })
             }
 
             // add the new catalysts
@@ -2335,10 +2338,11 @@ Pathway.Reaction.prototype.update = function (data) {
                     view.appendTo(self);
                     view.role = "catalyst";
                     view.attr({
-                        role: "catalyst"
-                    })
+                        role: "catalyst",
+                        novel: toAdd[compId].novel
+                    });
                     self.link(self._jpCatalysts, view, {
-                        hasArrow: false, isCurved: false
+                        hasArrow: false, isCurved: false, isDashed: view.novel
                     });
                     self._catalysts.push(view);
                 }

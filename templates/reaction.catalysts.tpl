@@ -6,6 +6,7 @@
         <th>Type</th>
         <th>Name</th>
         <th>Modification</th>
+        <th>Is novel?</th>
         <th>Operations</th>
     </tr>
     {{reactionCatalysts:catalysts}}
@@ -24,6 +25,9 @@
         </td>
         <td>
             <input type="text" name="modification" style="width:100px" />
+        </td>
+        <td>
+            <input type="checkbox" name="novel" />
         </td>
         <td>
             <button type="submit">Add</button>

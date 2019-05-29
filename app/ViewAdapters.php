@@ -410,6 +410,7 @@ View::registerAdapter("reactionCatalysts",function($data){
 		foreach($data as $hasCatalyst){
 			$view = View::loadFile("reaction.catalyst.editor.tpl");
 			$view->set($hasCatalyst);
+			$view->set("isNovel", $hasCatalyst->novel?"yes":"no");
 			if ($hasCatalyst->catalyst->type == "complex") {
 				$view->set("complexEditBtn", "<a href='complex/editor?id={$hasCatalyst->catalyst->id}' class='button'>Edit complex</a>");
 			}
