@@ -484,7 +484,7 @@ Pathway.Complex.prototype.__createView = function () {
         "pointer-events": "none"
     });
 
-    self._text.textContent = self.label || self.title || "Complex";
+    Pathway.Metabolite.prototype.createText.apply(this, [self._text, self.label || self.title || "Complex"])
     return self._group;
 }
 
@@ -552,7 +552,7 @@ Pathway.Complex.prototype.update = function (data) {
     // update the label
     if (data.label && data.label != self.label) {
         self.label = data.label;
-        self._text.textContent = self.label;
+        Pathway.Metabolite.prototype.createText.apply(this, [self._text, data.label]);
         // update the xml
         Util.attrNS(self._group, {
             label: self.label
@@ -670,11 +670,10 @@ Pathway.Metabolite.prototype.fromSVGElement = function (dom) {
 }
 
 /* handle supscripts and superscripts, those should not overlap */
-Pathway.Metabolite.prototype.createText = function (view) {
+Pathway.Metabolite.prototype.createText = function (view, text) {
     var self = this;
     // remove all the childs of view
     while (view.firstChild) view.firstChild.remove();
-    var text = self.label || self.name || self.title;
     var split = function (txt) {
         var regexp1 = /<sup>(.+?)<\/sup>/gi;
 		var m1 = regexp1.exec(txt);
@@ -733,7 +732,7 @@ Pathway.Metabolite.prototype.__createView = function () {
     self._ellipse = Util.elNS("ellipse");
     self._ellipse_duplicate = Util.elNS("ellipse");
     self._text = Util.elNS("text");
-    self.createText(self._text);
+    self.createText(self._text, self.label || self.title || "Metabolite");
 
     if (!self._isPlural) {
         Util.attrNS(self._ellipse_duplicate, {
@@ -820,7 +819,7 @@ Pathway.Metabolite.prototype.update = function (data) {
             Util.attrNS(self._group, {
                 label: data.label
             });
-            self.createText(self._text);
+            self.createText(self._text, data.label);
         }
         if (data.title && data.title != self.title) {
             self.title = data.title;
@@ -1555,17 +1554,17 @@ Pathway.Reaction.prototype.fromSVGElement = function (dom) {
         });
 
         // get by rolls
-        var doms = dom.querySelectorAll("g[roll=reactant]");
+        var doms = dom.querySelectorAll("g[role=reactant]");
         if (doms) doms.forEach(function(each){
             self._lhs.push(each.wrapper);
         });
 
-        var doms = dom.querySelectorAll("g[roll=product]");
+        var doms = dom.querySelectorAll("g[role=product]");
         if (doms) doms.forEach(function(each){
             self._rhs.push(each.wrapper);
         });
 
-        var doms = dom.querySelectorAll("g[roll=catalyst]");
+        var doms = dom.querySelectorAll("g[role=catalyst]");
         if (doms) doms.forEach(function(each){
             self._catalysts.push(each.wrapper);
         });
@@ -1623,6 +1622,9 @@ Pathway.Reaction.prototype.updateMoveFunction = function () {
         var midx = (self._jpLhs.x + self._jpRhs.x) / 2;
         var midy = (self._jpLhs.y + self._jpRhs.y) / 2;
         self._center.position(midx, midy);
+        if (self._catalysts.length == 1) {
+            self._jpCatalysts.position(midx, midy); 
+        }
 
         // background rect changes with the movement of the 
         Util.attrNS(self._rect, {
@@ -1766,12 +1768,6 @@ Pathway.Reaction.prototype.__createView = function () {
     });
 
     if (self.catalysts && self.catalysts.length) {
-        var joinpoint;
-        if (self.catalysts.length == 1) {
-            joinpoint = self._center;
-        } else {
-            joinpoint = self._jpCatalysts; 
-        }
         self.catalysts.forEach(function(c){
             var view;
             switch(c.type) {
@@ -1791,7 +1787,7 @@ Pathway.Reaction.prototype.__createView = function () {
                 self._catalysts.push(view);
                 var link = new Pathway.Link({
                     from: view,
-                    to: joinpoint,
+                    to: self._jpCatalysts,
                     isCurved: false,
                     isDashed: self.novel,
                     hasArrow: false
@@ -2010,19 +2006,19 @@ Pathway.Reaction.prototype.__layout = function () {
     // write the rolls to the xml
     self._lhs.forEach(function(each){
         each.attr({
-            roll: "reactant"
+            role: "reactant"
         });
     });
     
     self._rhs.forEach(function(each){
         each.attr({
-            roll: "product"
+            role: "product"
         });
     });
 
     self._catalysts.forEach(function(each){
         each.attr({
-            roll: "catalyst"
+            role: "catalyst"
         });
     });
 }
@@ -2073,6 +2069,40 @@ Pathway.Reaction.prototype.__setState = function (state) {
     }
 }
 
+Pathway.Reaction.prototype.unlink = function (view1, view2) {
+    var self = this;
+    self._internalLinks.forEach(function(l){
+        if (l.from == view1 && l.to == view2 || (l.from == view2 && l.to == view1)) {
+            l.remove();
+            console.log("removed")
+            l.deleted = true;
+        }
+    });
+    self._internalLinks = self._internalLinks.filter(function(l){
+        return !l.deleted;
+    })
+}
+
+Pathway.Reaction.prototype.link = function (from, to, options) {
+    var self = this;
+    self.unlink(from, to);
+    options = options || {}
+    options.from = from; options.to = to;
+    var defaultOptions = {
+        isCurved: true,
+        hasArrow: !self.reversible,
+        isDashed: self.novel,
+    };
+    for(var key in defaultOptions) {
+        if (!(key in options)) {
+            options[key] = defaultOptions[key];
+        }
+    }
+    var l = new Pathway.Link(options)
+    self._internalLinks.push(l);
+    l.appendTo(self);
+}
+
 Pathway.Reaction.prototype.update = function (data) {
     var self = this;
     if (self.id != data.id) {
@@ -2100,7 +2130,7 @@ Pathway.Reaction.prototype.update = function (data) {
         }
         if ("reversible" in data) {
             self._internalLinks.forEach(function(link){
-                if (link.from.attr("roll") == "reactant" || link.to.attr("roll") == "product") {
+                if (link.from.attr("role") == "reactant" || link.to.attr("role") == "product") {
                     link.update({
                         hasArrow: !data.reversible
                     });
@@ -2201,7 +2231,7 @@ Pathway.Reaction.prototype.update = function (data) {
                         self[b].push(metabolite);
                         metabolite.appendTo(self);
                         metabolite.attr({
-                            "roll": a.replace("s", ""),
+                            "role": a.replace("s", ""),
                             "side": b == "_lhs" ? "L" : "R"
                         });
                         metabolite.position(position.x, position.y);
@@ -2242,8 +2272,11 @@ Pathway.Reaction.prototype.update = function (data) {
             return false;
         }
         // -- end update metabolites --
+
         // update catalysts
+        // Not working, TODO
         if (data.catalysts) {
+            var showJPCatalysts = self._catalysts.length <= 1 && data.catalysts.length > 1;
             var catalystDictData = {}
             var catalystDictSelf = {}
             data.catalysts.forEach(function(cat){
@@ -2251,9 +2284,9 @@ Pathway.Reaction.prototype.update = function (data) {
             });
             self._catalysts.forEach(function(catView){
                 var type = catView.view.getAttribute("class").replace(/nested/g, "").replace(/\s+/, "");
-                catalystDictSelf[type + catView.id] = catView;
+                catalystDictSelf[type + "-" + catView.id] = catView;
             });
-            // compare
+            // compare new data and current data
             var toAdd = {}
             var toDelete = {}
             var toUpdate = {}
@@ -2265,22 +2298,61 @@ Pathway.Reaction.prototype.update = function (data) {
                 if (!(compId in catalystDictData)) toDelete[compId] = catalystDictSelf[compId];
                 else toUpdate[compId] = catalystDictSelf[compId];
             }
-            
-            var jp = null;
-            if (data.catalysts.length > 1) {
-                jp = self._jpCatalysts;
-            } else if (data.catalysts.length == 1) {
-                jp = self._center;
-            } else {
-                self._catalysts.forEach(function(catalyst){
-                    catalyst.remove();
-                });
-                self._catalysts = [];
-                self._jpCatalysts.linkVisible(false);
-                self._jpCatalysts.hide();
+
+            // remove the new catalysts
+            for(var compId in toDelete) {
+                toDelete[compId].remove();
+                self.unlink(toDelete[compId], self._jpCatalysts);
+                toDelete.deleted = true;    
             }
 
+            self._catalysts = self._catalysts.filter(function(catalystView){
+                return !catalystView.deleted;
+            });
 
+            // update the current catalyst
+            for(var compId in toUpdate) {
+                toUpdate[compId].update(catalystDictData[compId]);
+            }
+
+            // add the new catalysts
+            for(var compId in toAdd) {
+                var view;
+                switch (toAdd[compId].type) {
+                    case "protein":
+                        view = new Pathway.Protein(toAdd[compId]);
+                        break;
+                    case "proteinClass":
+                        view = new Pathway.ProteinClass(toAdd[compId]);
+                        break;
+                    case "complex":
+                        view = new Pathway.Complex(toAdd[compId]);
+                        break;
+                    default:
+                        console.error("Unknow type: ", toAdd[compId]);
+                }
+                if (view) {
+                    view.appendTo(self);
+                    view.role = "catalyst";
+                    view.attr({
+                        role: "catalyst"
+                    })
+                    self.link(self._jpCatalysts, view, {
+                        hasArrow: false, isCurved: false
+                    });
+                    self._catalysts.push(view);
+                }
+            }
+
+            if (showJPCatalysts) {
+                self._jpCatalysts.show();
+                self._jpCatalysts.position(self._center.x + 20, self._center.y + 20);
+            }
+
+            if (JSON.stringify(toAdd) != "{}") {
+                self.setState("warning");
+                self.errorMessage = "Auto update is successful. However, manual layout is necessary";
+            }
         }
     }
 }
