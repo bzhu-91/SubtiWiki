@@ -160,7 +160,7 @@ $(document).on("focus", "input[type=gene], input[type=protein]",function(){
 			},
 			minLength: 2,
 			select: function(event, ui) {
-				clone.attr("value", ui.item.id);
+				$clone.attr("value", ui.item.id);
 			}
 		});
 	}
