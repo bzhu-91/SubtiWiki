@@ -2,12 +2,28 @@
 class Metabolite extends Model {
 	static $tableName = "Metabolite";
 	static $primaryKeyName = "id";
-
+	static $relationships = [
+		"reaction" => [
+			"tableName" => "ReactionMetabolite",
+			"mapping" => [
+				"metabolite" => "mixed",
+				"reaction" => "Reaction",
+			],
+			"position" => 1,
+		]
+	];
 	public function update () {
 		if ($this->id) {
 			$conn = Application::$conn;
 			$conn->beginTransaction();
-			if (History::record($this, "update") && parent::update()) {
+			$result = true;
+			// need to update the equations of related reactions
+			$hasReactions = $this->has("reaction");
+			foreach($hasReactions as $hasReaction) {
+				$result = $result && $hasReaction->reaction->updateEquation();
+			}
+			$result = $result && History::record($this, "update") && parent::update();
+			if ($result) {
 				$conn->commit();
 				return true;
 			} else {
