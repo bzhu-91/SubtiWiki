@@ -15,8 +15,9 @@
 			<button type="submit">Update</button>
 			{{:complexEditBtn}}
 		</p>
-		<form class="form-ignore" action="reaction/metabolite" method="delete" type="ajax">
+		<form class="form-ignore" action="reaction/metabolite" method="delete" type="ajax" mode="reload">
 			<input type="hidden" name="hasMetabolite" value="{{:id}}" />
+			<input type="hidden" name="reaction" value="{{:reaction->id}}" />
 			<button style="background: red">Delete</button>
 		</form>
 	</td>

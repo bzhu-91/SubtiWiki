@@ -12,7 +12,7 @@
 </div>
 <div id="panel-add-reaction" title="Add a reaction">
     <form id="form-search-reaction">
-        <p><input name="reaction" placeholder="chemical name ..."/><input type="submit" /></p>
+        <p><input name="reaction" placeholder="chemical name, gene name ..." style="width: 300px"/><input type="submit" /></p>
     </form>
     <ul id="container-reactions"></ul>
 </div>
@@ -40,11 +40,13 @@
 <ul id="menu-metabolite" class="menu">
     <li><div id="btn-lock-metabolites">Lock the stacking elements</div></li>
     <li><div id="btn-unlock-metabolites">Unlock the stacking elements</div></li>
+    <li><div id="btn-edit-metabolite">Edit data</div></li>
     <li><div>Related reactions</div>
         <ul id="menu-metabolite-suggestions"></ul>
     </li>
 </ul>
 <div id="reaction-editor" style="height: 80%; width: 80%;"><iframe id="reaction-editor-iframe" style="width:100%; height: 100%"></iframe></div>
+<div id="el-editor" style="height: 80%; width: 80%;"><iframe id="el-editor-iframe" style="width:100%; height: 100%"></iframe></div>
 <div id="reaction-creator" style="height: 80%; width: 80%;"><iframe id="reaction-creator-iframe" style="width:100%; height: 100%"></iframe></div>
 <form action="pathway?id={{:id}}" type="ajax" id="form-rename" method="put">
     <p><b>Rename Pathway</b></p>

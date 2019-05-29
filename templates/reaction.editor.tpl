@@ -6,7 +6,7 @@
 <div class="box">
     <h3>Reaction</h3>
     <p>{{:message}}</p>
-    <div class="form" action="reaction" method="{{:method}}" type="ajax" style="background:#eee; padding:10px">
+    <div class="form" action="reaction" method="{{:method}}" type="ajax" style="background:#eee; padding:10px" mode="redirect">
         <input type="hidden" name="id" value="{{:id}}" />
         <p><label>Equation: </label>{{:equation}}<i> (This is automatic generated)</i></p>
         <p>
