@@ -129,7 +129,12 @@ class ReactionController extends Controller {
 		if ($pageSize == "max") {
 			$input["page_size"] = $pageSize = Reaction::count();
 		}
-		$reactions = Reaction::getAll("1 order by id limit ?,?", [$pageSize*($page-1), $pageSize]);
+		$catalyst = $input["catalyst"];
+		if ($catalyst) {
+			$reactions = Reaction::searchByCatalyst($catalyst, $page, $pageSize);
+		} else {
+			$reactions = Reaction::getAll("1 order by id limit ?,?", [$pageSize*($page-1), $pageSize]);
+		}
 		switch ($accept) {
 			case HTML:
 				if ($reactions) {
@@ -186,7 +191,7 @@ class ReactionController extends Controller {
 			$input["novel"] = $input["novel"] == "on" ? 1 : 0;
 			$reaction = Reaction::withData($input);
 			if ($reaction->insert()) {
-				$this->respond(["uri" => "reaction/editor?id=".$reaction->id], 200, JSON);
+				$this->respond(["uri" => "reaction/editor?id=".$reaction->id], 201, JSON);
 			} else {
 				$this->error("An internal error has happened, please contact admin.", 500, JSON);
 			}
@@ -331,7 +336,7 @@ class ReactionController extends Controller {
 			case 'DELETE':
 				$hasMetabolite = $this->filter($input, "hasMetabolite", "is_numeric", ["Metabolite is required", 400, JSON]);
 				if ($reaction->removeMetabolite($hasMetabolite, $coefficient)) {
-					$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 200, JSON);
+					$this->respond(null, 204, JSON);
 				} else {
 					$this->error("Metabolite not found", 404, JSON);
 				}
@@ -396,7 +401,7 @@ class ReactionController extends Controller {
 				// delete catalyst here
 				$hasCatalyst = $this->filter($input, "hasCatalyst", "/^\d+$/i", ["Catalyst is required", 400, JSON]);
 				if ($reaction->removeCatalyst($hasCatalyst)) {
-					$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 200, JSON);
+					$this->respond(null, 204, JSON);
 				} else {
 					$this->error("An internal error has happened, please contact admin", 500, JSON);
 				}

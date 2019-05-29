@@ -114,6 +114,31 @@ class Reaction extends Model {
             return false;
         }
     }
+
+    public static function searchByCatalyst($keyword, $page, $pageSize) {
+        $sql = "select Reaction.id, Reaction.equation from Reaction join ReactionCatalyst on Reaction.id = ReactionCatalyst.reaction join Gene on ReactionCatalyst.Catalyst like concat('{protein|', Gene.id, '}') where Gene.title like ? or Gene._synonyms like ?";
+        $vals = ["%{$keyword}%", "%{$keyword}%"];
+        if ($page && $pageSize) {
+            $sql .= " limit ?,?";
+            $vals[] = $pageSize*($page-1);
+            $vals[] = $pageSize;
+        }
+        $reGene = Application::$conn->doQuery($sql, $vals);
+
+        $sql = "select Reaction.id, Reaction.equation from Reaction join ReactionCatalyst on Reaction.id = ReactionCatalyst.reaction join Complex on ReactionCatalyst.catalyst like concat('{complex|', Complex.id, '}') join ComplexMember on ComplexMember.complex = Complex.id join Gene on ComplexMember.member like concat('{protein|', Gene.id, '}') where Gene.title like ? or Gene._synonyms like ?";
+        $vals = ["%{$keyword}%", "%{$keyword}%"];
+        if ($page && $pageSize) {
+            $sql .= " limit ?,?";
+            $vals[] = $pageSize*($page-1);
+            $vals[] = $pageSize;
+        }
+        $reComplex = Application::$conn->doQuery($sql, $vals);
+        $re = array_merge($reGene, $reComplex);
+        foreach($re as &$reaction){
+            $reaction = Reaction::withData($reaction);
+        }
+        return $re;
+    }
     
     public function addMetabolite ($metabolite, $side, $coefficient = 1) {
         # check duplicate

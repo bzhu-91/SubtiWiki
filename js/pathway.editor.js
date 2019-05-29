@@ -67,7 +67,7 @@ PathwayModel.loadReaction = function (reactionId, callback, remote) {
     }
 }
 
-PathwayModel.searchReaction = function (keyword) {
+PathwayModel.searchReactionByMetabolite = function (keyword) {
     var results = [];
     keyword = keyword.toLowerCase();
     var keywords = [];
@@ -105,6 +105,19 @@ PathwayModel.searchReaction = function (keyword) {
         reactions.push(result.reaction);
     });
     return reactions;
+}
+
+PathwayModel.searchReactionByCatalyst = function (keyword, callback) {
+    $.ajax({
+        url: "reaction?catalyst=" + encodeURIComponent(keyword)  + "&page=1&page_size=max",
+        dataType: "json",
+        success: function (data) {
+            callback(data)
+        },
+        error: function () {
+            callback([]);
+        }
+    })
 }
 
 var PathwaySearchViewController = PathwaySearchViewController || {
@@ -145,14 +158,18 @@ PathwaySearchViewController.hide = function () {
 }
 
 PathwaySearchViewController.searchForReaction = function (keyword) {
+    var self = this;
     if (keyword.length >= 2) {
-        this.resultsContainer.html("");
-        var results = PathwayModel.searchReaction(keyword);
-        if (results.length) {
-            this.createResultList(results);
-        } else {
-            this.resultsContainer.html("No results found");
-        }
+        self.resultsContainer.html("");
+        var resultByMetabolites = PathwayModel.searchReactionByMetabolite(keyword);
+        PathwayModel.searchReactionByCatalyst(keyword, function(resultByCatalyst){
+            var results = resultByMetabolites.concat(resultByCatalyst);
+            if (results.length) {
+                self.createResultList(results);
+            } else {
+                self.resultsContainer.html("No results found");
+            }
+        });
     } else SomeLightBox.error("Keyword too short");
 }
 
@@ -196,10 +213,16 @@ var PathwayEditor = PathwayEditor || {
         width: "80%",
         height: "80%"
     }).loadById("reaction-editor").ondismiss(function(ev){
-        // TODO: update the reactions
         // requires the update function of Pathway.Reaction class
         PathwayModel.loadIndex(); // equation change
         PathwayEditor.updateReaction(this.reaction.id);
+    }),
+    elEditorDialog: new SomeLightBox({
+        width: "80%",
+        height: "80%"
+    }).loadById("el-editor").ondismiss(function(ev){
+        PathwayModel.loadIndex(); // equation change
+        return true;
     }),
     creatorDialog: new SomeLightBox({
         width: "80%",
@@ -566,8 +589,6 @@ PathwayEditor.loadCanvas = function () {
       ids.push(id);
     }
 
-    var box = SomeLightBox.alert("Update", "Pathway editor is checking for updates in reactions. Please wait.")
-
     $.ajax({
         url: "reaction?ids=" + ids.join(","),
         dataType:"json",
@@ -581,8 +602,6 @@ PathwayEditor.loadCanvas = function () {
                     self.reactionViews[id].forEach(function(each){each.update(reactionData)});
                 }
             }
-            box.dismiss();
-            SomeLightBox.alert("Success", "Pathway editor has successfully updated the reactions. Reactions marked with red color requires manual update. Please delete the reaction and add it again. Reactions marked with orange color has been automatically update. However, manual layout of certain components are required.");
         }
     });
 
@@ -807,39 +826,43 @@ $(document).on("contextmenu", "rect#membrane", function(evt){
     });
 });
 
-$(document).on("contextmenu", ".metabolite, .complex, .RNA, .DNA", function(evt) {
+$(document).on("contextmenu", ".metabolite:not(.nested), .complex:not(.nested), .RNA:not(.nested), .DNA:not(.nested)", function(evt) {
     evt.preventDefault();
     evt.stopPropagation();
-    if ($(this).attr("class").indexOf("nested") == -1) {
-        // clear all the suggestions
-        $("#menu-metabolite-suggestions").html("");
-        var title = this.wrapper.label;
-        var reactionId = this.wrapper.parent.id;
-        if (title) {
-            var results = PathwayModel.searchReaction(title);
-            // need to exclude the calling reaction
-            results.forEach(function(reaction){
-                if (reaction.id != reactionId) {
-                    var li = $("<li></li>");
-                    li.html("R" + reaction.id + ": " + reaction.equation);
-                    li.on("click", function(){
-                        PathwayEditor.drawReaction(reaction.id);
-                        $("#menu-metabolite").hide();
-                    });
-                    $("#menu-metabolite-suggestions").append(li);
-                }
-            });
-            $("#menu-metabolite").show().position({
-                my: "left top",
-                of: evt
-            });
-            $("#menu-metabolite").prop("event", evt); // save the opening event
-        }
-        return true;
-    } else {
-        console.error("is nested")
+    // clear all the suggestions
+    $("#menu-metabolite-suggestions").html("");
+    var title = this.wrapper.label;
+    var reactionId = this.wrapper.parent.id;
+    if (title) {
+        var results = PathwayModel.searchReactionByMetabolite(title);
+        // need to exclude the calling reaction
+        results.forEach(function(reaction){
+            if (reaction.id != reactionId) {
+                var li = $("<li></li>");
+                li.html("R" + reaction.id + ": " + reaction.equation);
+                li.on("click", function(){
+                    PathwayEditor.drawReaction(reaction.id);
+                    $("#menu-metabolite").hide();
+                });
+                $("#menu-metabolite-suggestions").append(li);
+            }
+        });
+        var type = $(this).attr("class").replace(/nested/gi, "").trim();
+        $("#menu-metabolite").find("#btn-edit-metabolite").attr("href", type + "/editor?id="  + this.wrapper.id);
+        $("#menu-metabolite").show().position({
+            my: "left top",
+            of: evt
+        });
+        $("#menu-metabolite").prop("event", evt); // save the opening event
     }
+    return true;
 }); 
+
+$(document).on("click", "#btn-edit-metabolite", function(){
+    $("#menu-metabolite").hide();
+    PathwayEditor.elEditorDialog.show();
+    $("#el-editor-iframe").prop("src", $(this).attr("href"));
+});
 
 $(document).on("click", "#btn-reverse-sides", function(){
     var reaction = $("#menu-reaction").prop("reaction");
@@ -1092,27 +1115,51 @@ $(document).on("click", "#btn-add-reaction-to-pathway", function(ev){
 });
 
 $(window).on("keydown", function(evt){
-    var els2move = PathwayEditor.selectedViews.length ? PathwayEditor.selectedViews.concat(PathwayEditor.autoselectViews) : [PathwayEditor.canvas];
-    var dx = 0, dy = 0;
-    switch (evt.keyCode) {
-        case 38:
-            dy = -1;
-            break;
-        case 40:
-            dy = 1;
-            break;
-        case 37:
-            dx = -1;
-            break;
-        case 39:
-            dx = 1;
-            break;
-        case 27:
-            PathwayEditor.clearSelection();
-            break;
-
+    if (evt.shiftKey) {
+       if (PathwayEditor.selectedViews.length == 1 && PathwayEditor.selectedViews[0] instanceof Pathway.Reaction) {
+           var reaction = PathwayEditor.selectedViews[0];
+           switch (evt.keyCode) {
+               case 38:
+               case 40:
+                    reaction.layoutDirection = reaction.layoutDirection == "vertical" ? "horizontal" : "vertical";
+                    reaction.layout();
+                    reaction.setState("selected");
+                   break;
+               case 37:
+               case 39:
+                    reaction.layoutReversed = !reaction.layoutReversed;
+                    reaction.layout();
+                    reaction.setState("selected");
+                   break;
+               case 27:
+                   PathwayEditor.clearSelection();
+                   break;
+       
+           }
+       }
+    } else {
+        var els2move = PathwayEditor.selectedViews.length ? PathwayEditor.selectedViews.concat(PathwayEditor.autoselectViews) : [PathwayEditor.canvas];
+        var dx = 0, dy = 0;
+        switch (evt.keyCode) {
+            case 38:
+                dy = -1;
+                break;
+            case 40:
+                dy = 1;
+                break;
+            case 37:
+                dx = -1;
+                break;
+            case 39:
+                dx = 1;
+                break;
+            case 27:
+                PathwayEditor.clearSelection();
+                break;
+    
+        }
+        els2move.forEach(function(each){
+            if(each) each.move(dx, dy);
+        });
     }
-    els2move.forEach(function(each){
-        if(each) each.move(dx, dy);
-    });
 });
