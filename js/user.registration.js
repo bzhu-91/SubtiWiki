@@ -21,7 +21,7 @@ $(document).on("submit", "#registration", function(ev){
 		$.ajax({
 			type:"post",
 			url: "user",
-			data: ajax.serialize(data),
+			data: data,
 			dataType:"json",
 			statusCode: {
 				201: function () {
