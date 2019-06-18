@@ -2,9 +2,15 @@
 require_once 'Config.php';
 require_once 'includes/Exceptions.php';
 
+/**
+ * The application
+ */
 class Application {
 	static $conn;
 
+	/**
+	 * start the app, setup according to configuration, start session, connect to DB, start routing
+	 */
 	public static function start () {
 		self::setup();
 		self::connect();
@@ -12,6 +18,11 @@ class Application {
 		Router::route($GLOBALS["ROUTING_TABLE"]);
 	}
 
+	/**
+	 * connect to database
+	 * @param string $user the user name for the DB, $GLOBALS["DATABASE_CONNECTION_SETTINGS"] is used when not given
+	 * @param string $password the password for the DB, $GLOBALS["DATABASE_CONNECTION_SETTINGS"] is used when not given
+	 */
 	public static function connect ($user = null, $password = null) {
 		// init the database connection
 		$dbSettings = $GLOBALS["DATABASE_CONNECTION_SETTINGS"];
@@ -30,11 +41,17 @@ class Application {
 		self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 	}
 
+	/**
+	 * clean up before app stops
+	 */
 	public static function stop () {
 		// other clean ups
 		die();
 	}
 
+	/**
+	 * set up autoloading, set up error handling
+	 */
 	public static function setup () {
 		// set include paths
 		$includePaths = $GLOBALS["INCLUDE_PATHS"];
@@ -65,6 +82,10 @@ class Application {
 		}
 	}
 
+	/**
+	 * error handling function
+	 * @param Exception $exception the exception to be handled
+	 */
 	public static function handle ($exception) {
 		if (!($exception instanceof ClassNotFoundException)) {
 			// Utility::sendEmail("bzhu@gwdg.de", "Bzhu", "Error captured with ".$GLOBALS["SITE_NAME"], (string) $exception);
@@ -77,17 +98,6 @@ class Application {
 		]);
 		echo $view->generate(1,1);
 		self::stop();
-	}
-
-	public static function transaction ($func) {
-		self::$conn->beginTransaction();
-		if ($func()) {
-			self::$conn->commit();
-			return true;
-		} else {
-			self::$conn->rollback();
-			return false;
-		}
 	}
 }
 ?>

@@ -1,4 +1,7 @@
-<?php 
+<?php
+/**
+ * This class implements a relationship. This class is prototype based
+ */
 class Relationship {
 	use RelationshipExtra;
 	use Markup;
@@ -14,11 +17,12 @@ class Relationship {
 
 
 	/**
-	 * create a template for a relationship
-	 * @param string  $tableName      table name
-	 * @param array  $mapping        definition of table, colname => classname
+	 * create a prototype for a relationship
+	 * @param string  $tableName table name
+	 * @param array  $mapping definition of table, colname => classname
 	 * @param string  $primaryKeyName col name of the primary key, default id
-	 * @param boolean $ordered        if relationship is ordered
+	 * @param boolean $ordered if relationship is ordered
+	 * @throws BaseException when parameters are not correct
 	 */
 	function __construct ($tableName, $mapping, $name = "", $primaryKeyName = "id", $ordered = true) {
 		if ($tableName && $mapping) {
@@ -41,7 +45,13 @@ class Relationship {
 		} else throw new BaseException("tablename and mapping can not be empty");
 	}
 
-	public function count ($where = 1) {
+	/**
+	 * count the row numbers according to a search criteria (optional)
+	 * @param string/array $where search criteria
+	 * @param array $vals values to replace the ? in the SQL
+	 * @return int/null the count
+	 */
+	public function count ($where = 1, $vals = []) {
 		$conn = Application::$conn;
 		if ($this->_tableName) {
 			$result = $conn->doQuery("select count(`".$this->_primaryKeyName."`) as c from `".$this->_tableName."` where ".$where, $vals);
@@ -51,16 +61,22 @@ class Relationship {
 		}
 	}
 
+	/**
+	 * get all relationship instances according to a search criteria (optional), Both partners of the relationship will be instantialized with the simpleLookUp function.
+	 * @param string/array $where search criteria
+	 * @param array $vals the values to replace ? in the where clause
+	 * @return array array of relationship instances
+	 */
 	public function getAll ($where = 1, $vals = []) {
 		$conn = Application::$conn;
 		if ($this->_tableName) {
 			$result = $conn->doQuery("select * from `".$this->_tableName."` where ".$where, $vals);
 			foreach ($result as &$row) {
 				if ($this->_class2 != "mixed") {
-					$row[$this->_col2] = method_exists($this->_class2, "getRefWithId") ? $this->_class2::getRefWithId($row[$this->_col2]) : $this->_class2::simpleGet($row[$this->_col2]);
+					$row[$this->_col2] = method_exists($this->_class2, "simpleLookUp") ? $this->_class2::simpleLookUp($row[$this->_col2]) : $this->_class2::simpleGet($row[$this->_col2]);
 				} else $row[$this->_col2] = Model::parse($row[$this->_col2]);
 				if ($this->_class1 != "mixed") {
-					$row[$this->_col1] = method_exists($this->_class1, "getRefWithId") ? $this->_class1::getRefWithId($row[$this->_col1]) : $this->_class1::simpleGet($row[$this->_col1]);
+					$row[$this->_col1] = method_exists($this->_class1, "simpleLookUp") ? $this->_class1::simpleLookUp($row[$this->_col1]) : $this->_class1::simpleGet($row[$this->_col1]);
 				} else $row[$this->_col1] = Model::parse($row[$this->_col1]);
 				$row = $this->clone($row);
 			}
@@ -69,7 +85,7 @@ class Relationship {
 	}
 
 	/**
-	 * get a clone
+	 * get a clone with the given data
 	 * @param  array/object $data data to be copied to the new clone
 	 * @return Relationship       
 	 */
@@ -81,18 +97,26 @@ class Relationship {
 		return $instance;
 	}
 
+	/**
+	 * get the table name of the relationship
+	 * @return string/null table name
+	 */
 	public function getTableName () {
 		return $this->_tableName;
 	} 
 
+	/**
+	 * get the primary key name of the relationship
+	 * @return string/null primary key name
+	 */
 	public function getPrimaryKeyName () {
 		return $this->_primaryKeyName;
 	}
 
 	/**
 	 * find the relationship by the entitiy, for ordered only
-	 * @param  Model $e1 instance 1, @nullable
-	 * @param  Model $e2 instance 2, @nullable
+	 * @param  Model/null $e1 instance 1
+	 * @param  Model/null $e2 instance 2
 	 * @return array of Relationship or null  
 	 */
 	protected function simpleGet (Model $e1 = null, Model $e2 = null) {
@@ -154,9 +178,9 @@ class Relationship {
 		}
 	}
 
-	/**k
+	/**
 	 * return the raw table row
-	 * @return array|null 	array if found, null if not
+	 * @return array/null 	array if found, null if not
 	 */
 	public function raw () {
 		$conn = Application::$conn;
@@ -177,12 +201,12 @@ class Relationship {
 		if ($result) {
 			$row = $result[0];
 			if ($this->_class2 != "mixed") {
-				$row[$this->_col2] = method_exists($this->_class2, "getRefWithId") ? $this->_class2::getRefWithId($row[$this->_col2]) : $this->_class2::simpleGet($row[$this->_col2]);
+				$row[$this->_col2] = method_exists($this->_class2, "simpleLookUp") ? $this->_class2::simpleLookUp($row[$this->_col2]) : $this->_class2::simpleGet($row[$this->_col2]);
 			} else {
 				$row[$this->_col2] = Model::parse($row[$this->_col2]);
 			}
 			if ($this->_class1 != "mixed") {
-				$row[$this->_col1] = method_exists($this->_class1, "getRefWithId") ? $this->_class1::getRefWithId($row[$this->_col1]) : $this->_class1::simpleGet($row[$this->_col1]);
+				$row[$this->_col1] = method_exists($this->_class1, "simpleLookUp") ? $this->_class1::simpleLookUp($row[$this->_col1]) : $this->_class1::simpleGet($row[$this->_col1]);
 			} else {
 				$row[$this->_col1] = Model::parse($row[$this->_col1]);
 			}
@@ -227,7 +251,12 @@ class Relationship {
 		return $conn->update($this->_tableName, $data, $id);
 	}
 
-	public function replace ($keeps) {
+	/**
+	 * update the relationship, prefer to use id, use replace instead of update
+	 * @param array $ignores the columns which should be ignored in this update
+	 * @return boolean true if successful, false if otherwise
+	 */
+	public function replace ($ignores) {
 		$conn = Application::$conn;
 		$data = $this->getData();
 		// update by id
@@ -240,7 +269,7 @@ class Relationship {
 			$id[$this->_col2] = $this->_class2 == "mixed" ? $id[$this->_col2]->toObjectMarkup() : $id[$this->_col2]->id;
 		} else throw new BaseException("no update criteria defined", 1);
 
-		return $conn->replace($this->_tableName, $data, $id, null, $keeps);
+		return $conn->replace($this->_tableName, $data, $id, null, $ignores);
 	}
 
 
@@ -270,14 +299,26 @@ class Relationship {
 		return $conn->delete($this->_tableName, $id);
 	}
 
+	/**
+	 * create a string presentation of this relationship
+	 * @return string the string presentation
+	 */
 	public function toObjectMarkup() {
 		return "{".lcfirst($this->_tableName)."|".$this->id."}";
 	}
 
+	/**
+	 * create a string presentation of this relationship
+	 * @return string the string presentation
+	 */
 	public function __toString() {
 		return $this->toObjectMarkup();
 	}
 
+	/**
+	 * get the key-value pairs of this instance and save then in an array
+	 * @return array data
+	 */
 	public function getData () {
 		if ($this->{$this->_col1} && $this->{$this->_col2}) {
 			$data = [];

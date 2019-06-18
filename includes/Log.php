@@ -1,4 +1,7 @@
 <?php
+/**
+ * Log
+ */
 class Log {
 	const log_file_name = "var/log";
 

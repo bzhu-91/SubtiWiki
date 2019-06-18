@@ -5,13 +5,38 @@ define("HTML_PARTIAL", "HTML_PARTIAL");
 define("CSV", "CSV");
 define("TEXT", "TEXT");
 
+/**
+ * This class implements a router, which applies RESTful style.
+ * Example:
+* -------------------------------------------------------------
+*   URL                   | Method    | Mapped method
+* -------------------------------------------------------------
+*  blog                   | GET       | BlogController::read
+* -------------------------------------------------------------
+*  blog                   | POST      | BlogController::create
+* -------------------------------------------------------------
+*  blog                   | PUT       | BlogController::update
+* -------------------------------------------------------------
+*  blog                   | DELETE    | BlogController::delete
+* -------------------------------------------------------------
+*  blog/editor            | mixed     | BlogController::editor
+* -------------------------------------------------------------
+ */
 class Router {
+	/**
+	 * get the path from document root of apache to the project directory (where index.php is)
+	 * @return string the path
+	 */
 	public static function getWebRoot() {
 		$webroot = "/".trim(str_replace($_SERVER["DOCUMENT_ROOT"], "", dirname($_SERVER["PHP_SELF"])), "/");
 		$GLOBALS["WEBROOT"] = $webroot;
 		return $webroot;
 	}
 
+	/**
+	 * get the redirected URL from apache
+	 * @return string the URL
+	 */
 	public static function getCleanURL() {
 		$webroot = self::getWebRoot();
 		if (array_key_exists("REDIRECT_URL", $_SERVER)) {
@@ -21,6 +46,10 @@ class Router {
 		}
 	}
 
+	/**
+	 * get the data from client side using the PUT method
+	 * @return array the client-side input
+	 */
 	public static function getPutData() {
 		$file = fopen("php://input", "r");
 		$query_string = "";
@@ -32,6 +61,10 @@ class Router {
 		return $put;
 	}
 
+	/**
+	 * get the client-slide input, regardless the data is in URL or in HTTP body
+	 * @return array the client-side input
+	 */
 	public static function getInput() {
 		// gather data from post or get
 		$input = [];
@@ -54,6 +87,10 @@ class Router {
 		return $input;
 	}
 
+	/**
+	 * sort out the accept from the request
+	 * @return string the accept from the request
+	 */
 	public static function getAccept() {
 		$accept = strtolower($_SERVER['HTTP_ACCEPT']);
 		$options = ["application/json", "text/html_partial", "text/csv","text/plain", "text/html"];
@@ -97,6 +134,15 @@ class Router {
 		return $accept;
 	}
 
+	/** 
+	 * invoke the corresponding methods of corresponding controller class.
+	 * @param string $className the name of the class
+	 * @param string $methodName the name of the method
+	 * @param array $input the client-side input
+	 * @param string $accept the accept of the HTTP request
+	 * @param string $method the method of the HTTP request
+	 * @throws MethodNotPublicException/MethodNotFoundException/ClassNotFoundException
+	 */
 	public static function call($className = null, $methodName, $input, $accept, $method = null) {
 		if ($className == null && function_exists($methodName)) {
 			call_user_func_array($methodName, [$input, $accept, $method]);
@@ -114,6 +160,23 @@ class Router {
 		} else throw new MethodNotFoundException("function $methodName does not exist", 1);
 	}
 
+	/**
+	 * Route. First according to the give routing table, then according to the default rule. 
+	 * Example:
+	 * -------------------------------------------------------------
+	 *   URL                   | Method    | Mapped method
+	 * -------------------------------------------------------------
+	 *  blog                   | GET       | BlogController::read
+	 * -------------------------------------------------------------
+	 *  blog                   | POST      | BlogController::create
+	 * -------------------------------------------------------------
+	 *  blog                   | PUT       | BlogController::update
+	 * -------------------------------------------------------------
+	 *  blog                   | DELETE    | BlogController::delete
+	 * -------------------------------------------------------------
+	 *  blog/editor            | mixed     | BlogController::editor
+	 * -------------------------------------------------------------
+	 */
 	public static function route($settings = null) {
 		$input = self::getInput();
 		$url = self::getCleanURL();

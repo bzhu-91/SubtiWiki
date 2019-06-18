@@ -1,8 +1,16 @@
 <?php
+/**
+ * A memory cache of look up table and validate table.
+ * Most of the tables in SubtiWiki has two columns, namely id and title. The id column is used as a surrogate primary key and the title is the human-friendly primary key.
+ * There are often operations to get the title by id or get the id by searching for the title. So this trait is implemented to create a memory cache of a look-up-table to reduced the numbers of database operations and boost up the speed.
+ */
 trait ReferenceCache {
 	static $lookupTable = [];
 	static $validateTable = [];
 
+	/**
+	 * init the look-up table
+	 */
 	public static function initLookupTable () {
 		// if use self::lookupTable, this will be shared between all classes which use this trait
 		// if use get_called_class()::lookupTable, each class will has its own copy
@@ -25,12 +33,21 @@ trait ReferenceCache {
 		}
 	}
 
-	/** override get function, get from cache to reduce quries */
-	public static function getRefWithId ($id) {
+	/**
+	 * get a reference of an Model instance
+	 * @param string/number the id of the instance
+	 * @return instance/null a reference instance of the called class
+	 */
+	public static function simpleLookUp ($id) {
 		static::initLookupTable();
 		return static::$lookupTable[strtolower($id)];
 	}
 
+	/**
+	 * get the Model instance, patch function is called to further retrieve other data
+	 * @param string/number the id of the instance
+	 * @return instance/null a full instance of the called class
+	 */
 	public static function get ($id) {
 		$ins = static::raw($id);
 		if ($ins) {
@@ -39,10 +56,14 @@ trait ReferenceCache {
 		return $ins;
 	}
 
-	public static function simpleGet ($id) {
-		return static::getRefWithId($id);
-	}
+	/**
+	 * the patch function, where a reference instance retrieve all properties from the DB
+	 */
+	abstract function patch ();
 
+	/**
+	 * init the validate table
+	 */
 	public static function initValidateTable() {
 		$className = get_called_class();
 		if (!$className::$validateTable) {
@@ -62,7 +83,12 @@ trait ReferenceCache {
 		}
 	}
 
-	public static function getRefWithTitle ($title) {
+	/**
+	 * get a reference instance by look up the title
+	 * @param string title the title of the instance
+	 * @return instance/null a reference instance of the called class
+	 */
+	public static function simpleValidate ($title) {
 		static::initValidateTable();
 		return static::$validateTable[strtolower($title)];
 	}

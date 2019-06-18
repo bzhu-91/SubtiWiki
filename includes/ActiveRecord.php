@@ -1,11 +1,12 @@
 <?php
-// implement ORM pattern: ActiveRecord
-// has select, insert, update, delete functions
+/**
+ * This class implements active record pattern, see wiki page https://en.wikipedia.org/wiki/Active_record_pattern
+ */
 class ActiveRecord extends DBBase {
 	/**
-	 * generate the where clause based on the input
+	 * generate the where clause based on the input array
 	 * @param  array/object $array 
-	 * @return array        "where": where clause, "values": values
+	 * @return array "where" => where clause with placeholder ?, "values" => values
 	 */
 	private function generateWhereClause ($array) {
 		$where = [];
@@ -24,12 +25,12 @@ class ActiveRecord extends DBBase {
 		];
 	}
 	/**
-	 * select statement
+	 * execute a select statement
 	 * @param  string $table_name   table name
 	 * @param  string/array $column_names column name to select
-	 * @param  string/array $where        criteria to find the row
-	 * @param  array  $values       values to replace ? in the where clause when $where is string
-	 * @return result set or false            false when SQL error happened
+	 * @param  string/array array or string. $where the where clause in SQL statement, but without the keyword "where", placeholder ? is allowed
+	 * @param  array  $values values to replace ? in the where clause when $where is string
+	 * @return array/boolean array of results or false when SQL error happened
 	 */
 	public function select ($table_name, $column_names = "*", $where, $values = []) {
 		$where = self::objectToArray($where);
@@ -50,10 +51,10 @@ class ActiveRecord extends DBBase {
 	}
 	
 	/**
-	 * insert statement
+	 * execute a insert statement
 	 * @param  string $table_name table name
-	 * @param  array/object $data       data to be insert
-	 * @return boolean             true if successful, false otherwise
+	 * @param  array/object $data data to be insert
+	 * @return boolean true if successful, false otherwise
 	 */
 	public function insert ($table_name, $data) {
 		$data = self::objectToArray($data);
@@ -81,12 +82,13 @@ class ActiveRecord extends DBBase {
 	}
 
 	/**
-	 * update the table by the given data, extra keys are ignored
+	 * execute a update statement
+	 * update the table by the given data according to the table structure
 	 * @param  string $table_name name of the table
-	 * @param  array/object $data       data of the table row
-	 * @param  string/array $where      citeria to find the row to be updated
-	 * @param  array  $vals       values to replace ? in the where clause if $where is string
-	 * @return boolean             if success true, else false
+	 * @param  array/object $data data of the table row
+	 * @param  string/array $where citeria to find the row to be updated
+	 * @param  array  $vals values to replace ? in the where clause if $where is string
+	 * @return boolean if success true, else false
 	 */
 	public function update ($table_name, $data, $where, $vals = []) {
 		if ($where) {
@@ -122,6 +124,16 @@ class ActiveRecord extends DBBase {
 		}
 	}
 
+	/**
+	 * execute a update statement
+	 * update the table by the given data, columns which are not in the given data will be set to null (if possible)
+	 * @param string $table_name name of the table
+	 * @param array/object $data data of the table row
+	 * @param string/array $where citeria to find the row to be updated
+	 * @param array  $vals values to replace ? in the where clause if $where is string
+	 * @param array $keep column names which should be ignored in this update	
+	 * @return boolean if success true, else false
+	 */
 	public function replace ($table_name, $data, $where, $vals = [], $keep = []) {
 		if ($where) {
 			$columns = $this->getColumnNames($table_name);
@@ -160,11 +172,11 @@ class ActiveRecord extends DBBase {
 	}
 	
 	/**
-	 * delete statement
+	 * execute a delete statement
 	 * @param  string $table_name table name
-	 * @param  string/array $where      criteria to find the row
-	 * @param  array  $vals       values to replace ? in the where clause when $where is a string
-	 * @return boolean            true if successful, false otherwise
+	 * @param  string/array $where criteria to find the row
+	 * @param  array  $vals values to replace ? in the where clause when $where is a string
+	 * @return boolean true if successful, false otherwise
 	 */
 	public function delete ($table_name, $where, $vals = []) {
 		if ($where) {
@@ -183,7 +195,7 @@ class ActiveRecord extends DBBase {
 	}
 
 	/**
-	 * do the queries
+	 * execute a sql statement
 	 * @param  string $sql  sql statement
 	 * @param  array $vals values to replace ? in the statement
 	 * @return array/boolean       

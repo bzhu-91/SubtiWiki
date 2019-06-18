@@ -1,4 +1,7 @@
 <?php
+/**
+ * This class is a wrap-around of the PDO class. Magic function __call is implement to "inherit" all methods from PDO
+ */
 class DBBase {
 	public $lastError;
 	public $last_warning;
@@ -42,7 +45,7 @@ class DBBase {
 	 * execute the sql statement
 	 * @param  string $sql  sql statement
 	 * @param  array $vals values to replace ? in the where clause
-	 * @return PDO::statement or boolean       
+	 * @return mixed PDOStatement if SQL excution is successful, false if not
 	 */
 	public function doQuery($sql, $vals = []){
 		try {
@@ -70,7 +73,7 @@ class DBBase {
 	/**
 	 * get the columns name of the given table
 	 * @param  string $table_name table name
-	 * @return array             array of column names
+	 * @return array array of column names
 	 */
 	public function getColumnNames ($table_name) {
 		if (!array_key_exists($table_name, $this->db_struct)) {
@@ -86,6 +89,26 @@ class DBBase {
 			}
 		} else {
 			return $this->db_struct[$table_name];
+		}
+	}
+
+	/**
+	 * execute a transaction
+	 * @param function $func the function
+	 * @return boolean
+	 */
+	public function transaction ($func) {
+		try {
+			$this->dbh->beginTransaction(); // if already in transaction, exception can be thrown
+		} catch (Exception $e) {
+			return false;
+		}
+		if ($func()) {
+			$this->dbh->commit();
+			return true;
+		} else {
+			$this->dbh->rollback();
+			return false;
 		}
 	}
 	
