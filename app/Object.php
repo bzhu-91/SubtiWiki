@@ -8,11 +8,11 @@ class Object extends Model {
 		$this->title = $id;
 	}
 
-	public static function getRefWithId ($id) {
+	public static function simpleLookUp ($id) {
 		return new Object($id);
 	}
 
-	public static function getRefWithTitle ($title) {
+	public static function simpleValidate ($title) {
 		return new Object($title);
 	}
 

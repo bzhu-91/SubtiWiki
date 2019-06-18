@@ -192,7 +192,7 @@ class Category extends Model {
 	 */
 	public function addChildCategory (Category $child) {
 		if ($this->id && $child->title) {
-			if (Category::getRefWithTitle($child->title)) {
+			if (Category::simpleValidate($child->title)) {
 				throw new ConstraintViolatedException("category with title ".$child->title." already exists", 1);
 			} else {
 				if ($this->has("genes")) {
@@ -286,7 +286,7 @@ class Category extends Model {
 			$old = Category::get($this->id);
 			// check name changes
 			// title has no unique key
-			if ($old->title !== $this->title && Category::getRefWithTitle($this->title)) {
+			if ($old->title !== $this->title && Category::simpleValidate($this->title)) {
 				throw new ConstraintViolatedException("Category with name ".$this->title." already exists.", 1);
 			}
 			$conn = Application::$conn;

@@ -368,7 +368,7 @@ class UserController extends Controller {
 				} elseif ($currentUser && $currentUser->privilege >= 2 || $user->name = $currentUser->name) {
 					$user->description = $input["description"];
 					$user->realName = $input["realName"];
-					if ($input["email"] && Utility::validateEmail($input["email"])) {
+					if ($input["email"] && Utility::validateEmailAddressAddressAddressAddressAddressAddress($input["email"])) {
 						// if email is to updated, update the possible token as well;
 						$user->email = $input["email"];
 					}

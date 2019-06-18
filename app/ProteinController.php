@@ -135,7 +135,7 @@ class ProteinController extends GeneController {
 				$id = $this->filter($input, "id", "is_numeric", ["Invalid id", 400, $accept]);
 				$paralogue = Gene::hasPrototype("paralogues");
 				$paralogue->id = $id;
-				if (Application::transaction(function() use ($paralogue) {
+				if (Application::$conn->transaction(function() use ($paralogue) {
 					return History::record($paralogue, "remove") && $paralogue->delete();
 				})) {
 					$this->respond(null, 204, JSON);

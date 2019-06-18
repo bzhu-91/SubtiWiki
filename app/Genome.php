@@ -122,8 +122,9 @@ class Genome extends Model {
 		$codonTable = [];
 		$startTable = [];
 		for ($i = 0; $i < 64; $i++) {
-			Utility::setValueFromKeypath($codonTable, [$A[$i], $B[$i], $C[$i]], $P[$i]);
-			Utility::setValueFromKeypath($startTable, [$A[$i], $B[$i], $C[$i]], $S[$i]);
+			$path = new KeyPath([$A[$i], $B[$i], $C[$i]]);
+			$path->set($codonTable, $P[$i]);
+			$path->set($startTable, $S[$i]);
 		}
 		return [
 			"codonTable" => $codonTable,

@@ -90,15 +90,16 @@ class Protein extends Gene {
 		$results = Utility::deepSearch($this, "[[this]]");
 		foreach ($results as $keypath) {
 			$data = null;
+			$keypath = new KeyPath($keypath);
 			if (Utility::startsWith($keypath, "paralogous protein")) {
 				$data = $this->fetchParalogues();
 			} elseif ($keypath == "domains") {
 				$data = $this->fetchDomains();
 			}
 			if ($data == null) {
-				Utility::unsetValueFromKeyPath($this, $keypath);
+				$keypath->unset($this);
 			} else {
-				Utility::setValueFromKeyPath($this, $keypath, $data);
+				$keypath->set($this, $data);
 			}
 		}
 		Utility::clean($this); 

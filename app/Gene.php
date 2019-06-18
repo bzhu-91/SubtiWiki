@@ -76,29 +76,30 @@ class Gene extends Model {
 	public function patch () {
 		$results = Utility::deepSearch($this, "[[this]]");
 		foreach ($results as $keypath) {
+			$keypath = new KeyPath($keypath);
 			$data = null;
-			if ($keypath == "categories") {
+			if ((string) $keypath == "categories") {
 				$data = "{{this}}";
 			}
-			if ($keypath == "Expression and Regulation->Operons") {
+			if ((string) $keypath == "Expression and Regulation->Operons") {
 				$data = $this->fetchOperons();
 			}
-			if ($keypath == "Expression and Regulation->Other regulations") {
+			if ((string) $keypath == "Expression and Regulation->Other regulations") {
 				$data = $this->fetchOtherRegulations();
 			}
-			if ($keypath == "Gene->Coordinates") {
+			if ((string) $keypath == "Gene->Coordinates") {
 				$data = $this->fetchCoordinates();
 			}
-			if ($keypath == "regulons") {
+			if ((string) $keypath == "regulons") {
 				$data = "{{this}}";
 			}
-			if ($keypath == "genomicContext") {
+			if ((string) $keypath == "genomicContext") {
 				$data = "{{this}}";
 			}
 			if ($data == null) {
-				Utility::unsetValueFromKeyPath($this, $keypath);
+				$keypath->unset($this);
 			} else {
-				Utility::setValueFromKeyPath($this, $keypath, $data);
+				$keypath->set($this, $data);
 			}
 		}
 		Utility::clean($this); 

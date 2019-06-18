@@ -14,7 +14,7 @@ class MetaData extends Model {
 	public $scheme = [];
 
 	public static function insertKeyValuePair (&$object, $keypath, $value) {
-		if (is_string($keypath)) $keypath = new KeyPath($keypath);
+		if (is_string($keypath) || is_array($keypath)) $keypath = new KeyPath($keypath);
 		// find possible previous one
 		$className = get_class($object);
 		$meta = self::get($className);
@@ -32,7 +32,7 @@ class MetaData extends Model {
 			
 			$inserted = false;
 			foreach($previousCandidates as $path) {
-				if (Utility::hasKeypath($object, $path)) {
+				if ($path->test($object)) {
 					$previous = $path;
 					break;
 				}
@@ -50,7 +50,7 @@ class MetaData extends Model {
 				}
 				Utility::insertAfter($object, $keypath, $value, $after);
 			} else {
-				Utility::setValueFromKeypath($object, $keypath, $value);
+				$keypath->set($object, $value);
 			}
 		}
 	}
