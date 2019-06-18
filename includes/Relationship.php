@@ -1,4 +1,6 @@
 <?php
+namespace Monkey;
+
 /**
  * This class implements a relationship. This class is prototype based
  */
@@ -169,7 +171,7 @@ class Relationship {
 		} else {
 			$resultSet1 = $this->simpleGet($e1, $e2);
 			$resultSet2 = $this->simpleGet($e2, $e1);
-			$merged = Utility::arrayMerge($resultSet1, $resultSet2);
+			$merged = \Monkey\Utility::arrayMerge($resultSet1, $resultSet2);
 			$hash = [];
 			foreach ($merged as $each) {
 				$hash[$each->id] = $each;
@@ -334,8 +336,8 @@ class Relationship {
 				$data[$this->_col2] = $this->_class2 == "mixed" ? $data[$this->_col2]->toObjectMarkup() : $data[$this->_col2]->{$this->_class2::$primaryKeyName};
 			}
 			if ($this->_ordered === false && $data[$this->_col1] > $data[$this->_col2]) {
-				Utility::swap($data[$this->_col1], $data[$this->_col2]);
-				Utility::swap($this->{$this->_col1}, $this->{$this->_col2});
+				\Monkey\Utility::swap($data[$this->_col1], $data[$this->_col2]);
+				\Monkey\Utility::swap($this->{$this->_col1}, $this->{$this->_col2});
 			}
 			return $data;
 		}

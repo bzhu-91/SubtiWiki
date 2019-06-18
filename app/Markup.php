@@ -1,5 +1,5 @@
 <?php
-
+namespace Monkey;
 trait Markup {
 	public function toLinkMarkup () {
 		return "[".lcfirst(get_called_class())."|".$this->id."|".$this->title."]";

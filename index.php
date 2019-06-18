@@ -5,6 +5,6 @@ error_reporting(E_ERROR);
 
 require_once "includes/Application.php";
 
-Application::start();
-Application::stop();
+\Monkey\Application::start();
+\Monkey\Application::stop();
 ?>

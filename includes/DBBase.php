@@ -1,4 +1,6 @@
 <?php
+namespace Monkey;
+
 /**
  * This class is a wrap-around of the PDO class. Magic function __call is implement to "inherit" all methods from PDO
  */
@@ -15,8 +17,8 @@ class DBBase {
 	 * @param string $pass password
 	 */
 	function __construct($dsn, $user, $pass){
-		$this->dbh = new PDO($dsn, $user, $pass);
-		$this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$this->dbh = new \PDO($dsn, $user, $pass);
+		$this->dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 	}
 	
 	/**
@@ -54,16 +56,16 @@ class DBBase {
 			for ($i=0; $i < count($vals); $i++) {
 				$value = $vals[$i];
 				if (is_null($value)) {
-					$stmt->bindValue($i + 1, $value, PDO::PARAM_NULL);
+					$stmt->bindValue($i + 1, $value, \PDO::PARAM_NULL);
 				} else if (is_string($value)) {
-	 				$stmt->bindValue($i + 1, $value, PDO::PARAM_STR);
+	 				$stmt->bindValue($i + 1, $value, \PDO::PARAM_STR);
 	 			} else {
-	 				$stmt->bindValue($i + 1, $value, PDO::PARAM_INT);
+	 				$stmt->bindValue($i + 1, $value, \PDO::PARAM_INT);
 	 			}
 			}
 			$stmt->execute();
 			return $stmt;
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			// Log::debug($e->getMessage());
 			$this->lastError = $sql."; --".$e->getMessage();
 			return false;
@@ -100,7 +102,7 @@ class DBBase {
 	public function transaction ($func) {
 		try {
 			$this->dbh->beginTransaction(); // if already in transaction, exception can be thrown
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			return false;
 		}
 		if ($func()) {

@@ -1,4 +1,5 @@
 <?php
+namespace Monkey;
 /**
  * to extend the Model class
  */

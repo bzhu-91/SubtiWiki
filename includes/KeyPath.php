@@ -1,8 +1,10 @@
 <?php
+namespace Monkey;
+
 /**
  * This class implements a key path for highly-nested data
  */
-class KeyPath implements Iterator {
+class \Monkey\KeyPath implements \Iterator {
 	private $keys = [];
 	private $length = 0;
 	private static $globalDelimiter = "->";
@@ -28,7 +30,7 @@ class KeyPath implements Iterator {
 
 	/**
 	 * constructor
-	 * @param array/string keypath
+	 * @param array/string \Monkey\KeyPath
 	 * @param string @delimiter delimiter of this instance, if not given, the global delimiter is used
 	 */
 	public function __construct ($arg = null, $delimiter = null) {
@@ -45,7 +47,7 @@ class KeyPath implements Iterator {
 			$this->keys = $arg;
 		} elseif (is_string($arg)) {
 			$this->keys = explode($this->delimiter, $arg);
-		} elseif ($arg instanceof KeyPath) {
+		} elseif ($arg instanceof \Monkey\KeyPath) {
 			// copy constructor
 			$this->keys = $arg->keys;
 			$this->delimiter = $arg->delimiter;
@@ -71,8 +73,8 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * get the length of the keypath
-	 * @return int length of the keypath
+	 * get the length of the \Monkey\KeyPath
+	 * @return int length of the \Monkey\KeyPath
 	 */
 	public function length() {
 		return $this->length;
@@ -80,7 +82,7 @@ class KeyPath implements Iterator {
 
 	/**
 	 * remove the last key from the key path
-	 * @return KeyPath the new keypath without the last key
+	 * @return \Monkey\KeyPath the new \Monkey\KeyPath without the last key
 	 */
 	public function pop () {
 		$ins = clone $this;
@@ -90,8 +92,8 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * append a new key to the keypath
-	 * @return KeyPath the new keypath with the new key appended
+	 * append a new key to the \Monkey\KeyPath
+	 * @return \Monkey\KeyPath the new \Monkey\KeyPath with the new key appended
 	 */
 	public function push ($key) {
 		$ins = clone $this;
@@ -101,8 +103,8 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * remove the first key from the keypath
-	 * @return KeyPath the new keypath without the first key
+	 * remove the first key from the \Monkey\KeyPath
+	 * @return \Monkey\KeyPath the new \Monkey\KeyPath without the first key
 	 */
 	public function shift () {
 		$ins = clone $this;
@@ -112,8 +114,8 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * prepend a new key to the keypath
-	 * @return KeyPath the new keypath with the new key prepended
+	 * prepend a new key to the \Monkey\KeyPath
+	 * @return \Monkey\KeyPath the new \Monkey\KeyPath with the new key prepended
 	 */
 	public function unshift ($key) {
 		$ins = clone $this;
@@ -123,9 +125,9 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * get the value of the keypath from an object
+	 * get the value of the \Monkey\KeyPath from an object
 	 * @param object/array $object the object or array
-	 * @return mixed the value of the keypath from the give object
+	 * @return mixed the value of the \Monkey\KeyPath from the give object
 	 */
 	public function get ($object) {
 		$value = (array) $object;
@@ -165,7 +167,7 @@ class KeyPath implements Iterator {
 	}
 	
 	/**
-	 * get the keypath in array presentation
+	 * get the \Monkey\KeyPath in array presentation
 	 * @return array the array presentation
 	 */
 	public function toArray () {
@@ -173,7 +175,7 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * get the i-th key of the keypath
+	 * get the i-th key of the \Monkey\KeyPath
 	 * @param int index
 	 * @return mixed the key
 	 */
@@ -182,7 +184,7 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * get the last key of the keypath
+	 * get the last key of the \Monkey\KeyPath
 	 * @return mixed the last key
 	 */
 	public function last () {
@@ -190,7 +192,7 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * get the first key of the keypath
+	 * get the first key of the \Monkey\KeyPath
 	 * @return mixed the first key
 	 */
 	public function first () {
@@ -198,7 +200,7 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * set the value of the keypath for an object or array
+	 * set the value of the \Monkey\KeyPath for an object or array
 	 * @param object/array the object to be processed
 	 * @param mixed val the value to be set
 	 */
@@ -222,7 +224,7 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * unset the keypath of an object or array
+	 * unset the \Monkey\KeyPath of an object or array
 	 * @param object/array the object to be processed
 	 */
 	public function unset (&$object) {
@@ -266,11 +268,11 @@ class KeyPath implements Iterator {
 	}
 
 	/**
-	 * equals to, case insensitive comparison of the keypaths
-	 * @param KeyPath $keypath the keypath to be compared with
+	 * equals to, case insensitive comparison of the \Monkey\KeyPaths
+	 * @param \Monkey\KeyPath $keypath the \Monkey\KeyPath to be compared with
 	 * @return boolean
 	 */
-	public function equalsTo (KeyPath $keypath) {
+	public function equalsTo (\Monkey\KeyPath $keypath) {
 		return strtolower((string) $this) == strtolower((string) $keypath);
 	}
 }

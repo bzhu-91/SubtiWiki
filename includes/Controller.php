@@ -1,4 +1,6 @@
 <?php
+namespace Monkey;
+
 /**
  * This class presents a controller
  */
@@ -110,13 +112,13 @@ abstract class Controller {
 	/**
 	 * filter user input, if error response is given, will call $this->error and end the application
 	 * @param  array $input         input from client
-	 * @param  string $keypath       keypath
+	 * @param  string $keypath       \Monkey\KeyPath
 	 * @param  string $requirement   requirement of the value, "has" / regexp
 	 * @param  array $errorResponse arguments for error response
 	 * @return none                
 	 */
 	public function filter ($input, $keypath, $requirement = null, $errorResponse = null) {
-		$keypath = new KeyPath($keypath);
+		$keypath = new \Monkey\KeyPath($keypath);
 		$val = $keypath->get($input);
 		if ($val !== null) {
 			if ($requirement) {
@@ -131,7 +133,7 @@ abstract class Controller {
 						return $val;
 					}
 				} elseif ($requirement == "is_email") {
-					if (Utility::validateEmailAddressAddressAddress($val)) {
+					if (\Monkey\Utility::validateEmailAddressAddressAddress($val)) {
 						return $val;
 					}
 				}

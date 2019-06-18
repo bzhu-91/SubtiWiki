@@ -1,4 +1,6 @@
 <?php
+namespace Monkey;
+
 define("JSON", "JSON");
 define("HTML", "HTML");
 define("HTML_PARTIAL", "HTML_PARTIAL");
@@ -69,21 +71,21 @@ class Router {
 		// gather data from post or get
 		$input = [];
 		foreach ($_GET as $key => $value) {
-			$input[$key] = Utility::autocast($value);
+			$input[$key] = \Monkey\Utility::autocast($value);
 		}
 		foreach ($_POST as $key => $value) {
-			$input[$key] = Utility::autocast($value);
+			$input[$key] = \Monkey\Utility::autocast($value);
 		}
 		foreach (self::getPutData() as $key => $value) {
-			$input[$key] = Utility::autocast($value);
+			$input[$key] = \Monkey\Utility::autocast($value);
 		}
 		if (array_key_exists("data", $input)) {
 			foreach ($input["data"] as $key => $value) {
-				$input[$key] = Utility::autocast($value);
+				$input[$key] = \Monkey\Utility::autocast($value);
 			}
 			unset($input["data"]);
 		}
-		Utility::clean($input);
+		\Monkey\Utility::clean($input);
 		return $input;
 	}
 
@@ -150,7 +152,7 @@ class Router {
 			if (class_exists($className)) {
 				$instance = new $className();
 				if (method_exists($instance, $methodName)) {
-					$reflection = new ReflectionMethod($instance, $methodName);
+					$reflection = new \ReflectionMethod($instance, $methodName);
 					if ($reflection->isPublic()) {
 						if ($method) $instance->$methodName($input, $accept, $method);
 						else $instance->$methodName($input, $accept);

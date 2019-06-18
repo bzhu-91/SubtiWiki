@@ -1,4 +1,6 @@
 <?php
+namespace Monkey;
+
 /**
  * Tools
  */
@@ -321,7 +323,7 @@ class Utility {
 		// clean null values or empty string
 		if ($diff) {
 			foreach ($diff as $keypath => $value) {
-				$keypath = new KeyPath($keypath);
+				$keypath = new \Monkey\KeyPath($keypath);
 				$keypath->unset($object);
 			}
 		}
@@ -329,7 +331,7 @@ class Utility {
 		$result = self::findEmpty($object);
 		if ($result) {
 			foreach ($result as $keypath) {
-				$keypath = new KeyPath($keypath);
+				$keypath = new \Monkey\KeyPath($keypath);
 				$keypath->unset($object);
 			}
 		}
@@ -339,7 +341,7 @@ class Utility {
 	 * find the empty object or array
 	 * @param object/array $object the object to be searched with
 	 * @param array $keypath
-	 * @return array array of keypaths
+	 * @return array array of \Monkey\KeyPaths
 	 */
 	public static function findEmpty ($object, $keypath = []) {
 		$all = [];
@@ -363,7 +365,7 @@ class Utility {
 	 * @param object/array $object the object to search with
 	 * @param mixed $val the value to search
 	 * @param array $keypath used for recursion
-	 * @return array array of keypaths
+	 * @return array array of \Monkey\KeyPaths
 	 */
 	public static function deepSearch ($object, $val, $keypath = array()) {
 		$all = [];
@@ -387,7 +389,7 @@ class Utility {
 	 * @param object/array $object the object to search with
 	 * @param function $func comparison function, takes $keypath:array and $value:mixed as parameter
 	 * @param array $keypath used for recursion
-	 * @return array array of keypaths
+	 * @return array array of \Monkey\KeyPaths
 	 */
 	public static function deepFilter ($object, $func, $keypath = array()) {
 		$all = [];
@@ -409,7 +411,7 @@ class Utility {
 	/**
 	 * deep walk of the object
 	 * @param object/array $object the object to search with
-	 * @param function $func function applied to each keypath, takes $keypath:array and $value:mixed as parameter
+	 * @param function $func function applied to each \Monkey\KeyPath, takes $keypath:array and $value:mixed as parameter
 	 * @param array $keypath used for recursion
 	 */
 	public static function deepWalk (&$object, $func, $keypath = array()) {
@@ -529,20 +531,20 @@ class Utility {
 		}
 
 		if (!$found) {
-			throw new BaseException("The keypath $after is not found");
+			throw new BaseException("The \Monkey\KeyPath $after is not found");
 		}
 	}
 
 	/**
-	 * insert after a keypath, recursion used
+	 * insert after a \Monkey\KeyPath, recursion used
 	 * @param array/object $var the object/array
-	 * @param string/number $key the keypath
+	 * @param string/number $key the \Monkey\KeyPath
 	 * @param mixed $value the value to be inserted
 	 * @param string/number $after after this key the given key will be inserted
 	 */
 	public static function insertAfter(&$var, $key, $value, $after){
 		$kp = null;
-		if (is_object($after) && $after instanceof KeyPath) {
+		if (is_object($after) && $after instanceof \Monkey\KeyPath) {
 			if ($after->length() == 1) {
 				self::insertAfterSimple($var, $key, $value, $after->first());
 			} else $kp = $after;
@@ -553,10 +555,10 @@ class Utility {
 			if (strpos($after, "->") === false) {
 				self::insertAfterSimple($var, $key, $value, $after);
 			} else {
-				$kp = new KeyPath($after);
+				$kp = new \Monkey\KeyPath($after);
 			}
 		} elseif (is_array($after)) {
-			$kp = new KeyPath($after);
+			$kp = new \Monkey\KeyPath($after);
 		} elseif (is_numeric($after)) {
 			self::insertAfterSimple($var, $keypath, $value, $after);
 		}
@@ -567,9 +569,9 @@ class Utility {
 			$object = $poped->get($var);
 			if (is_array($object) || is_object($object)) {
 				self::insertAfterSimple($object, $key, $value, $last);
-				self::setValueFromKeypath($var, $poped, $object);
+				self::setValueFrom\Monkey\KeyPath($var, $poped, $object);
 			} else {
-				throw new BaseException("keypath $poped does not refer to an object nor an array", 1);
+				throw new BaseException("\Monkey\KeyPath $poped does not refer to an object nor an array", 1);
 			}
 		}
 		
@@ -621,14 +623,14 @@ class Utility {
 		}
 
 		if (!$found) {
-			throw new BaseException("The keypath $after is not found");
+			throw new BaseException("The \Monkey\KeyPath $after is not found");
 		}
 	}
 
 	/**
-	 * insert before a keypath, recursion used
+	 * insert before a \Monkey\KeyPath, recursion used
 	 * @param array/object $var the object/array
-	 * @param string/number $key the keypath
+	 * @param string/number $key the \Monkey\KeyPath
 	 * @param mixed $value the value to be inserted
 	 * @param string/number $after before this key the given key will be inserted
 	 */
@@ -639,10 +641,10 @@ class Utility {
 			if (strpos($after, "->") === false) {
 				self::insertBeforeSimple($var, $key, $value, $after);
 			} else {
-				$kp = new KeyPath($after);
+				$kp = new \Monkey\KeyPath($after);
 			}
 		} elseif (is_array($after)) {
-			$kp = new KeyPath($after);
+			$kp = new \Monkey\KeyPath($after);
 		} elseif (is_numeric($after)) {
 			self::insertBeforeSimple($var, $keypath, $value, $after);
 		}
@@ -653,17 +655,17 @@ class Utility {
 			$object = $poped->get($var);
 			if (is_array($object) || is_object($object)) {
 				self::insertBeforeSimple($object, $key, $value, $last);
-				self::setValueFromKeypath($var, $poped, $object);
+				self::setValueFrom\Monkey\KeyPath($var, $poped, $object);
 			} else {
-				throw new BaseException("keypath $poped does not refer to an object nor an array", 1);
+				throw new BaseException("\Monkey\KeyPath $poped does not refer to an object nor an array", 1);
 			}
 		}
 	}
 
 	/**
-	 * insert a keypath-value pair at the beginning of the object/array
+	 * insert a \Monkey\KeyPath-value pair at the beginning of the object/array
 	 * @param array/object $var the object/array
-	 * @param string/number $key the keypath
+	 * @param string/number $key the \Monkey\KeyPath
 	 * @param mixed $value the value to be inserted
 	 */
 	public static function unshift (&$var, $key, $value) {

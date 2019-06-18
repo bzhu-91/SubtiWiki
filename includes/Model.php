@@ -1,4 +1,6 @@
 <?php
+namespace Monkey;
+
 /**
  * This class presents a data model
  */
@@ -16,8 +18,8 @@ abstract class Model {
 	 * @return instance instance of the called calss
 	 */
 	public static function withData ($data) {
-		Utility::clean($data);
-		Utility::toObject($data);
+		\Monkey\Utility::clean($data);
+		\Monkey\Utility::toObject($data);
 		$className = get_called_class();
 		$instance = new $className();
 		foreach ($data as $key => $value) {
