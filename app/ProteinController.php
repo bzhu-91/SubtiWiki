@@ -26,11 +26,11 @@ class ProteinController extends GeneController {
 				$paralogues = $protein->has("paralogues");
 			} else {
 				if ($accept == HTML_PARTIAL) {
-					$view = View::loadFile("paralogue.editor.blank.tpl");
+					$view = \Monkey\View::loadFile("paralogue.editor.blank.tpl");
 					$view->set("updateMode", "replace");
 					$this->respond($view, 200, HTML_PARTIAL);
 				} else {
-					$view = View::loadFile("layout2.tpl");
+					$view = \Monkey\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Add paralogue:",
 						"headerTitle" => "Add paralogue:",
@@ -44,8 +44,8 @@ class ProteinController extends GeneController {
 			if ($paralogues) {
 				$content = "";
 				foreach ($paralogues as $paralogue) {
-					Utility::decodeLinkForEdit($paralogue);
-					$view = View::loadFile("paralogue.editor.tpl");
+					\Monkey\Utility::decodeLinkForEdit($paralogue);
+					$view = \Monkey\View::loadFile("paralogue.editor.tpl");
 					$view->set($paralogue);
 					$view->restPrintingStyle = "monkey";
 					$view->set([
@@ -56,7 +56,7 @@ class ProteinController extends GeneController {
 				if ($accept == HTML_PARTIAL) {
 					$this->respond($content, 200, HTML_PARTIAL);
 				} else {
-					$view = View::loadFile("layout2.tpl");
+					$view = \Monkey\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Edit paralogue:",
 						"headerTitle" => "Edit paralogue:",
@@ -221,7 +221,7 @@ class ProteinController extends GeneController {
 				$errors[] = "Import successful";
 			}
 		}
-		$view = View::loadFile("layout1.tpl");
+		$view = \Monkey\View::loadFile("layout1.tpl");
 		$view->set([
 			"title" => "Importer for paralogous proteins",
 			"pageTitle" => "Importer for paralogous proteins",

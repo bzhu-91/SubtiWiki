@@ -76,7 +76,7 @@ class Protein extends Gene {
 	public function fetchDomains () {
 		if ($this->id) {
 			$sql = "select * from ProteinDomain where protein like ?";
-			$result = Application::$conn->doQuery($sql, [$this->id]);
+			$result = \Monkey\Application::$conn->doQuery($sql, [$this->id]);
 			if ($result) {
 				foreach ($result as &$row) {
 					$row = (object) $row;
@@ -135,7 +135,7 @@ class Protein extends Gene {
 				}
 			}
 			$paralogue->lastAuthor = User::getCurrent()->name;
-			$conn = Application::$conn;
+			$conn = \Monkey\Application::$conn;
 			$conn->beginTransaction();
 			if ($paralogue->insert() && History::record($paralogue, "add")){
 				$conn->commit();
@@ -158,7 +158,7 @@ class Protein extends Gene {
 				}
 			}
 			$paralogue->lastAuthor = User::getCurrent()->name;
-			$conn = Application::$conn;
+			$conn = \Monkey\Application::$conn;
 			$conn->beginTransaction();
 			if (History::record($paralogue, "update") && $paralogue->replace(["id", "prot1", "prot2"])){
 				$conn->commit();

@@ -48,7 +48,7 @@ class MetaData extends \Monkey\Model {
 						break;
 					}
 				}
-				Utility::insertAfter($object, $keypath, $value, $after);
+				\Monkey\Utility::insertAfter($object, $keypath, $value, $after);
 			} else {
 				$keypath->set($object, $value);
 			}
@@ -180,7 +180,7 @@ class MetaData extends \Monkey\Model {
 		$sorted = [];
 		if ($meta) {
 			foreach ($meta->scheme as $entry) {
-				$keypath = new KeyPath($entry->path);
+				$keypath = new \Monkey\KeyPath($entry->path);
 				$val = $keypath->get($object);
 				// exclude the situation when $val is an obj (assoc. array)
 				// so that the template could be compatible?
@@ -199,11 +199,11 @@ class MetaData extends \Monkey\Model {
 					}
 				}
 			}
-			return Utility::inflate($sorted, true); // use strict mode
+			return \Monkey\Utility::inflate($sorted, true); // use strict mode
 		}
 	}
 
-	// deflate the object, different from Utility::deflate, multidimentional array is not allowed
+	// deflate the object, different from \Monkey\::deflate, multidimentional array is not allowed
 	public static function deflate ($object, $keypath = []) {
 		$result = [];
 		foreach ($object as $key => $value) {

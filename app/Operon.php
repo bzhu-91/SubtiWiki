@@ -92,7 +92,7 @@ class Operon extends \Monkey\Model {
 		if (!$this->id) {
 			$this->id = $this->hash;
 		}
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->beginTransaction();
 		if (parent::insert() && History::record($this, "add") && MetaData::track($this)) {
 			$conn->commit();
@@ -114,7 +114,7 @@ class Operon extends \Monkey\Model {
 		$this->validateGenes();
 
 		$this->lastUpdate = date("Y-m-d H:i:s");
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->beginTransaction();
 		if (parent::update() && History::record($this, "update")) {
 			$conn->commit();
@@ -129,7 +129,7 @@ class Operon extends \Monkey\Model {
 		\Monkey\Utility::encodeLink($this);
 		$this->validateGenes();
 
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->beginTransaction();
 		if (parent::replace(["id", "count"]) && History::record($this, "update") && MetaData::track($this)) {
 			$conn->commit();
@@ -146,7 +146,7 @@ class Operon extends \Monkey\Model {
 	 */
 	public function delete () {
 		if ($this->id) {
-			$conn = Application::$conn;
+			$conn = \Monkey\Application::$conn;
 			$conn->beginTransaction();
 			if (History::record($this, "remove") && parent::delete()) {
 				$conn->commit();

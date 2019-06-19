@@ -121,8 +121,8 @@ class RegulationController extends \Monkey\Controller {
 				$regulated = $this->filter($input, "regulated", "/^\{(gene|operon)\|[0-9a-f]{40}+\}$/i", ["Invalid regulated object", 400, JSON]);
 				$mode = $this->filter($input, "mode", "has", ["Mode is required", 400, JSON]);
 
-				$regulator = Model::parse("{".$type."|".$regulator."}");
-				$regulated = Model::parse($regulated);
+				$regulator = \Monkey\Model::parse("{".$type."|".$regulator."}");
+				$regulated = \Monkey\Model::parse($regulated);
 
 
 				if ($regulator === null) {
