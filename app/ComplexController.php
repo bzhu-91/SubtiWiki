@@ -99,7 +99,7 @@ class ComplexController extends Controller {
 
     }
 
-    public function view ($input, $accept) {
+    protected function view ($input, $accept) {
         $id = $this->filter($input, "id", "/^\d+$/i", ["Id is required", 400, $accept]);
         $complex = Complex::get($id);
         if ($complex) {
@@ -137,7 +137,7 @@ class ComplexController extends Controller {
             if ($complex->update()) {
                 $this->respond(null, 200, JSON);
             } else {
-                $this->error("Complex with the same title already exists.", 500, JSON);
+                $this->error("Internal error", 500, JSON);
             }
         } else {
             $this->error("Unaccepted", 406, $accept);
@@ -149,9 +149,9 @@ class ComplexController extends Controller {
         if ($accept == JSON) {
             $complex = Complex::get($id);
             if ($complex == null || $complex->delete()) {
-                $this->respond(null, 200, JSON);
+                $this->respond(null, 204, JSON);
             } else {
-                $this->error("Complex with the same title already exists.", 500, JSON);
+                $this->error("Internal error.", 500, JSON);
             }
         } else {
             $this->error("Unaccepted", 406, $accept);
