@@ -112,13 +112,13 @@ abstract class Controller {
 	/**
 	 * filter user input, if error response is given, will call $this->error and end the application
 	 * @param  array $input         input from client
-	 * @param  string $keypath       \Monkey\KeyPath
+	 * @param  string $keypath       KeyPath
 	 * @param  string $requirement   requirement of the value, "has" / regexp
 	 * @param  array $errorResponse arguments for error response
 	 * @return none                
 	 */
 	public function filter ($input, $keypath, $requirement = null, $errorResponse = null) {
-		$keypath = new \Monkey\KeyPath($keypath);
+		$keypath = new KeyPath($keypath);
 		$val = $keypath->get($input);
 		if ($val !== null) {
 			if ($requirement) {
@@ -133,7 +133,7 @@ abstract class Controller {
 						return $val;
 					}
 				} elseif ($requirement == "is_email") {
-					if (\Monkey\Utility::validateEmailAddressAddressAddress($val)) {
+					if (Utility::validateEmailAddress($val)) {
 						return $val;
 					}
 				}

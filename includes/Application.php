@@ -71,7 +71,7 @@ class Application {
 					}
 				}
 			}
-			$fileName = array_pop(explode("\\", $className)).".php";
+			$fileName = $fileName ? $fileName : array_pop(explode("\\", $className)).".php";
 			if (file_exists(stream_resolve_include_path($fileName))) {
 				require_once $fileName;
 			} else {
