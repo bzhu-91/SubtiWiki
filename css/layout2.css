@@ -90,7 +90,7 @@ button:active, .button:active, input[type=submit]:active {
 }
 
 textarea {
-	font-family: monospace; line-height: 1.5em; font-size: 10pt;resize: vertical
+	font-family: monospace; line-height: 1.5em; font-size: 10pt;resize: vertical;width: 100%;
 }
 
 body {
