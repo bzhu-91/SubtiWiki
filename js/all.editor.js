@@ -6,10 +6,14 @@ var handleResponse = function (jqXHR, mode, container) {
 	} else {
 		if (status >= 200 && status < 300) {
 			if (status == 200) {
-				var l = SomeLightBox.alert("Success", "Operation is successful");
-				setTimeout(function(){
-					l.dismiss()
-				}, 400);
+				if (data.uri) {
+					window.location = data.uri;
+				} else {
+					var l = SomeLightBox.alert("Success", "Operation is successful");
+					setTimeout(function(){
+						l.dismiss()
+					}, 400);
+				}
 			} else if (status == 204) {
 				if (mode == "reload") {
 					window.location.reload();
