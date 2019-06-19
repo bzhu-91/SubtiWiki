@@ -1,7 +1,7 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class RegulationController extends Controller {
+class RegulationController extends \Monkey\Controller {
 
 	public function read ($input, $accept) {
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i");
@@ -22,11 +22,11 @@ class RegulationController extends Controller {
 					$node = Gene::simpleGet($node->id);
 				}
 			}
-			$data["nodes"] = Utility::arrayColumns($data["nodes"], ["id", "title"]);
+			$data["nodes"] = \Monkey\Utility::arrayColumns($data["nodes"], ["id", "title"]);
 		}
 		switch ($accept) {
 			case HTML:
-				$view = View::loadFile("layout2.tpl");
+				$view = \Monkey\View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Regulation Browser",
 					"headerTitle" => "Regulation Browser",
@@ -72,7 +72,7 @@ class RegulationController extends Controller {
 		switch ($accept) {
 			case HTML:
 			$count = $proto->count();
-			$view = View::loadFile("layout1.tpl");
+			$view = \Monkey\View::loadFile("layout1.tpl");
 			$view->set([
 				"title" => "All regulations (page $page)",
 				"content" => "{{regulation.list.tpl}}",
@@ -97,8 +97,8 @@ class RegulationController extends Controller {
 			break;
 			case JSON:
 				foreach($all as &$interaction) {
-					$interaction->prot1 = Utility::arrayColumns($interaction->prot1, ["id", "title", "locus"]);
-					$interaction->prot2 = Utility::arrayColumns($interaction->prot2, ["id", "title", "locus"]);
+					$interaction->prot1 = \Monkey\Utility::arrayColumns($interaction->prot1, ["id", "title", "locus"]);
+					$interaction->prot2 = \Monkey\Utility::arrayColumns($interaction->prot2, ["id", "title", "locus"]);
 				}
 				if ($all) $this->respond($all, 200, JSON);
 				else $this->error("Not found", 404, JSON);
@@ -178,7 +178,7 @@ class RegulationController extends Controller {
 				if ($regulation->update()) {
 					$this->respond(null, 200, JSON);
 				} else {
-					$this->error(Application::$conn->lastError, 500, JSON);
+					$this->error(\Monkey\Application::$conn->lastError, 500, JSON);
 				}
 		}
 	}
@@ -215,7 +215,7 @@ class RegulationController extends Controller {
 		} elseif ($regulatorId) {
 			$regulations = Regulation::getByRegulator($regulatorId);
 		} elseif (empty($input)) {
-			$view = View::loadFile("regulation.blank.tpl");
+			$view = \Monkey\View::loadFile("regulation.blank.tpl");
 			$this->respond($view, 200, HTML);
 		} else {
 			$this->error("Invalid input", 400, $accept);
@@ -224,7 +224,7 @@ class RegulationController extends Controller {
 		if ($regulations) {
 			$content = "";
 			foreach ($regulations as $regulation) {
-				$view = View::loadFile("regulation.editor.tpl");
+				$view = \Monkey\View::loadFile("regulation.editor.tpl");
 				$view->set($regulation);
 				$view->set("type", get_class($regulation->regulator));
 				$content .= $view->generate(1,1);
@@ -253,7 +253,7 @@ class RegulationController extends Controller {
 							$row->regulated->title,
 						];
 					}	
-					$this->respond(Utility::encodeCSV($csv), 200, CSV);
+					$this->respond(\Monkey\Utility::encodeCSV($csv), 200, CSV);
 					break;
 				case JSON:
 					$json = [];
@@ -282,7 +282,7 @@ class RegulationController extends Controller {
 			$radius = $this->filter($input, "radius", "/^\d$/", ["Radius is required", 400, JSON]);
 			if ($method == "POST") {
 					$content = $this->filter($input, "content");
-					$conn = Application::$conn;
+					$conn = \Monkey\Application::$conn;
 					if ($input["chunkNr"]) {
 						$re = $conn->doQuery("insert into RegulationNetworkCache (target, radius, content) values (?,?,?) on duplicate key update content = JSON_MERGE_PRESERVE(content, ?)", [$target, $radius, $content, $content]);
 					} else {
@@ -294,7 +294,7 @@ class RegulationController extends Controller {
 						$this->error("Internal error", 500, JSON);
 					}
 			} elseif ($method == "GET") {
-				$conn = Application::$conn;
+				$conn = \Monkey\Application::$conn;
 				$result = $conn->doQuery("select content from RegulationNetworkCache where target = ? and radius = ?", [$target, $radius]);
 				if ($result) {
 					$this->respond($result[0]["content"], 200, JSON);

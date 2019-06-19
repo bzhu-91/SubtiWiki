@@ -1,6 +1,6 @@
 <?php
-class Operon extends Model {
-	use ReferenceCache, Markup;
+class Operon extends \Monkey\Model {
+	use \Monkey\ReferenceCache, \Monkey\Markup;
 
 	static $tableName = "Operon";
 
@@ -55,10 +55,10 @@ class Operon extends Model {
 						}
 					}
 					if ($transcriptionFactors) {
-						Utility::insertAfter($this, "regulatory mechanism", $transcriptionFactors, "description");
+						\Monkey\Utility::insertAfter($this, "regulatory mechanism", $transcriptionFactors, "description");
 					}
 					if ($sigmaFactors) {
-						Utility::insertAfter($this, "sigma factors", $sigmaFactors, "description");
+						\Monkey\Utility::insertAfter($this, "sigma factors", $sigmaFactors, "description");
 					}
 				}	
 			}
@@ -74,7 +74,7 @@ class Operon extends Model {
  		$genes = explode("-", $this->genes);
  		foreach ($genes as &$each) {
  			if (strlen($each) != 49) {
-				throw new BaseException("There is an error in the genes of this operon", 1);
+				throw new \Monkey\BaseException("There is an error in the genes of this operon", 1);
 			}
  		}
 		$this->hash = strtoupper(sha1($this->genes));
@@ -86,7 +86,7 @@ class Operon extends Model {
 	 * @return boolean true if successful, false it not
 	 */
 	public function insert () {
-		Utility::encodeLink($this);
+		\Monkey\Utility::encodeLink($this);
 		$this->validateGenes();
 
 		if (!$this->id) {
@@ -110,7 +110,7 @@ class Operon extends Model {
 	 * @return boolean true if successful, false if not
 	 */
 	public function update () {
-		Utility::encodeLink($this);
+		\Monkey\Utility::encodeLink($this);
 		$this->validateGenes();
 
 		$this->lastUpdate = date("Y-m-d H:i:s");
@@ -126,7 +126,7 @@ class Operon extends Model {
 	}
 
 	public function replace () {
-		Utility::encodeLink($this);
+		\Monkey\Utility::encodeLink($this);
 		$this->validateGenes();
 
 		$conn = Application::$conn;

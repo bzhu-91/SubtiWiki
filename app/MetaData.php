@@ -7,14 +7,14 @@
  * the pure data part got saved in the table, and the structure will be processed (merged with other structures to keep all entries from the same table compatible with each other) and saved in the MetaData table
  * This is the necessary evil we must accept to make data manipulation on the SQL level possible.
  */
-class MetaData extends Model {
+class MetaData extends \Monkey\Model {
 	static $tableName = "MetaData";
 	static $primaryKeyName = "className";
 
 	public $scheme = [];
 
 	public static function insertKeyValuePair (&$object, $keypath, $value) {
-		if (is_string($keypath) || is_array($keypath)) $keypath = new KeyPath($keypath);
+		if (is_string($keypath) || is_array($keypath)) $keypath = new \Monkey\KeyPath($keypath);
 		// find possible previous one
 		$className = get_class($object);
 		$meta = self::get($className);
@@ -22,7 +22,7 @@ class MetaData extends Model {
 			$scheme = $meta->scheme;
 			$previousCandidates = []; 
 			foreach($scheme as &$each) {
-				$each->path = new KeyPath($each->path);
+				$each->path = new \Monkey\KeyPath($each->path);
 				if ($each->path->equalsTo($keypath)) {
 					break;
 				} else {
@@ -39,7 +39,7 @@ class MetaData extends Model {
 			}
 			if ($previous) {
 				// compare the previous and current keypath
-				$after = new KeyPath;
+				$after = new \Monkey\KeyPath;
 				for($i = 0; $i < $previous->length(); $i++) {
 					$after = $after->push($previous->segmentAt($i));
 					if ($previous->segmentAt($i) == $keypath->segmentAt($i)) {
@@ -99,7 +99,7 @@ class MetaData extends Model {
 				foreach ($structure as $each) {
 					if (!self::hasPath($each, $meta->scheme)) {
 						$anomalies[] = $object;
-						Log::debug($each);
+						\Monkey\Log::debug($each);
 						continue;
 					}
 				}
@@ -162,13 +162,13 @@ class MetaData extends Model {
 		if ($meta) {
 			$template = array_column($meta->scheme, "path");
 			foreach ($template as $path) {
-				$keypath = new KeyPath($path);
+				$keypath = new \Monkey\KeyPath($path);
 				$val = $keypath->get($object);
-				if (!is_null($val) && !is_object($val) && !(is_array($val) && Utility::isAssociateArray($val))) {
+				if (!is_null($val) && !is_object($val) && !(is_array($val) && \Monkey\Utility::isAssociateArray($val))) {
 					$sorted[(string) $keypath] = $val;
 				}
 			}
-			return Utility::inflate($sorted);
+			return \Monkey\Utility::inflate($sorted);
 		}
 	}
 
@@ -185,7 +185,7 @@ class MetaData extends Model {
 				// exclude the situation when $val is an obj (assoc. array)
 				// so that the template could be compatible?
 				if (!is_null($val)) {
-					if (!Utility::isAssociateArray($val)) {
+					if (!\Monkey\Utility::isAssociateArray($val)) {
 						$sorted[(string) $keypath] = $val;
 					}
 				} elseif (!$entry->ignore) {
@@ -217,7 +217,7 @@ class MetaData extends Model {
 							"path"=> $keypath,
 							"type"=> "b"
 						];
-					} else throw new BaseException("multidimentional array found");
+					} else throw new \Monkey\BaseException("multidimentional array found");
 				} else {
 					$result[] = (object) [
 						"path"=> $keypath,
@@ -342,7 +342,7 @@ class MetaData extends Model {
 				$a = $alignment[$i];
 				$b = $alignment[$j];
 				if (self::pathEqual($a->path, $b->path)) {
-					Log::debug($a->path);
+					\Monkey\Log::debug($a->path);
 					return false;
 				}
 			}

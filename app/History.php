@@ -1,5 +1,5 @@
 <?php
-class History extends Model {
+class History extends \Monkey\Model {
 	static $tableName = "History";
 	static $primaryKeyName = "commit";
 
@@ -26,7 +26,7 @@ class History extends Model {
 					$record = $obj->raw();
 					break;
 			}
-		} else throw new BaseException("object is not an instance of Model or Relationship");
+		} else throw new \Monkey\BaseException("object is not an instance of Model or Relationship");
 
 		if ($record) {
 			if (is_subclass_of($record, "Model")) {
@@ -44,7 +44,7 @@ class History extends Model {
 				"user" => User::getCurrent()->name,
 				"record" => json_encode($record->getData()),
 			];
-			$conn = Application::$conn;
+			$conn = \Monkey\Application::$conn;
 			return $conn->insert(self::$tableName, $data);
 		} else return false;
 	}
@@ -108,7 +108,7 @@ class History extends Model {
 	}
 
 	public static function parse ($str) {
-		$current = Model::parse($str);
+		$current = \Monkey\Model::parse($str);
 		if ($current) return $current;
 		else {
 			preg_match_all("/\{(\w+?)\|([^\[\]\|]+?)\}/i", $str, $matches);

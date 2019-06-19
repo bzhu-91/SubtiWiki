@@ -41,8 +41,8 @@ class Protein extends Gene {
 	];
 
 	public static function withData ($data) {
-		Utility::clean($data);
-		Utility::toObject($data);
+		\Monkey\Utility::clean($data);
+		\Monkey\Utility::toObject($data);
 		$protein = new Protein();
 		foreach ($data as $key => $value) {
 			$protein->{$key} = $value;
@@ -87,11 +87,11 @@ class Protein extends Gene {
 	}
 
 	public function patch () {
-		$results = Utility::deepSearch($this, "[[this]]");
+		$results = \Monkey\Utility::deepSearch($this, "[[this]]");
 		foreach ($results as $keypath) {
 			$data = null;
-			$keypath = new KeyPath($keypath);
-			if (Utility::startsWith($keypath, "paralogous protein")) {
+			$keypath = new \Monkey\KeyPath($keypath);
+			if (\Monkey\Utility::startsWith($keypath, "paralogous protein")) {
 				$data = $this->fetchParalogues();
 			} elseif ($keypath == "domains") {
 				$data = $this->fetchDomains();
@@ -102,7 +102,7 @@ class Protein extends Gene {
 				$keypath->set($this, $data);
 			}
 		}
-		Utility::clean($this); 
+		\Monkey\Utility::clean($this); 
 	}
 
 	public function getStructures () {
@@ -119,7 +119,7 @@ class Protein extends Gene {
 			$row->to = $row->prot2;
 			unset($row->prot1);
 			unset($row->prot2);
-			Utility::decodeLinkForView($row);
+			\Monkey\Utility::decodeLinkForView($row);
 		}
 		return new Graph($data, false);
 	}

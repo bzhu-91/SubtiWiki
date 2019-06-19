@@ -4,7 +4,7 @@ namespace Monkey;
 /**
  * This class implements a key path for highly-nested data
  */
-class \Monkey\KeyPath implements \Iterator {
+class KeyPath implements \Iterator {
 	private $keys = [];
 	private $length = 0;
 	private static $globalDelimiter = "->";

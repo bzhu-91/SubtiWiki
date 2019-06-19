@@ -25,7 +25,7 @@ trait Markup {
 		if (!empty($matches)) {
 			$className = ucfirst($matches[1][0]);
 			try {
-				if (class_exists($className) && is_subclass_of($className, "Model")) {
+				if (class_exists($className) && is_subclass_of($className, "\Monkey\Model")) {
 					return $className::simpleGet($matches[2][0]);
 				}
 			} catch (Exception $e) {

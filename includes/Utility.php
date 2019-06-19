@@ -1,6 +1,5 @@
 <?php
 namespace Monkey;
-
 /**
  * Tools
  */
@@ -569,7 +568,7 @@ class Utility {
 			$object = $poped->get($var);
 			if (is_array($object) || is_object($object)) {
 				self::insertAfterSimple($object, $key, $value, $last);
-				self::setValueFrom\Monkey\KeyPath($var, $poped, $object);
+				self::setValueFromKeyPath($var, $poped, $object);
 			} else {
 				throw new BaseException("\Monkey\KeyPath $poped does not refer to an object nor an array", 1);
 			}
@@ -655,7 +654,7 @@ class Utility {
 			$object = $poped->get($var);
 			if (is_array($object) || is_object($object)) {
 				self::insertBeforeSimple($object, $key, $value, $last);
-				self::setValueFrom\Monkey\KeyPath($var, $poped, $object);
+				self::setValueFromKeyPath($var, $poped, $object);
 			} else {
 				throw new BaseException("\Monkey\KeyPath $poped does not refer to an object nor an array", 1);
 			}

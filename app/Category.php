@@ -1,6 +1,6 @@
 <?php
-class Category extends Model {
-	use ReferenceCache;
+class Category extends \Monkey\Model {
+	use \Monkey\ReferenceCache;
 
 	static $tableName = "Category";
 	static $relationships = [

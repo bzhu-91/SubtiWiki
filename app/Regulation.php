@@ -1,5 +1,5 @@
 <?php
-class Regulation extends Relationship {
+class Regulation extends \Monkey\Relationship {
 
 	protected $_tableName = "Regulation";
 	protected $_ordered = true;
@@ -31,7 +31,7 @@ class Regulation extends Relationship {
 
 	public static function getByRegulator ($regulatorId) {
 		if ($regulatorId) {
-			$regulator = Model::parse("{".str_replace("|", ":", $regulatorId)."}");
+			$regulator = \Monkey\Model::parse("{".str_replace("|", ":", $regulatorId)."}");
 			if ($regulator) {
 				return (new Regulation())->get($regulator, null);
 			}
@@ -39,7 +39,7 @@ class Regulation extends Relationship {
 	}
 
 	public function insert () {
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->beginTransaction();
 		$this->id = parent::insert();
 		if ($this->id && History::record($this, "add")) {
@@ -52,7 +52,7 @@ class Regulation extends Relationship {
 	}
 
 	public function update () {
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->beginTransaction();
 		if (parent::update() && History::record($this, "update")) {
 			$conn->commit();
@@ -64,7 +64,7 @@ class Regulation extends Relationship {
 	}
 
 	public function delete () {
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->beginTransaction();
 		if (History::record($this, "remove") && parent::delete()) {
 			$conn->commit();
@@ -76,7 +76,7 @@ class Regulation extends Relationship {
 	}
 
 	public static function getWholeGraph ($sigA = false) {
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		if ($sigA) {
 			$sql = "select regulator as `from`, mode, description, gene as `to` from MaterialViewGeneRegulation join Regulation on Regulation.id = MaterialViewGeneRegulation.regulation";
 		} else {
@@ -90,7 +90,7 @@ class Regulation extends Relationship {
 					"id" => substr($row["from"], 9, 40)
 				];
 			} else {
-				$row["from"] = Model::parse($row["from"]);
+				$row["from"] = \Monkey\Model::parse($row["from"]);
 			}
 			$row["to"] = (object) [
 				"id" => $row["to"]
@@ -100,13 +100,13 @@ class Regulation extends Relationship {
 	}
 
 	public static function export () {
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$sql = "select regulator, mode, gene from MaterialViewGeneRegulation join Regulation on Regulation.id = MaterialViewGeneRegulation.regulation";
 		$result = $conn->doQuery($sql);
 
 		foreach ($result as &$row) {
 			$row = self::withData($row);
-			$row->regulator = Model::parse($row->regulator);
+			$row->regulator = \Monkey\Model::parse($row->regulator);
 			$row->regulated = Gene::simpleGet($row->regulated);
 		}
 		return $result;

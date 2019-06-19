@@ -3,7 +3,7 @@ require_once("ViewAdapters.php");
 
 // TODO: change password function
 
-class UserController extends Controller {
+class UserController extends \Monkey\Controller {
 	/**
 	 * get method
 	 * @param  array $input  client side input
@@ -49,11 +49,11 @@ class UserController extends Controller {
 		$users = User::getAll("1 limit ?,?", [($page-1)*$pageSize, $pageSize]);
 		switch ($accept) {
 			case JSON:
-				$this->respond(Utility::arrayColumns($users, ["name", "description"]), 200, JSON);
+				$this->respond(\Monkey\Utility::arrayColumns($users, ["name", "description"]), 200, JSON);
 				break;
 			case HTML:
 			case HTML_PARTIAL:
-				$view = View::loadFile("layout1.tpl");
+				$view = \Monkey\View::loadFile("layout1.tpl");
 				$view->set([
 					"title" => "Users: page $page",
 					"data" => $users,
@@ -84,11 +84,11 @@ class UserController extends Controller {
 
 			switch ($accept) {
 				case JSON:
-					$this->respond(Utility::arrayColumns($users, ["name", "description"]), 200, JSON);
+					$this->respond(\Monkey\Utility::arrayColumns($users, ["name", "description"]), 200, JSON);
 					break;
 				case HTML:
 				case HTML_PARTIAL:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Monkey\View::loadFile("layout1.tpl");
 					if (!$users) {
 						$view->set("message", "Not found");
 					}
@@ -111,7 +111,7 @@ class UserController extends Controller {
 					break;
 				case HTML:
 				case HTML_PARTIAL:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Monkey\View::loadFile("layout1.tpl");
 					$view->set([
 						"title" => "Users: search for <i>".$input["keyword"]."</i>",
 						"pageTitle" => "Users: search",
@@ -144,7 +144,7 @@ class UserController extends Controller {
 				break;
 			case HTML:
 			case HTML_PARTIAL:
-				$view = View::loadFile("layout1.tpl");
+				$view = \Monkey\View::loadFile("layout1.tpl");
 				$view->set($user);
 				$view->set([
 					"title" => "User: {{:name}}",
@@ -189,7 +189,7 @@ class UserController extends Controller {
 					// change password
 					$validation = User\Invitation::getByToken($token);
 					if ($validation && $validation->email == $user->email) {
-						$view = View::loadFile("layout1.tpl");
+						$view = \Monkey\View::loadFile("layout1.tpl");
 						$view->set($user);
 						$view->set([
 							"title" => "Change password: {$user->name}",
@@ -204,7 +204,7 @@ class UserController extends Controller {
 					}
 				} else {
 					if ($currentUser && $currentUser->privilege >= 2 || $currentUser->name === $user->name) {
-						$view = View::loadFile("layout1.tpl");
+						$view = \Monkey\View::loadFile("layout1.tpl");
 						$view->set($user);
 						$view->set([
 							"pageTitle" => "Eidt: $user->name",
@@ -248,7 +248,7 @@ class UserController extends Controller {
 				// send email here
 				$link = "http://".$_SERVER['HTTP_HOST'].$GLOBALS["WEBROOT"]."/user/editor?name=".$user->name."&token=".$validation->token;
 				$body = "To reset the password, please follow the link: <a href='$link'>$link</a>";
-				if (Utility::sendEmail($user->email, $user->name, "Reset password for your ".$GLOBALS["SITE_NAME"]." account", $body)) {
+				if (\Monkey\Utility::sendEmail($user->email, $user->name, "Reset password for your ".$GLOBALS["SITE_NAME"]." account", $body)) {
 					$this->respond(["message" => "An email has been sent to your registration email address with a link for password reset."], 200, JSON);
 				} else {
 					$this->respond("Can not send the email, please contact admin.", 500, JSON);
@@ -258,7 +258,7 @@ class UserController extends Controller {
 			}
 		} elseif ($method == "GET") {
 			if ($accept !== HTML) $this->error("Unaccepted", 406, $accept);
-			$view = View::loadFile("layout1.tpl");
+			$view = \Monkey\View::loadFile("layout1.tpl");
 			$view->set([
 				"title" => "Reset password",
 				"pageTitle" => "Reset password",
@@ -281,7 +281,7 @@ class UserController extends Controller {
 			case 'GET':
 				switch ($accept) {
 					case HTML:
-						$view = View::loadFile("layout3.tpl");
+						$view = \Monkey\View::loadFile("layout3.tpl");
 						$view->set([
 							"content" => "{{user.login.tpl}}",
 							"showFootNote" => "none",
@@ -289,7 +289,7 @@ class UserController extends Controller {
 						$this->respond($view, 200, HTML);
 						break;
 					case HTML_PARTIAL:
-						$view = View::loadFile("user.login.tpl");
+						$view = \Monkey\View::loadFile("user.login.tpl");
 						$this->respond($view, 200, HTML);
 						break;
 					case JSON:
@@ -368,7 +368,7 @@ class UserController extends Controller {
 				} elseif ($currentUser && $currentUser->privilege >= 2 || $user->name = $currentUser->name) {
 					$user->description = $input["description"];
 					$user->realName = $input["realName"];
-					if ($input["email"] && Utility::validateEmailAddressAddressAddressAddressAddressAddress($input["email"])) {
+					if ($input["email"] && \Monkey\Utility::validateEmailAddressAddressAddressAddressAddressAddress($input["email"])) {
 						// if email is to updated, update the possible token as well;
 						$user->email = $input["email"];
 					}
@@ -473,7 +473,7 @@ class UserController extends Controller {
 			case 'GET':
 				UserController::authenticate(2);
 				// provides the interface
-				$view = View::loadFile("layout1.tpl");
+				$view = \Monkey\View::loadFile("layout1.tpl");
 				if($GLOBALS["OPEN_REGISTRATION"]) {
 					$view->set([
 						"title" => "Invite user",
@@ -515,7 +515,7 @@ class UserController extends Controller {
 
 						if ($invitation->insert()) {
 							if ($sendEmail) {
-								Utility::sendEmail($email, $name, "Your SubtiWiki invitation token", $body);
+								\Monkey\Utility::sendEmail($email, $name, "Your SubtiWiki invitation token", $body);
 								$this->respond(["message" => "Invitation email sent"], 201, JSON);
 							} else $this->respond(["message" => "Invitation token saved."], 201, JSON);
 						} else $this->error("The same invitation token is already saved", 500, JSON);
@@ -531,7 +531,7 @@ class UserController extends Controller {
 		switch ($accept) {
 			case HTML:
 			case HTML_PARTIAL:
-				$view = View::loadFile("layout1.tpl");
+				$view = \Monkey\View::loadFile("layout1.tpl");
 				$view->set([
 					"title" => "User: registration",
 					"pageTitle" => "User: registration",

@@ -1,7 +1,7 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class ExpressionController extends Controller {
+class ExpressionController extends \Monkey\Controller {
 	public function read ($input, $accept){
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i");
 		$condition = $this->filter($input, "condition", "/^\d+$/i");
@@ -11,7 +11,7 @@ class ExpressionController extends Controller {
 		$sampling = $this->filter($input, "sampling", "^\d+$");
 		
 		if ($accept == HTML) {
-			$view = View::loadFile("layout2.tpl");
+			$view = \Monkey\View::loadFile("layout2.tpl");
 			$view->set([
 				"pageTitle" => "Expression Browser",
 				"headerTitle" => "Expression Browser",
@@ -270,7 +270,7 @@ class ExpressionController extends Controller {
 	public function importer ($input, $accept, $method) {
 		UserController::authenticate(3, $accept);
 		if ($method == "GET" && $accept == HTML) {
-			$view = View::loadFile("layout2.tpl");
+			$view = \Monkey\View::loadFile("layout2.tpl");
 			$view->set($input);
 			$view->set($_SESSION["forImporter"]);
 			unset($_SESSION["forImporter"]);
@@ -309,7 +309,7 @@ class ExpressionController extends Controller {
 			}
 
 			$currentPage = array_slice($all, $pageSize*($page-1), $pageSize);
-			$view = View::loadFile("layout1.tpl");
+			$view = \Monkey\View::loadFile("layout1.tpl");
 			$view->set([
 				"showFootNote" => "none",
 				"pageTitle" => "All expression data sets (page $page)",
@@ -349,7 +349,7 @@ class ExpressionController extends Controller {
 				}
 				array_unshift($data, ["position", "+ strand", "- strand"]);
 			}
-			$view = View::loadFile("layout1.tpl");
+			$view = \Monkey\View::loadFile("layout1.tpl");
 			$view->set($dataSet);
 			$view->set([
 				"pageTitle" => "Data set: ".$dataSet->title,
@@ -375,7 +375,7 @@ class ExpressionController extends Controller {
 			$id = $this->filter($input, "id", "/^\d+$/", ["Id is required", 400, JSON]);
 			$dataSet = Expression::getCondition($id);
 			if ($dataSet) {
-				$view = View::loadFile("layout2.tpl");
+				$view = \Monkey\View::loadFile("layout2.tpl");
 				$view->set($dataSet);
 				$view->set([
 					"headerTitle" => "Update expression data set",

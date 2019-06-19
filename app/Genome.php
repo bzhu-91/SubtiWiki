@@ -1,5 +1,5 @@
 <?php
-class Genome extends Model {
+class Genome extends \Monkey\Model {
 	static $tableName = "GenomicContext";
 	static $fileName = "res/genome.txt";
 	static $primaryKeyName = "object"; // Not exactly the primary key in the table, but can be used to update gene coordinates
@@ -24,7 +24,7 @@ class Genome extends Model {
 	}
 
 	public static function findContextBySpan ($l, $r) {
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$range = [];
 		if ($l > $r) {
 			$range[] = [$l, $GLOBALS["GENOME_LENGTH"]];
@@ -46,7 +46,7 @@ class Genome extends Model {
 		$els = $conn->select(self::$tableName, ['start','stop','strand','object'], $where, $vals);
 		if($els) {
 			foreach ($els as &$el) {
-				$object = Model::parse($el["object"]);
+				$object = \Monkey\Model::parse($el["object"]);
 				if ($object) {
 					$object->start = $el["start"];
 					$object->stop = $el["stop"];
@@ -110,7 +110,7 @@ class Genome extends Model {
 		foreach($strings as &$str) {
 			$str = trim($str);
 			if (strlen($str) != 64) {
-				Log::debug(strlen($str));
+				\Monkey\Log::debug(strlen($str));
 				return false;
 			}
 		}
@@ -122,7 +122,7 @@ class Genome extends Model {
 		$codonTable = [];
 		$startTable = [];
 		for ($i = 0; $i < 64; $i++) {
-			$path = new KeyPath([$A[$i], $B[$i], $C[$i]]);
+			$path = new \Monkey\KeyPath([$A[$i], $B[$i], $C[$i]]);
 			$path->set($codonTable, $P[$i]);
 			$path->set($startTable, $S[$i]);
 		}

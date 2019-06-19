@@ -5,7 +5,7 @@ require_once 'app/ViewAdapters.php';
 
 
 function index ($input, $accpet, $method) {
-	$view = \View::loadFile("layout2.tpl");
+	$view = \Monkey\View::loadFile("layout2.tpl");
 	\Statistics::increment("index");
 	$view->set([
 		"headerTitle" => $GLOBALS["SITE_NAME"],
@@ -17,7 +17,7 @@ function index ($input, $accpet, $method) {
 }
 
 function FAQ () {
-	$view = \View::loadFile("layout2.tpl");
+	$view = \Monkey\View::loadFile("layout2.tpl");
 	$view->set([
 		"content" => "{{FAQ.tpl}}",
 	]);
@@ -35,7 +35,7 @@ function debug ($input, $accept, $method) {
 }
 
 function exports () {
-	$view = \View::loadFile("layout1.tpl");
+	$view = \Monkey\View::loadFile("layout1.tpl");
 	$view->set([
 		"pageTitle" => "Exports",
 		"title" => "Exports",
@@ -55,7 +55,7 @@ function exports () {
 }
 
 function statistics () {
-	$view = \View::loadFile("layout1.tpl");
+	$view = \Monkey\View::loadFile("layout1.tpl");
 	\Statistics::increment("statistics");
 	$view->set([
 		"title" => "Statistics",

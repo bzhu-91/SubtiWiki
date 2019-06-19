@@ -1,7 +1,7 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class CategoryController extends Controller {
+class CategoryController extends \Monkey\Controller {
 
 	/**
 	 * correspond to get method
@@ -34,12 +34,12 @@ class CategoryController extends Controller {
 		switch ($accept) {
 			case JSON:
 				// print only id and title
-				$data = Utility::arrayColumns($data, ["id", "title"]);
+				$data = \Monkey\Utility::arrayColumns($data, ["id", "title"]);
 				$this->respond($data, 200, JSON);
 				break;
 			case HTML_PARTIAL:
 			case HTML:
-				$view = View::loadFile("layout1.tpl");
+				$view = \Monkey\View::loadFile("layout1.tpl");
 				$view->set([
 					"title" => "All categories",
 					"pageTitle" => "All categories",
@@ -79,7 +79,7 @@ class CategoryController extends Controller {
 				if (count($results) == 1) {
 					header("Location: ".$GLOBALS["WEBROOT"]."/category?id=".$results[0]->id);
 				} else {
-					$view = View::loadFile("layout1.tpl");
+					$view = \Monkey\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Search: $keyword",
 						"showFootNote" => "none"
@@ -102,8 +102,8 @@ class CategoryController extends Controller {
 				if ($error) {
 					$this->error($messages[$error], $error, JSON);
 				} else {
-					$results = Utility::arrayColumns($results, ["id", "title"]);
-					Utility::decodeLinkForView($results);
+					$results = \Monkey\Utility::arrayColumns($results, ["id", "title"]);
+					\Monkey\Utility::decodeLinkForView($results);
 					$this->respond($results, 200, JSON);
 				}
 				break;
@@ -155,7 +155,7 @@ class CategoryController extends Controller {
 					break;
 				case JSON:
 					$children = Category::getAll("id regexp ?", ["^[[:digit:]]+\.$"]);
-					$children = Utility::arrayColumns($children, ["id", "title"]);
+					$children = \Monkey\Utility::arrayColumns($children, ["id", "title"]);
 					$data = [
 						"children" => $children,
 						"self" => ["id" => ".", "title" => "All categories"]
@@ -163,7 +163,7 @@ class CategoryController extends Controller {
 					$this->respond($data, 200, JSON);
 			}
 		} else if (($category = Category::get($id))) {
-			Utility::decodeLinkForView($category);
+			\Monkey\Utility::decodeLinkForView($category);
 			$category->updateCount();
 			switch ($accept) {
 				case JSON:
@@ -171,7 +171,7 @@ class CategoryController extends Controller {
 					break;
 				case HTML:
 				case HTML_PARTIAL:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Monkey\View::loadFile("layout1.tpl");
 					$genes = $category->getGenes();
 					if ($category->children && $category->countGenesAll() < 200) {
 						$view->set("recursion", $this->createChildCategorySegment($category->children));
@@ -218,7 +218,7 @@ class CategoryController extends Controller {
 		foreach ($children as $child) {
 			$child->patch();
 			$genes = $child->getGenes();
-			$seg = View::load($segTpl);
+			$seg = \Monkey\View::load($segTpl);
 			$seg->set([
 				"self" => [$child],
 				"depth" => $child->getDepth() * 30,
@@ -342,7 +342,7 @@ class CategoryController extends Controller {
 				$id = $this->filter($input, "id", "/^SW(\.\d+)*$/i", ["Page not found", 404, $accept]);
 				$category = Category::raw($id);
 				if ($category) {
-					Utility::decodeLinkForEdit($category);
+					\Monkey\Utility::decodeLinkForEdit($category);
 					$genes = $category->has("genes");
 					$children = $category->fetchChildCategories();
 					$parents = $category->fetchParentCategories();
@@ -355,7 +355,7 @@ class CategoryController extends Controller {
 					if (!property_exists($category, "reference")) {
 						$category->reference = ["insert text here"];
 					}
-					$view = View::loadFile("layout2.tpl");
+					$view = \Monkey\View::loadFile("layout2.tpl");
 					$view->restPrintingStyle = "monkey";
 					$view->set($category);
 					$view->set([
@@ -388,7 +388,7 @@ class CategoryController extends Controller {
 				$gene = Gene::simpleGet($geneId);
 				if ($gene) {
 					$inCategories = $gene->has("categories");
-					$view = View::load("{{relationCategoryEdit:data}}");
+					$view = \Monkey\View::load("{{relationCategoryEdit:data}}");
 					$view->set("data", $inCategories);
 					$this->respond($view, 200, HTML);
 				} else {
@@ -470,10 +470,10 @@ class CategoryController extends Controller {
 							$row->title,
 						];
 					}
-					$this->respond(Utility::encodeCSV($csv), 200, CSV);
+					$this->respond(\Monkey\Utility::encodeCSV($csv), 200, CSV);
 					break;
 				case JSON:
-					$json = Utility::arrayColumns($all, ["id", "title"]);
+					$json = \Monkey\Utility::arrayColumns($all, ["id", "title"]);
 					$this->respond($json, 200, JSON);
 					break;
 			}
@@ -498,7 +498,7 @@ class CategoryController extends Controller {
 							$row->gene->name
 						];
 					}
-					$this->respond(Utility::encodeCSV($csv), 200, CSV);
+					$this->respond(\Monkey\Utility::encodeCSV($csv), 200, CSV);
 					break;
 				case JSON:
 					$json = [];

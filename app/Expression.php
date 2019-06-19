@@ -1,6 +1,6 @@
 <?php
 
-class ExperimentalCondition extends Model{
+class ExperimentalCondition extends \Monkey\Model{
 	static $tableName = "DataSet";
 	static $types = [
 		"transcript level (fold change)",
@@ -22,7 +22,7 @@ class ExperimentalCondition extends Model{
 	}
 }
 
-class OmicsGene extends Model {
+class OmicsGene extends \Monkey\Model {
 	static $tableName = "OmicsData_gene";
 
 	public static function getByCondition ($condition, $geneIds = []) {
@@ -33,7 +33,7 @@ class OmicsGene extends Model {
 			$sql .= implode(",", $qmarks).")";
 		}
 		$vals = array_merge([$condition], $geneIds);
-		$result = Application::$conn->doQuery($sql, $vals);
+		$result = \Monkey\Application::$conn->doQuery($sql, $vals);
 		$ids = array_column($result, "gene");
 		$values = array_column($result, "value");
 		return array_combine($ids, $values);
@@ -41,7 +41,7 @@ class OmicsGene extends Model {
 
 	public static function getByGene ($geneId) {
 		$sql = "select dataSet,value from ".self::$tableName." where gene = ?";
-		$result = Application::$conn->doQuery($sql, [$geneId]);
+		$result = \Monkey\Application::$conn->doQuery($sql, [$geneId]);
 		$dataSets = array_column($result, "dataSet");
 		$values = array_column($result, "value");
 		return array_combine($dataSets, $values);
@@ -49,7 +49,7 @@ class OmicsGene extends Model {
 
 	public static function getMaxMin ($condition) {
 		$sql = "select max(value) as max, min(value) as min from ".self::$tableName." where dataSet = ?";
-		$result = Application::$conn->doQuery($sql, [$condition]);
+		$result = \Monkey\Application::$conn->doQuery($sql, [$condition]);
 		if ($result) {
 			return $result[0];
 		}
@@ -57,12 +57,12 @@ class OmicsGene extends Model {
 
 	public static function deleteByCondition (ExperimentalCondition $condition) {
 		$sql = "delete from `".self::$tableName."` where dataSet = ?";
-		return Application::$conn->doQuery($sql, [$condition->id]);
+		return \Monkey\Application::$conn->doQuery($sql, [$condition->id]);
 	}
 }
 
 
-class OmicsPosition extends Model {
+class OmicsPosition extends \Monkey\Model {
 	static $tableName = "OmicsData_position";
 
 	
@@ -80,7 +80,7 @@ class OmicsPosition extends Model {
 	public static function getByRange ($condition, $start, $stop, $strand = 1, $sampling = 1) {
 		$sql = "select position, value from ".self::$tableName." where position >= ? and position <= ? and strand = ? and mod(position, $sampling) = 0 and dataSet = ?";
 		if ($start && $stop && $start < $stop && ($strand == 0 || $strand == 1)) {
-			$conn = Application::$conn;
+			$conn = \Monkey\Application::$conn;
 			$stmt = $conn->prepare($sql);
 			if ($stmt) {
 				if ($stmt->bindValue(1, $start, PDO::PARAM_INT)
@@ -98,7 +98,7 @@ class OmicsPosition extends Model {
 
 	public static function deleteByCondition (ExperimentalCondition $condition) {
 		$sql = "delete from `".self::$tableName."` where dataSet = ?";
-		return Application::$conn->doQuery($sql, [$condition->id]);
+		return \Monkey\Application::$conn->doQuery($sql, [$condition->id]);
 	}
 }
 
@@ -156,7 +156,7 @@ class Expression {
 		$dataSet->type = $type;
 		$dataSet->category = $dataSet->getCategory();
 
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->beginTransaction();
 
 		if ($dataSet->insert() && $dataSet->id && self::importData($dataSet, $values, false)){
@@ -186,7 +186,7 @@ class Expression {
 		$dataSet->type = $type;
 		$dataSet->category = $dataSet->getCategory();
 
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->beginTransaction();
 
 		$queryOkay = $dataSet->insert() && $dataSet->id;
@@ -205,7 +205,7 @@ class Expression {
 	 * @return void
 	 */
 	public static function endImport () {
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->commit();
 		self::$currentDataSet = null;
 	}
@@ -222,7 +222,7 @@ class Expression {
 	public static function importData ($dataSet, $values, $useTransaction) {
 		$useTransaction = $useTransaction === null ? ($dataSet != null) : $useTransaction;
 		$dataSet = $dataSet == null ? self::$currentDataSet : $dataSet;
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		if ($useTransaction) {
 			$conn->beginTransaction();
 		}
@@ -250,7 +250,7 @@ class Expression {
 	}
 
 	public static function deleteCondition (ExperimentalCondition $condition) {
-		$conn = Application::$conn;
+		$conn = \Monkey\Application::$conn;
 		$conn->beginTransaction();
 		$queryOkay = true;
 		if ($condition->category == "gene-based") {
