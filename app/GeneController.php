@@ -525,7 +525,7 @@ class GeneController extends \Monkey\Controller {
 				});
 				$gene->synonyms = implode(", ", $syns);
 				unset($gene->names);
-				$conn = Application::$conn;
+				$conn = \Monkey\Application::$conn;
 				if ($conn->replace("Gene", $gene, ["id" => $gene->id])) {
 					Log::debug($gene->title);
 				} else {
@@ -573,7 +573,7 @@ class GeneController extends \Monkey\Controller {
 			$mode = $this->filter($input, "mode", "/^(replace)|(patch)$/i");
 			$type = $this->filter($input, "type", "/^(scalar)|(array)$/i");
 			// check the existence of the table
-			$conn = Application::$conn;
+			$conn = \Monkey\Application::$conn;
 			$cols = $conn->getColumnNames($tableName);
 			if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			if (!$mode) $errors[] = "Mode is required";

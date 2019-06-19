@@ -201,7 +201,7 @@ class GenomeController extends \Monkey\Controller {
 										$gene = $genes[0];
 										$row["object"] = (string) $gene;
 										if ($row["start"] > $row["stop"]) {
-											Utility::swap($row["start"], $row["stop"]); // swap, keep start < stop
+											\Monkey\Utility::swap($row["start"], $row["stop"]); // swap, keep start < stop
 										}
 										if(!$conn->insert(Genome::$tableName, $row)) {
 											$errors[] = "Error in line ".($i+2).": ".$conn->lastError;

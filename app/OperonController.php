@@ -301,7 +301,7 @@ class OperonController extends \Monkey\Controller {
 			// validate user input
 			$tableName = Operon::$tableName;
 			$mode = $this->filter($input, "mode", "/^(replace)|(append)$/i");
-			$conn = Application::$conn;
+			$conn = \Monkey\Application::$conn;
 			$cols = $conn->getColumnNames($tableName);
 			if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			if (!$mode) $errors[] = "Mode is required";
@@ -317,7 +317,7 @@ class OperonController extends \Monkey\Controller {
 					$row = explode("\t", $row);
 				}
 				$header = array_shift($table);
-				$conn = Application::$conn;
+				$conn = \Monkey\Application::$conn;
 
 				// check headers
 				$required = ["genes"];

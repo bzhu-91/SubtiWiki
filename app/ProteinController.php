@@ -135,7 +135,7 @@ class ProteinController extends GeneController {
 				$id = $this->filter($input, "id", "is_numeric", ["Invalid id", 400, $accept]);
 				$paralogue = Gene::hasPrototype("paralogues");
 				$paralogue->id = $id;
-				if (Application::$conn->transaction(function() use ($paralogue) {
+				if (\Monkey\Application::$conn->transaction(function() use ($paralogue) {
 					return History::record($paralogue, "remove") && $paralogue->delete();
 				})) {
 					$this->respond(null, 204, JSON);
@@ -156,7 +156,7 @@ class ProteinController extends GeneController {
 			// validate user input
 			$tableName = Protein::hasPrototype("paralogues")->tableName;
 			$mode = $this->filter($input, "mode", "/^(replace)|(append)$/i");
-			$conn = Application::$conn;
+			$conn = \Monkey\Application::$conn;
 			$cols = $conn->getColumnNames($tableName);
 			if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			if (!$mode) $errors[] = "Mode is required";
@@ -172,7 +172,7 @@ class ProteinController extends GeneController {
 					$row = explode("\t", $row);
 				}
 				$header = array_shift($table);
-				$conn = Application::$conn;
+				$conn = \Monkey\Application::$conn;
 
 				// check headers
 				$required = ["prot1", "prot2"];

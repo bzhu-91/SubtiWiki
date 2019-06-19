@@ -126,7 +126,7 @@ class View {
 		preg_match_all($pattern, $this->template_str, $matches, PREG_SET_ORDER);
 		foreach ($matches as $match) {
 			$keys = $match[1];
-			$keypath = new \Monkey\KeyPath($keys);
+			$keypath = new KeyPath($keys);
 			$val = $keypath->get($this->data);
 			if ($val !== null) {
 				$replacement = (string) $val;
@@ -152,7 +152,7 @@ class View {
 				$func = $this->localAdapters[$type];
 			};
 			// find value
-			$keypath = new \Monkey\KeyPath($keys);
+			$keypath = new KeyPath($keys);
 			$val = $keypath->get($this->data);
 
 			if ($val !== null) {
@@ -167,10 +167,10 @@ class View {
 
 	/**
 	 * print json to HTML
-	 * @param \Monkey\KeyPath $keypath
+	 * @param KeyPath $keypath
 	 * @param object/array $obj
 	 */
-	private function printValueHTML (\Monkey\KeyPath $keypath, $obj) {
+	private function printValueHTML (KeyPath $keypath, $obj) {
 		if (is_array($obj)) {
 			$obj = json_decode(json_encode($obj));
 		}
@@ -243,7 +243,7 @@ class View {
 	/**
 	 * print json to monkey markup
 	 */
-	private function printValueMonkdey (\Monkey\KeyPath $keypath, $obj) {
+	private function printValueMonkdey (KeyPath $keypath, $obj) {
 		$str = "";
 		foreach ($obj as $key => $value) {
 			if ($key[0] === "_" || $value === null || $value === "" || json_encode($value) === "[]" || json_encode($value) === "{}") {
@@ -294,9 +294,9 @@ class View {
 
 		if (strpos($this->rendered_str, "{{::rest}}") !== false) {
 			if ($this->restPrintingStyle == "HTML") {
-				$rendered = $this->printValueHTML(new \Monkey\KeyPath(), $rest);
+				$rendered = $this->printValueHTML(new KeyPath(), $rest);
 			} else {
-				$rendered = $this->printValueMonkdey(new \Monkey\KeyPath(), $rest);
+				$rendered = $this->printValueMonkdey(new KeyPath(), $rest);
 			}
 			$this->rendered_str = str_replace("{{::rest}}", trim($rendered), $this->rendered_str);
 		}

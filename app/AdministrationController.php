@@ -91,7 +91,7 @@ class AdministrationController extends \Monkey\Controller {
 							/*if($table[$i]["title"]==""){
 								$table[$i]["title"] = $table[$i]["locus"];
 							}*/
-							$conn = Application::$conn;
+							$conn = \Monkey\Application::$conn;
 							$result[$i] = $conn->insert($input["tableName"], $table[$i]);
 							if(!$result[$i]){
 								Log::debug($table[$i]);
@@ -112,7 +112,7 @@ class AdministrationController extends \Monkey\Controller {
 							} else if($input["insertType"] == "scalar"){
 								$vals = $rowVals[1];
 							} else $this->error("No insert data type selected!", 404, HTML);
-							$gene = Application::$conn->select($input["tableName"], "*", $ident);
+							$gene = \Monkey\Application::$conn->select($input["tableName"], "*", $ident);
 							if($input["after"]){
 								try {
 									\Monkey\Utility::insertAfter($gene[0], $insertKey, $vals, $input["after"]);
@@ -124,7 +124,7 @@ class AdministrationController extends \Monkey\Controller {
 								$gene[0][$insertKey] = $vals;
 							}
 							if($gene[0] != null){
-								$result = Application::$conn->update($input["tableName"], $gene[0], $ident);
+								$result = \Monkey\Application::$conn->update($input["tableName"], $gene[0], $ident);
 								if(!$result){
 									Log::debug($gene->locus);
 								}
@@ -149,7 +149,7 @@ class AdministrationController extends \Monkey\Controller {
 		UserController::authenticate(3, $accept);
 		if ($method == "GET" && $accept == JSON) {
 			$tableName = $this->filter($input, "tableName", "has", ["Table name is required", 400, $accept]);
-			$conn = Application::$conn;
+			$conn = \Monkey\Application::$conn;
 			if ($conn->getColumnNames($tableName)) {
 				$added = MetaData::fix($tableName);
 				if ($added) {
@@ -173,7 +173,7 @@ class AdministrationController extends \Monkey\Controller {
 			$mode = $this->filter($input, "mode", "/^(replace)|(patch)$/i");
 			// check the existence of the table
 			if ($tableName) {
-				$conn = Application::$conn;
+				$conn = \Monkey\Application::$conn;
 				$cols = $conn->getColumnNames($tableName);
 				if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			} else $errors[] = "Table name is required";
@@ -269,7 +269,7 @@ class AdministrationController extends \Monkey\Controller {
 					foreach($fileArray as $key => $value){
 						if($key == "condition"){
 							$table_name = "Condition";
-							$conn = Application::$conn;
+							$conn = \Monkey\Application::$conn;
 							$result[] = $conn->insert($table_name, $value);
 						}else if($key == "data"){
 							if($fileArray["condition"]["type"] == "T"){
@@ -281,7 +281,7 @@ class AdministrationController extends \Monkey\Controller {
 								$dataArray["con".$fileArray["condition"]["id"]] = $subvalue;
 								$dataArray["locus"] = $subkey;
 								$where = array("locus" => $subkey);
-								$conn = Application::$conn;
+								$conn = \Monkey\Application::$conn;
 								$result[] = $conn->update($table_name, $dataArray, $where);
 							}
 						}

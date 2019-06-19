@@ -61,7 +61,7 @@ class ReactionController extends Controller {
 				];
 			}
 		}
-		$kps = Utility::deepWalk($reaction, function ($kp, &$val){
+		$kps = \Monkey\Utility::deepWalk($reaction, function ($kp, &$val){
 			if (!$val->type) {
 				switch(get_class($val)){
 					case "Complex":

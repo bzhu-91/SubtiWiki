@@ -79,7 +79,7 @@ class Application {
 			}
 		});
 
-		set_exception_handler(["Application", "handle"]);
+		set_exception_handler(["\Monkey\Application", "handle"]);
 
 		// set the default template dir
 		View::setDefaultLoadDir(realpath("./templates"));

@@ -28,7 +28,7 @@ function debug ($input, $accept, $method) {
 	$reactions = \Reaction::getAll(1);
 	foreach ($reactions as $reaction) {
 		if (!$reaction->updateEquation()) {
-			\Log::debug("R".$reaction->id.\Application::$conn->lastError);
+			\Monkey\Log::debug("R".$reaction->id.\Monkey\Application::$conn->lastError);
 		}
 	}
 	\Log::debug("done");

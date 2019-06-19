@@ -100,7 +100,7 @@ class ExpressionController extends \Monkey\Controller {
 					$this->respond($data, 200, JSON);
 				} elseif($accept == CSV) {
 					$delimiter = $input["delimiter"] ? $input["delimiter"] : ",";
-					$this->respond(Utility::encodeCSV($csvData, $delimiter, null), 200, CSV);
+					$this->respond(\Monkey\Utility::encodeCSV($csvData, $delimiter, null), 200, CSV);
 				} else {
 					$this->error("Unaccepted", 406, $accept);
 				}
@@ -226,7 +226,7 @@ class ExpressionController extends \Monkey\Controller {
 			if ($condition == null || Expression::deleteCondition($condition)) {
 				$this->respond(null, 204, JSON);
 			} else {
-				$this->error("An internal error has happened: ".Application::$conn->lastError, 500, JSON);
+				$this->error("An internal error has happened: ".\Monkey\Application::$conn->lastError, 500, JSON);
 			}
 		} else $this->error("Unaccepted", 406, $accept);
 	}
@@ -244,7 +244,7 @@ class ExpressionController extends \Monkey\Controller {
 				if ($con->replace()) {
 					$this->respond(["uri" => "expression/viewer?id=$id"], 200, JSON);
 				} else {
-					$this->error("An internal error has happened: ".Application::$conn->lastError, 500, JSON);
+					$this->error("An internal error has happened: ".\Monkey\Application::$conn->lastError, 500, JSON);
 				}
 			} else $this->error("Not found", 404, JSON);
 		} else $this->error("Unaccepted", 406, $accept);
@@ -356,7 +356,7 @@ class ExpressionController extends \Monkey\Controller {
 				"showFootNote" => "none",
 				"content" => "{{expression.viewer.tpl}}",
 				"pubmed" => $dataSet->pubmed ? "[pubmed|{$dataSet->pubmed}]" : "",
-				"data" => Utility::encodeCSV($data,",\t",null),
+				"data" => \Monkey\Utility::encodeCSV($data,",\t",null),
 				"navlinks" => [
 					["href" => "expression/list", "innerHTML" => "All data sets"],
 				],
