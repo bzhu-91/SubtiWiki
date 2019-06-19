@@ -139,7 +139,7 @@
 	if ($data) {
 		$str .= "<table class='m_table' cellspacing='0'><tr><td>Name</td><td>Function</td></tr>";
 		foreach ($data as $gene) {
-			Utility::decodeLinkForView($gene->function);
+			\Monkey\Utility::decodeLinkForView($gene->function);
 			$str .= "<tr id='{$gene->id}'><td><i>".$gene->toLinkMarkup()."</i></td><td>{$gene->function}</td></tr>";
 		}
 		$str .= "</table>";
@@ -153,7 +153,7 @@
 		$str .= "<table class='m_table' cellspacing='0' rewrite=true><tr><td>Name</td><td>Function</td></tr>";
 		foreach ($data as $row) {
 			$gene = $row->gene;
-			Utility::decodeLinkForView($gene->function);
+			\Monkey\Utility::decodeLinkForView($gene->function);
 			$str .= "<tr id='{$row->id}'><td><i>".$gene->toLinkMarkup()."</i></td><td>{$gene->function}</td></tr>";
 		}
 		$str .= "</table>";
@@ -169,7 +169,7 @@
 
 		foreach ($data as $row) {
 			$gene = $row->gene;
-			Utility::decodeLinkForView($gene->function);
+			\Monkey\Utility::decodeLinkForView($gene->function);
 			$str .= "<tr id='{$row->id}'><td><i>".$gene->toLinkMarkup()."</i></td><td>{$gene->function}</td><td><button class='button delBtn' target='gene' id='{$gene->id}'>Delete</button></td></tr>";
 		}
 		$str .= "</table>";
@@ -263,7 +263,7 @@
 	if ($data) {
 		$str .= "<table class='m_table' cellspacing='0' rewrite=true><tr><td>Operon</td><td>Operation</td></tr>";
 		foreach ($data as $operon) {
-			Utility::decodeLinkForView($operon->title);
+			\Monkey\Utility::decodeLinkForView($operon->title);
 			$str .= "<tr><td>$operon->title</td><td><a href='operon?id={$operon->id}' class='button'>View</a></td></tr>";
 		}
 		$str .= "</table>";

@@ -6,7 +6,7 @@ class History extends \Monkey\Model {
 	public static function record ($obj, $operation){
 		$className = get_class($obj);
 		$record = null;
-		if (is_subclass_of($obj, "Model")) {
+		if (is_subclass_of($obj, "\Monkey\Model")) {
 			switch ($operation) {
 				case "add":
 					$record = clone $obj;
@@ -16,7 +16,7 @@ class History extends \Monkey\Model {
 					$record = $className::raw($obj->{$className::$primaryKeyName});
 					break;
 			}
-		} else if ($obj instanceof Relationship || is_subclass_of($obj, "Relationship")) {
+		} else if ($obj instanceof \Monkey\Relationship || is_subclass_of($obj, "\Monkey\Relationship")) {
 			switch ($operation) {
 				case "add":
 					$record = $obj;
@@ -29,7 +29,7 @@ class History extends \Monkey\Model {
 		} else throw new \Monkey\BaseException("object is not an instance of Model or Relationship");
 
 		if ($record) {
-			if (is_subclass_of($record, "Model")) {
+			if (is_subclass_of($record, "\Monkey\Model")) {
 				$origin = lcfirst($className);
 				$identifer = $record->{$className::$primaryKeyName};
 			} else {

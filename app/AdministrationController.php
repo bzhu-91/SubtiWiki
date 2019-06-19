@@ -1,11 +1,11 @@
 <?php
 require_once("ViewAdapters.php");
 
-class AdministrationController extends Controller {
+class AdministrationController extends \Monkey\Controller {
 	public function read ($input, $accept) {
 		if ($accept == HTML) {
 			UserController::authenticate(2,HTML);
-			$view = View::loadFile("layout1.tpl");
+			$view = \Monkey\View::loadFile("layout1.tpl");
 			$view->set([
 				"content" => "{{administration.view.tpl}}",
 				"title" => "Administration",
@@ -40,7 +40,7 @@ class AdministrationController extends Controller {
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Monkey\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{gene.import.tpl}}"
@@ -55,7 +55,7 @@ class AdministrationController extends Controller {
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Monkey\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{gene.import.tpl}}"
@@ -115,7 +115,7 @@ class AdministrationController extends Controller {
 							$gene = Application::$conn->select($input["tableName"], "*", $ident);
 							if($input["after"]){
 								try {
-									Utility::insertAfter($gene[0], $insertKey, $vals, $input["after"]);
+									\Monkey\Utility::insertAfter($gene[0], $insertKey, $vals, $input["after"]);
 								} catch(BaseException $e){
 									Log::debug($gene->locus." ".$e->getMessage());
 									continue;
@@ -134,7 +134,7 @@ class AdministrationController extends Controller {
 					} else $this->error("Select 'Replace' or 'Merge'", 404, HTML);
 				$this->respond($view, 200, HTML);
 			case JSON:
-				$view = View::loadFile("layout1.tpl");
+				$view = \Monkey\View::loadFile("layout1.tpl");
 				$view->set([
 					"pageTitle" => "Import",
 					"content" => "{{gene.import.tpl}}"
@@ -210,7 +210,7 @@ class AdministrationController extends Controller {
 			}
 			if (empty($errors)) $errors[] = "Import successful";
 		}
-		$view = View::loadFile("layout1.tpl");
+		$view = \Monkey\View::loadFile("layout1.tpl");
 		$view->set([
 			"title" => "General importer",
 			"pageTitle" => "General importer",
@@ -238,7 +238,7 @@ class AdministrationController extends Controller {
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Monkey\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{expression.import.tpl}}"
@@ -253,7 +253,7 @@ class AdministrationController extends Controller {
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Monkey\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{expression.import.tpl}}"
@@ -288,7 +288,7 @@ class AdministrationController extends Controller {
 					}
 					$this->respond($view, 200, HTML);
 				case JSON:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Monkey\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{expression.import.tpl}}"
@@ -305,7 +305,7 @@ class AdministrationController extends Controller {
 		if ($accept != HTML) {
 			$this->error("Unaccaptable", 405, $accept);
 		}
-		$view = View::loadFile("layout1.tpl");
+		$view = \Monkey\View::loadFile("layout1.tpl");
 		$allUsers = User::getAll(1);
 		$view->set([
 			"showFootNote" => "none",
@@ -327,8 +327,8 @@ class AdministrationController extends Controller {
 			$className = $this->filter($input, "className", "has", ["Class name is required", 400, $accept]);
 			$meta = MetaData::get($className);
 			if ($meta) {
-				Utility::decodeLinkForEdit($meta);
-				$view = View::loadFile("layout2.tpl");
+				\Monkey\Utility::decodeLinkForEdit($meta);
+				$view = \Monkey\View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Edit template: ".$className,
 					"headerTitle" => "Edit template: ".$className,
@@ -343,7 +343,7 @@ class AdministrationController extends Controller {
 				$this->respond($view, 200, HTML);	
 			} else {
 				try {
-					$view = View::loadFile("layout2.tpl");
+					$view = \Monkey\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Edit template: ".$className,
 						"headerTitle" => "Edit template: ".$className,

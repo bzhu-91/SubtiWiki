@@ -274,7 +274,7 @@ class HistoryController extends \Monkey\Controller {
 					$lastRevision = History::findLastRevision("reaction", $entry->record->reaction);
 					$reaction = Reaction::withData($lastRevision);
 				}
-				$catalyst = Model::parse($entry->record->catalyst);
+				$catalyst = \Monkey\Model::parse($entry->record->catalyst);
 				if ($catalyst) {
 					$predicate = $entry->lastOperation == "add" ? " to " : " from ";
 					$presentation .= $this->toRevisionLink($catalyst).$predicate."<a href='history?target=reaction&id={$reaction->id}'>R{$reaction->id}: {$reaction->equation}</a>";

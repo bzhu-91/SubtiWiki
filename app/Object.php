@@ -1,5 +1,5 @@
 <?php
-class Object extends Model {
+class Object extends \Monkey\Model {
 	public $id;
 	public $title;
 
