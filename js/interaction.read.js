@@ -592,7 +592,7 @@ InteractionBrowser.prototype.setEdgeColor = function (color) {
 }
 
 InteractionBrowser.prototype.getOmicsData = function (conditionId) {
-	var self = this; var url, data;
+	var self = this; var url;
 	if (self.data.nodes.length > 400) {
 		url = "expression?condition=" + conditionId;
 		data = "";
@@ -602,22 +602,22 @@ InteractionBrowser.prototype.getOmicsData = function (conditionId) {
 			geneIds.push(id);
 		});
 		url = "expression?condition=" + conditionId;
-		data = ajax.serialize({
+		data = {
 			genes: geneIds.join(",")
-		});
+		}
 	}
-	ajax.bigGet({
-		url: url,
-		data: data,
-		dataType:"json",
-	}).done(function(state, data, error, xhr){
-		if (state == 200) {
+	$.ajax({
+		type: "post",
+		url: url + "&__method=GET",
+		dataType: "json",
+		success: function (data) {
 			self.omicsData = data;
 			self.showOmicsData(conditionId);
-		} else {
+		},
+		error: function (data) {
 			SomeLightBox.error(data.message);
 		}
-	})
+	});
 }
 
 InteractionBrowser.prototype.showOmicsData = function (conditionId) {

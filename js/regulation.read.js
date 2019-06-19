@@ -763,37 +763,43 @@ RegulationBrowser.prototype.getOmicsData = function (conditionId) {
 			geneIds.push(id);
 		});
 		url = "expression?condition=" + conditionId;
-		data = ajax.serialize({
+		data = {
 			genes: geneIds.join(",")
-		});
+		};
 	}
-	ajax.bigGet({
-		url: url,
+	$.ajax({
+		type: "post",
+		url: url + "&__method=GET",
+		dataType: "json",
 		data: data,
-		dataType:"json",
-	}).done(function(state, data, error, xhr){
-		self.omicsData = data;
-		self.showOmicsData(conditionId);
+		success:function(data){
+			self.omicsData = data;
+			self.showOmicsData(conditionId);
+		},
+		error: function (data) {
+			SomeLightBox.error(data.message);
+		}
 	})
 }
 
 RegulationBrowser.prototype.showOmicsData = function (conditionId) {
 	var self = this;
+
+	self.network.storePositions();
 	var update = [];
-	
 	var con = self.conditions[conditionId];
 	var spectrum = new ColorSpectrum(con.title, con.min, con.max, con.type == "protein level (copies per cell)" ? "log": "");
 	
 	for (var id in self.omicsData) {
-		if (self.data.nodes.get(id)) {
+		var node = self.data.nodes.get(id);
+		if (node) {
 			var color = spectrum.getColor(self.omicsData[id]);
-			update.push({
-				id: id,
-				color: {
-					background: color
-				},
-				state: "omics"
-			})
+			node.color = {
+				background: color
+			}
+			node.state = "omics";
+			update.push(node);
+			console.log(node)
 		}
 	}
 	self.data.nodes.update(update);
