@@ -29,7 +29,7 @@ trait Markup {
 					return $className::simpleGet($matches[2][0]);
 				}
 			} catch (Exception $e) {
-				$object = new Object();
+				$object = new BiologicalObject();
 				$object->title = $matches[2][0];
 				$object->id = $matches[2][0];
 				$object->type = $matches[1][0];

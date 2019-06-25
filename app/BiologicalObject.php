@@ -1,5 +1,5 @@
 <?php
-class Object extends \Kiwi\Model {
+class BiologicalObject extends \Kiwi\Model {
 	public $id;
 	public $title;
 
@@ -9,14 +9,14 @@ class Object extends \Kiwi\Model {
 	}
 
 	public static function simpleLookUp ($id) {
-		return new Object($id);
+		return new BiologicalObject($id);
 	}
 
 	public static function simpleValidate ($title) {
-		return new Object($title);
+		return new BiologicalObject($title);
 	}
 
 	public static function simpleGet ($id) {
-		return new Object($id);
+		return new BiologicalObject($id);
 	}
 }

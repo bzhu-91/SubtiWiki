@@ -74,7 +74,7 @@ class ReactionController extends \Kiwi\Controller {
 					case "Protein":
 					case "Gene":
 					case "Metabolite":
-					case "Object":
+					case "BiologicalObject":
 						$val->type = lcfirst(get_class($val));
 						break;
 						
@@ -348,7 +348,7 @@ class ReactionController extends \Kiwi\Controller {
 						}
 						break;
 					case "object":
-						$object = new Object($title);
+						$object = new BiologicalObject($title);
 						if ($reaction->addCatalyst($object, $novel)){
 							$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
 						} else {
