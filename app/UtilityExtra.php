@@ -1,4 +1,6 @@
 <?php
+namespace Kiwi;
+
 require_once("PHPMailer/PHPMailer.php");
 require_once("PHPMailer/Exception.php");
 require_once("PHPMailer/OAuth.php");

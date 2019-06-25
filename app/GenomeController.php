@@ -1,13 +1,13 @@
 <?php
 require "ViewAdapters.php";
 
-class GenomeController extends Controller {
+class GenomeController extends \Kiwi\Controller {
 
 	public function read ($input, $accept) {
 		switch ($accept) {
 			case HTML:
 				$tables = Genome::codonTable();
-				$view = View::loadFile("layout2.tpl");
+				$view = \Kiwi\View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Genome Browser",
 					"headerTitle" => "Genome Browser",
@@ -154,7 +154,7 @@ class GenomeController extends Controller {
 		if ($method == "POST") {
 			$tableName = Genome::$tableName;
 			$mode = $this->filter($input, "mode", "/^(replace)|(append)$/i");
-			$conn = Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$cols = $conn->getColumnNames($tableName);
 			if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			if (!$mode) $errors[] = "Mode is required";
@@ -170,7 +170,7 @@ class GenomeController extends Controller {
 					$row = explode("\t", $row);
 				}
 				$header = array_shift($table);
-				$conn = Application::$conn;
+				$conn = \Kiwi\Application::$conn;
 
 				if ($mode == "replace") {
 					// remove table content
@@ -201,7 +201,7 @@ class GenomeController extends Controller {
 										$gene = $genes[0];
 										$row["object"] = (string) $gene;
 										if ($row["start"] > $row["stop"]) {
-											Utility::swap($row["start"], $row["stop"]); // swap, keep start < stop
+											\Kiwi\Utility::swap($row["start"], $row["stop"]); // swap, keep start < stop
 										}
 										if(!$conn->insert(Genome::$tableName, $row)) {
 											$errors[] = "Error in line ".($i+2).": ".$conn->lastError;
@@ -237,7 +237,7 @@ class GenomeController extends Controller {
 			if (empty($errors)) $errors[] = "Import successfull";
 		}
 
-		$view = View::loadFile("layout1.tpl");
+		$view = \Kiwi\View::loadFile("layout1.tpl");
 		$view->set([
 			"title" => "Import genomic context data",
 			"pageTitle" => "Import genomic context data",
@@ -255,14 +255,14 @@ class GenomeController extends Controller {
 				$contextObject = Genome::get($object);
 				if ($contextObject) {
 					if ($accept == HTML) {
-						$view = View::loadFile("layout1.tpl");
+						$view = \Kiwi\View::loadFile("layout1.tpl");
 						$view->set([
 							"jsAfterContent" => ["all.editor"],
 							"title" => "Edit genomic context",
 							"pageTitle" => "Edit genomic context"
 						]);
 					} else {
-						$view = View::loadFile("genome.context.editor.tpl");
+						$view = \Kiwi\View::loadFile("genome.context.editor.tpl");
 					}
 					$view->set($contextObject);
 					$this->respond($view, 200, HTML);

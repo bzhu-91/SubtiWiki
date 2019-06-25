@@ -1,4 +1,6 @@
 <?php
+namespace Kiwi;
+
 /**
  * This class implements the virtualization mentioned in the "Document of the database structure".
  * The static property $VirtualColumnName and $NativeJSON should be set in the Config.php

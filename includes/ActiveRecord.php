@@ -1,4 +1,5 @@
 <?php
+namespace Kiwi;
 /**
  * This class implements active record pattern, see wiki page https://en.wikipedia.org/wiki/Active_record_pattern
  */
@@ -120,7 +121,7 @@ class ActiveRecord extends DBBase {
 				return false;
 			}
 		} else {
-			throw new Exception("Should provide where clause for update statement");
+			throw new BaseException("Should provide where clause for update statement");
 		}
 	}
 
@@ -167,7 +168,7 @@ class ActiveRecord extends DBBase {
 				return false;
 			}
 		} else {
-			throw new Exception("Should provide where clause for update statement");
+			throw new BaseException("Should provide where clause for update statement");
 		}
 	}
 	
@@ -190,7 +191,7 @@ class ActiveRecord extends DBBase {
 			$result = $this->doQuery($sql, $vals);
 			return !($result == false);
 		} else {
-			throw new Exception("Should provide where clause for delete statement");
+			throw new BaseException("Should provide where clause for delete statement");
 		}
 	}
 
@@ -204,7 +205,7 @@ class ActiveRecord extends DBBase {
 		$sql = trim($sql);
 		$stmt = parent::doQuery($sql, $vals);
 		if ($stmt) {
-			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			$result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 			if ("select" == substr($sql, 0,6)) {
 				return $result;
 			} else {

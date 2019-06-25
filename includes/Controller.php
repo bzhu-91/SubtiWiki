@@ -1,4 +1,6 @@
 <?php
+namespace Kiwi;
+
 /**
  * This class presents a controller
  */
@@ -110,7 +112,7 @@ abstract class Controller {
 	/**
 	 * filter user input, if error response is given, will call $this->error and end the application
 	 * @param  array $input         input from client
-	 * @param  string $keypath       keypath
+	 * @param  string $keypath       KeyPath
 	 * @param  string $requirement   requirement of the value, "has" / regexp
 	 * @param  array $errorResponse arguments for error response
 	 * @return none                
@@ -131,7 +133,7 @@ abstract class Controller {
 						return $val;
 					}
 				} elseif ($requirement == "is_email") {
-					if (Utility::validateEmailAddressAddressAddress($val)) {
+					if (Utility::validateEmailAddress($val)) {
 						return $val;
 					}
 				}

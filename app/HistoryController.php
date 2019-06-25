@@ -1,7 +1,7 @@
 <?php
 require_once("ViewAdapters.php");
 
-class HistoryController extends Controller {
+class HistoryController extends \Kiwi\Controller {
 	public function read ($input, $accept) {
 		if (!$input) {
 			$this->index($accept);
@@ -32,13 +32,13 @@ class HistoryController extends Controller {
 				$targetObject = $className::withData($lastRevision->record);
 			}
 
-			Utility::decodeLinkForView($targetObject->title);
+			\Kiwi\Utility::decodeLinkForView($targetObject->title);
 
 			$records = History::getAll(["origin" => $target, "identifier" => $id]);
 			usort($records, function ($a, $b) {
 				return - strcmp($a->time, $b->time);
 			});
-			$view = View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set([
 				"showFootNote" => "none",
 				"records" => $records,
@@ -75,10 +75,10 @@ class HistoryController extends Controller {
 			if ($enableFilters) {
 				$filters = []; $operations = [];
 				foreach ($input as $key => $value) {
-					if (Utility::startsWith($key, "filter-")) {
+					if (\Kiwi\Utility::startsWith($key, "filter-")) {
 						$filters[substr($key, 7)] = $value;
 					}
-					if (Utility::startsWith($key, "operation-")) {
+					if (\Kiwi\Utility::startsWith($key, "operation-")) {
 						$operations[substr($key, 10)] = $value;
 					}
 				}
@@ -106,7 +106,7 @@ class HistoryController extends Controller {
 			} else {
 				$message = "No result";
 			}
-			$view = View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set([
 				"title" => $title,
 				"pageTitle" => $title,
@@ -274,7 +274,7 @@ class HistoryController extends Controller {
 					$lastRevision = History::findLastRevision("reaction", $entry->record->reaction);
 					$reaction = Reaction::withData($lastRevision);
 				}
-				$catalyst = Model::parse($entry->record->catalyst);
+				$catalyst = \Kiwi\Model::parse($entry->record->catalyst);
 				if ($catalyst) {
 					$predicate = $entry->lastOperation == "add" ? " to " : " from ";
 					$presentation .= $this->toRevisionLink($catalyst).$predicate."<a href='history?target=reaction&id={$reaction->id}'>R{$reaction->id}: {$reaction->equation}</a>";
@@ -301,8 +301,8 @@ class HistoryController extends Controller {
 				$meta0 = History::get($commits[0]);
 				$meta1 = History::get($commits[1]);
 				
-				Utility::decodeLinkForEdit($meta0->record);
-				Utility::decodeLinkForEdit($meta1->record);
+				\Kiwi\Utility::decodeLinkForEdit($meta0->record);
+				\Kiwi\Utility::decodeLinkForEdit($meta1->record);
 
 				if (get_class($meta1->origin) != get_class($meta0->origin)) {
 					$this->error("Page not found", 404, HTML);
@@ -310,7 +310,7 @@ class HistoryController extends Controller {
 
 			} elseif ($commits[0] != "current" || $commits[1] != "current") {
 				$meta1 = History::get($commits[0] == "current" ? $commits[1] : $commits[0]);
-				Utility::decodeLinkForEdit($meta1->record);
+				\Kiwi\Utility::decodeLinkForEdit($meta1->record);
 
 				$className = ucfirst($meta1->origin);
 				$targetObject = $className::raw($meta1->identifier);
@@ -319,7 +319,7 @@ class HistoryController extends Controller {
 					$targetObject = new stdClass;
 				}
 
-				Utility::decodeLinkForEdit($targetObject);
+				\Kiwi\Utility::decodeLinkForEdit($targetObject);
 				$meta0 = (object) [
 					"commit" => "current",
 					"time" => "current",
@@ -330,7 +330,7 @@ class HistoryController extends Controller {
 			}
 
 			if ($meta0 && $meta1) {
-				$view = View::loadFile("layout1.tpl");
+				$view = \Kiwi\View::loadFile("layout1.tpl");
 				$view->set([
 					"title" => "Comparison",
 					"pageTitle" => "Comparison",

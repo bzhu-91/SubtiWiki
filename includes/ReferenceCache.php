@@ -1,4 +1,6 @@
 <?php
+namespace Kiwi;
+
 /**
  * A memory cache of look up table and validate table.
  * Most of the tables in SubtiWiki has two columns, namely id and title. The id column is used as a surrogate primary key and the title is the human-friendly primary key.
@@ -79,7 +81,7 @@ trait ReferenceCache {
 					$row = $className::withData($row);
 				}
 				$className::$validateTable = array_combine($keys, $result);
-			} else throw new Exception("Should set the connection and table_name for Entity");
+			} else throw new BaseException("Should set the connection and table_name for Entity");
 		}
 	}
 

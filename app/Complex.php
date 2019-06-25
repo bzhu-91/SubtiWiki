@@ -1,5 +1,5 @@
 <?php
-class Complex extends Model {
+class Complex extends \Kiwi\Model {
     static $tableName = "Complex";
 
     static $relationships = [
@@ -22,7 +22,7 @@ class Complex extends Model {
     ];
 
     public function insert () {
-        $conn = Application::$conn;
+        $conn = \Kiwi\Application::$conn;
         $conn->beginTransaction();
         if (parent::insert() && History::record($this, "add")){
             $conn->commit();
@@ -34,7 +34,7 @@ class Complex extends Model {
     }
 
     public function update () {
-        $conn = Application::$conn;
+        $conn = \Kiwi\Application::$conn;
         $conn->beginTransaction();
         if (History::record($this, "update") && parent::update()){
             $conn->commit();
@@ -50,7 +50,7 @@ class Complex extends Model {
         if ($this->has("reaction")) {
             return false;
         }
-        $conn = Application::$conn;
+        $conn = \Kiwi\Application::$conn;
         $conn->beginTransaction();
         if (History::record($this, "remove") && parent::delete()){
             $conn->commit();
@@ -68,7 +68,7 @@ class Complex extends Model {
             $hasMember->coefficient = $coefficient;
             $hasMember->modification = $modification;
             $hasMember->member = $member;
-            $conn = Application::$conn;
+            $conn = \Kiwi\Application::$conn;
             $conn->beginTransaction();
             if ($hasMember->insert() && History::record($hasMember, "add")) {
                 $conn->commit();
@@ -89,7 +89,7 @@ class Complex extends Model {
             if ($row) {
                 $hasMember = $row[0];
                 $hasMember->coefficient = $coefficient;
-                $conn = Application::$conn;
+                $conn = \Kiwi\Application::$conn;
                 $conn->beginTransaction();
                 if (History::record($hasMember, "update") && $hasMember->update()) {
                     $conn->commit();
@@ -110,7 +110,7 @@ class Complex extends Model {
             }));
             if ($row) {
                 $hasMember = $row[0];
-                $conn = Application::$conn;
+                $conn = \Kiwi\Application::$conn;
                 $conn->beginTransaction();
                 if (History::record($hasMember, "remove") && $hasMember->delete()) {
                     $conn->commit();

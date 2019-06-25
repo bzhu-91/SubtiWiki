@@ -1,6 +1,6 @@
 <?php
-class Operon extends Model {
-	use ReferenceCache, Markup;
+class Operon extends \Kiwi\Model {
+	use \Kiwi\ReferenceCache, \Kiwi\Markup;
 
 	static $tableName = "Operon";
 
@@ -55,10 +55,10 @@ class Operon extends Model {
 						}
 					}
 					if ($transcriptionFactors) {
-						Utility::insertAfter($this, "regulatory mechanism", $transcriptionFactors, "description");
+						\Kiwi\Utility::insertAfter($this, "regulatory mechanism", $transcriptionFactors, "description");
 					}
 					if ($sigmaFactors) {
-						Utility::insertAfter($this, "sigma factors", $sigmaFactors, "description");
+						\Kiwi\Utility::insertAfter($this, "sigma factors", $sigmaFactors, "description");
 					}
 				}	
 			}
@@ -74,7 +74,7 @@ class Operon extends Model {
  		$genes = explode("-", $this->genes);
  		foreach ($genes as &$each) {
  			if (strlen($each) != 49) {
-				throw new BaseException("There is an error in the genes of this operon", 1);
+				throw new \Kiwi\BaseException("There is an error in the genes of this operon", 1);
 			}
  		}
 		$this->hash = strtoupper(sha1($this->genes));
@@ -86,13 +86,13 @@ class Operon extends Model {
 	 * @return boolean true if successful, false it not
 	 */
 	public function insert () {
-		Utility::encodeLink($this);
+		\Kiwi\Utility::encodeLink($this);
 		$this->validateGenes();
 
 		if (!$this->id) {
 			$this->id = $this->hash;
 		}
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (parent::insert() && History::record($this, "add") && MetaData::track($this)) {
 			$conn->commit();
@@ -110,11 +110,11 @@ class Operon extends Model {
 	 * @return boolean true if successful, false if not
 	 */
 	public function update () {
-		Utility::encodeLink($this);
+		\Kiwi\Utility::encodeLink($this);
 		$this->validateGenes();
 
 		$this->lastUpdate = date("Y-m-d H:i:s");
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (parent::update() && History::record($this, "update")) {
 			$conn->commit();
@@ -126,10 +126,10 @@ class Operon extends Model {
 	}
 
 	public function replace () {
-		Utility::encodeLink($this);
+		\Kiwi\Utility::encodeLink($this);
 		$this->validateGenes();
 
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (parent::replace(["id", "count"]) && History::record($this, "update") && MetaData::track($this)) {
 			$conn->commit();
@@ -146,7 +146,7 @@ class Operon extends Model {
 	 */
 	public function delete () {
 		if ($this->id) {
-			$conn = Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$conn->beginTransaction();
 			if (History::record($this, "remove") && parent::delete()) {
 				$conn->commit();

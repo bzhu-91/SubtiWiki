@@ -1,6 +1,6 @@
 <?php
-class Category extends Model {
-	use ReferenceCache;
+class Category extends \Kiwi\Model {
+	use \Kiwi\ReferenceCache;
 
 	static $tableName = "Category";
 	static $relationships = [
@@ -123,7 +123,7 @@ class Category extends Model {
 	 */
 	public function countGenesAll() {
 		if($this->id){
-			$conn = Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$sql = "select count(gene) as count from ".static::$relationships["genes"]["tableName"]." where category like ?";
 			$result = $conn->doQuery($sql, [$this->id."%"]);
 			if ($result) {
@@ -193,10 +193,10 @@ class Category extends Model {
 	public function addChildCategory (Category $child) {
 		if ($this->id && $child->title) {
 			if (Category::simpleValidate($child->title)) {
-				throw new ConstraintViolatedException("category with title ".$child->title." already exists", 1);
+				throw new \Kiwi\ConstraintViolatedException("category with title ".$child->title." already exists", 1);
 			} else {
 				if ($this->has("genes")) {
-					throw new ConstraintViolatedException("Category ".$this->title." has genes assigned to it.", 1);
+					throw new \Kiwi\ConstraintViolatedException("Category ".$this->title." has genes assigned to it.", 1);
 				} else {
 					$this->fetchChildCategories();
 					if ($this->children) {
@@ -237,7 +237,7 @@ class Category extends Model {
 					$changeList = array_slice($oldIds, $index+1);
 
 					// use transactions to keep everything in order
-					$conn = Application::$conn;
+					$conn = \Kiwi\Application::$conn;
 					$conn->beginTransaction();
 					History::record($child, "remove");
 					// try remove child
@@ -289,7 +289,7 @@ class Category extends Model {
 			if ($old->title !== $this->title && Category::simpleValidate($this->title)) {
 				throw new ConstraintViolatedException("Category with name ".$this->title." already exists.", 1);
 			}
-			$conn = Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$conn->beginTransaction();
 
 			// update the duplicated categories
@@ -343,7 +343,7 @@ class Category extends Model {
 	 * @return  boolean true if successful, false if failed
 	 */
 	public function addGene (Gene $gene, $data) {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 
 		$result = $this->simpleAddGene($gene, $data);
@@ -382,7 +382,7 @@ class Category extends Model {
 	 * @return boolean       true if succesful, false if otherwise
 	 */
 	public function removeGene (Gene $gene) {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 
 		$result = $this->simpleRemoveGene($gene);

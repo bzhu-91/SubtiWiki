@@ -56,16 +56,22 @@ $(document).on("submit", "#email", function(ev) {
 	ev.preventDefault(ev);
 	ev.stopPropagation();
 
-	var form = $("#invitation")[0];
-	
 	invitation.body = this.body.value.trim();
 	invitation.sendEmail = !this.sendEmail.checked;
+
+	var keys = ["body", "email", "token", "type", "name"];
+	var data = {};
+	for (let i = 0; i < keys.length; i++) {
+		const key = keys[i];
+		data[key] = invitation[key];
+		
+	}
 
 	$.ajax({
 		type:"post",
 		url: "user/invitation",
 		dataType:"json",
-		data: invitation,
+		data: data,
 		statusCode: {
 			201: function (data) {
 				SomeLightBox.alert("Success", data.message);

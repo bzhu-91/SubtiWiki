@@ -7,14 +7,14 @@
  * the pure data part got saved in the table, and the structure will be processed (merged with other structures to keep all entries from the same table compatible with each other) and saved in the MetaData table
  * This is the necessary evil we must accept to make data manipulation on the SQL level possible.
  */
-class MetaData extends Model {
+class MetaData extends \Kiwi\Model {
 	static $tableName = "MetaData";
 	static $primaryKeyName = "className";
 
 	public $scheme = [];
 
 	public static function insertKeyValuePair (&$object, $keypath, $value) {
-		if (is_string($keypath) || is_array($keypath)) $keypath = new KeyPath($keypath);
+		if (is_string($keypath) || is_array($keypath)) $keypath = new \Kiwi\KeyPath($keypath);
 		// find possible previous one
 		$className = get_class($object);
 		$meta = self::get($className);
@@ -22,7 +22,7 @@ class MetaData extends Model {
 			$scheme = $meta->scheme;
 			$previousCandidates = []; 
 			foreach($scheme as &$each) {
-				$each->path = new KeyPath($each->path);
+				$each->path = new \Kiwi\KeyPath($each->path);
 				if ($each->path->equalsTo($keypath)) {
 					break;
 				} else {
@@ -39,7 +39,7 @@ class MetaData extends Model {
 			}
 			if ($previous) {
 				// compare the previous and current keypath
-				$after = new KeyPath;
+				$after = new \Kiwi\KeyPath;
 				for($i = 0; $i < $previous->length(); $i++) {
 					$after = $after->push($previous->segmentAt($i));
 					if ($previous->segmentAt($i) == $keypath->segmentAt($i)) {
@@ -48,7 +48,7 @@ class MetaData extends Model {
 						break;
 					}
 				}
-				Utility::insertAfter($object, $keypath, $value, $after);
+				\Kiwi\Utility::insertAfter($object, $keypath, $value, $after);
 			} else {
 				$keypath->set($object, $value);
 			}
@@ -99,7 +99,7 @@ class MetaData extends Model {
 				foreach ($structure as $each) {
 					if (!self::hasPath($each, $meta->scheme)) {
 						$anomalies[] = $object;
-						Log::debug($each);
+						\Kiwi\Log::debug($each);
 						continue;
 					}
 				}
@@ -162,13 +162,13 @@ class MetaData extends Model {
 		if ($meta) {
 			$template = array_column($meta->scheme, "path");
 			foreach ($template as $path) {
-				$keypath = new KeyPath($path);
+				$keypath = new \Kiwi\KeyPath($path);
 				$val = $keypath->get($object);
-				if (!is_null($val) && !is_object($val) && !(is_array($val) && Utility::isAssociateArray($val))) {
+				if (!is_null($val) && !is_object($val) && !(is_array($val) && \Kiwi\Utility::isAssociateArray($val))) {
 					$sorted[(string) $keypath] = $val;
 				}
 			}
-			return Utility::inflate($sorted);
+			return \Kiwi\Utility::inflate($sorted);
 		}
 	}
 
@@ -180,12 +180,12 @@ class MetaData extends Model {
 		$sorted = [];
 		if ($meta) {
 			foreach ($meta->scheme as $entry) {
-				$keypath = new KeyPath($entry->path);
+				$keypath = new \Kiwi\KeyPath($entry->path);
 				$val = $keypath->get($object);
 				// exclude the situation when $val is an obj (assoc. array)
 				// so that the template could be compatible?
 				if (!is_null($val)) {
-					if (!Utility::isAssociateArray($val)) {
+					if (!\Kiwi\Utility::isAssociateArray($val)) {
 						$sorted[(string) $keypath] = $val;
 					}
 				} elseif (!$entry->ignore) {
@@ -199,11 +199,11 @@ class MetaData extends Model {
 					}
 				}
 			}
-			return Utility::inflate($sorted, true); // use strict mode
+			return \Kiwi\Utility::inflate($sorted, true); // use strict mode
 		}
 	}
 
-	// deflate the object, different from Utility::deflate, multidimentional array is not allowed
+	// deflate the object, different from \Kiwi\::deflate, multidimentional array is not allowed
 	public static function deflate ($object, $keypath = []) {
 		$result = [];
 		foreach ($object as $key => $value) {
@@ -217,7 +217,7 @@ class MetaData extends Model {
 							"path"=> $keypath,
 							"type"=> "b"
 						];
-					} else throw new BaseException("multidimentional array found");
+					} else throw new \Kiwi\BaseException("multidimentional array found");
 				} else {
 					$result[] = (object) [
 						"path"=> $keypath,
@@ -342,7 +342,7 @@ class MetaData extends Model {
 				$a = $alignment[$i];
 				$b = $alignment[$j];
 				if (self::pathEqual($a->path, $b->path)) {
-					Log::debug($a->path);
+					\Kiwi\Log::debug($a->path);
 					return false;
 				}
 			}

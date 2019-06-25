@@ -1,12 +1,12 @@
 <?php
-class History extends Model {
+class History extends \Kiwi\Model {
 	static $tableName = "History";
 	static $primaryKeyName = "commit";
 
 	public static function record ($obj, $operation){
 		$className = get_class($obj);
 		$record = null;
-		if (is_subclass_of($obj, "Model")) {
+		if (is_subclass_of($obj, "\Kiwi\Model")) {
 			switch ($operation) {
 				case "add":
 					$record = clone $obj;
@@ -16,7 +16,7 @@ class History extends Model {
 					$record = $className::raw($obj->{$className::$primaryKeyName});
 					break;
 			}
-		} else if ($obj instanceof Relationship || is_subclass_of($obj, "Relationship")) {
+		} else if ($obj instanceof \Kiwi\Relationship || is_subclass_of($obj, "\Kiwi\Relationship")) {
 			switch ($operation) {
 				case "add":
 					$record = $obj;
@@ -26,10 +26,10 @@ class History extends Model {
 					$record = $obj->raw();
 					break;
 			}
-		} else throw new BaseException("object is not an instance of Model or Relationship");
+		} else throw new \Kiwi\BaseException("object is not an instance of Model or Relationship");
 
 		if ($record) {
-			if (is_subclass_of($record, "Model")) {
+			if (is_subclass_of($record, "\Kiwi\Model")) {
 				$origin = lcfirst($className);
 				$identifer = $record->{$className::$primaryKeyName};
 			} else {
@@ -44,7 +44,7 @@ class History extends Model {
 				"user" => User::getCurrent()->name,
 				"record" => json_encode($record->getData()),
 			];
-			$conn = Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			return $conn->insert(self::$tableName, $data);
 		} else return false;
 	}
@@ -108,7 +108,7 @@ class History extends Model {
 	}
 
 	public static function parse ($str) {
-		$current = Model::parse($str);
+		$current = \Kiwi\Model::parse($str);
 		if ($current) return $current;
 		else {
 			preg_match_all("/\{(\w+?)\|([^\[\]\|]+?)\}/i", $str, $matches);

@@ -36,15 +36,18 @@ $(document).ready(function(){
 	})();
 	// interactions
 	(function(){
-		var view = $('<h3>Interactions</h3><div style="margin-top: 10px; width: 100%;"></div><div></div><br><br>');
+		var $view = $('<h3>Interactions</h3><div style="margin-top: 10px; width: 100%;"></div><div></div><br><br>');
 		$.ajax({
 			url: "interaction?radius=1&gene=" + geneId,
 			dataType:"json",
 			success: function (data) {
-				$("#interaction-diagram").append(view);
+				$("#interaction-diagram").append($view);
 				for (var i = 0; i < data.nodes.length; i++) {
 					data.nodes[i].label = ucfirst(data.nodes[i].title);
 				}
+				data.edges = data.edges.filter(function(edge){
+					return edge.from == geneId || edge.to == geneId;
+				});
 				for (var i = 0; i < data.edges.length; i++) {
 					if (data.edges[i].description) data.edges[i].color = "green";
 				}
@@ -59,7 +62,7 @@ $(document).ready(function(){
 					}
 				};
 				var dataSet = new Interactome.dataSet(data.nodes, data.edges);
-				var diagram = new Interactome.diagram(view[1], dataSet, options);
+				var diagram = new Interactome.diagram($view[1], dataSet, options);
 				diagram.on("mouseover", function(ev){
 					if (ev.currentNode) {
 						ev.currentNode.highlight();
@@ -103,7 +106,7 @@ $(document).ready(function(){
 									var matches = regex.exec(desc.join(",").trim());
 									window.open("https://www.ncbi.nlm.nih.gov/pubmed/" + matches[1]);
 								} else {
-									view[2].innerHTML = "<p>" + edge.from.label + "-" + edge.to.label + "</p>" + parseMarkup(desc.join('<br/>'));
+									$view[2].innerHTML = "<p>" + edge.from.label + "-" + edge.to.label + "</p>" + parseMarkup(desc.join('<br/>'));
 								}
 							}
 						}

@@ -1,8 +1,10 @@
 <?php
+namespace Kiwi;
+
 /**
  * BaseException
  */
-class BaseException extends Exception {
+class BaseException extends \Exception {
 	public function __toString () {
 		return get_called_class()."\nMessage: ".$this->getMessage()."\n".$this->getTraceAsString();
 	}
