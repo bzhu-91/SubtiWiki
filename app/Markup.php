@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 trait Markup {
 	public function toLinkMarkup () {
 		return "[".lcfirst(get_called_class())."|".$this->id."|".$this->title."]";
@@ -25,7 +25,7 @@ trait Markup {
 		if (!empty($matches)) {
 			$className = ucfirst($matches[1][0]);
 			try {
-				if (class_exists($className) && is_subclass_of($className, "\Monkey\Model")) {
+				if (class_exists($className) && is_subclass_of($className, "\Kiwi\Model")) {
 					return $className::simpleGet($matches[2][0]);
 				}
 			} catch (Exception $e) {

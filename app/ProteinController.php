@@ -26,11 +26,11 @@ class ProteinController extends GeneController {
 				$paralogues = $protein->has("paralogues");
 			} else {
 				if ($accept == HTML_PARTIAL) {
-					$view = \Monkey\View::loadFile("paralogue.editor.blank.tpl");
+					$view = \Kiwi\View::loadFile("paralogue.editor.blank.tpl");
 					$view->set("updateMode", "replace");
 					$this->respond($view, 200, HTML_PARTIAL);
 				} else {
-					$view = \Monkey\View::loadFile("layout2.tpl");
+					$view = \Kiwi\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Add paralogue:",
 						"headerTitle" => "Add paralogue:",
@@ -44,8 +44,8 @@ class ProteinController extends GeneController {
 			if ($paralogues) {
 				$content = "";
 				foreach ($paralogues as $paralogue) {
-					\Monkey\Utility::decodeLinkForEdit($paralogue);
-					$view = \Monkey\View::loadFile("paralogue.editor.tpl");
+					\Kiwi\Utility::decodeLinkForEdit($paralogue);
+					$view = \Kiwi\View::loadFile("paralogue.editor.tpl");
 					$view->set($paralogue);
 					$view->restPrintingStyle = "monkey";
 					$view->set([
@@ -56,7 +56,7 @@ class ProteinController extends GeneController {
 				if ($accept == HTML_PARTIAL) {
 					$this->respond($content, 200, HTML_PARTIAL);
 				} else {
-					$view = \Monkey\View::loadFile("layout2.tpl");
+					$view = \Kiwi\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Edit paralogue:",
 						"headerTitle" => "Edit paralogue:",
@@ -135,7 +135,7 @@ class ProteinController extends GeneController {
 				$id = $this->filter($input, "id", "is_numeric", ["Invalid id", 400, $accept]);
 				$paralogue = Gene::hasPrototype("paralogues");
 				$paralogue->id = $id;
-				if (\Monkey\Application::$conn->transaction(function() use ($paralogue) {
+				if (\Kiwi\Application::$conn->transaction(function() use ($paralogue) {
 					return History::record($paralogue, "remove") && $paralogue->delete();
 				})) {
 					$this->respond(null, 204, JSON);
@@ -156,7 +156,7 @@ class ProteinController extends GeneController {
 			// validate user input
 			$tableName = Protein::hasPrototype("paralogues")->tableName;
 			$mode = $this->filter($input, "mode", "/^(replace)|(append)$/i");
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$cols = $conn->getColumnNames($tableName);
 			if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			if (!$mode) $errors[] = "Mode is required";
@@ -172,7 +172,7 @@ class ProteinController extends GeneController {
 					$row = explode("\t", $row);
 				}
 				$header = array_shift($table);
-				$conn = \Monkey\Application::$conn;
+				$conn = \Kiwi\Application::$conn;
 
 				// check headers
 				$required = ["prot1", "prot2"];
@@ -221,7 +221,7 @@ class ProteinController extends GeneController {
 				$errors[] = "Import successful";
 			}
 		}
-		$view = \Monkey\View::loadFile("layout1.tpl");
+		$view = \Kiwi\View::loadFile("layout1.tpl");
 		$view->set([
 			"title" => "Importer for paralogous proteins",
 			"pageTitle" => "Importer for paralogous proteins",

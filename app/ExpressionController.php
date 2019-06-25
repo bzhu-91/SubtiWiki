@@ -1,7 +1,7 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class ExpressionController extends \Monkey\Controller {
+class ExpressionController extends \Kiwi\Controller {
 	public function read ($input, $accept){
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i");
 		$condition = $this->filter($input, "condition", "/^\d+$/i");
@@ -11,7 +11,7 @@ class ExpressionController extends \Monkey\Controller {
 		$sampling = $this->filter($input, "sampling", "^\d+$");
 		
 		if ($accept == HTML) {
-			$view = \Monkey\View::loadFile("layout2.tpl");
+			$view = \Kiwi\View::loadFile("layout2.tpl");
 			$view->set([
 				"pageTitle" => "Expression Browser",
 				"headerTitle" => "Expression Browser",
@@ -100,7 +100,7 @@ class ExpressionController extends \Monkey\Controller {
 					$this->respond($data, 200, JSON);
 				} elseif($accept == CSV) {
 					$delimiter = $input["delimiter"] ? $input["delimiter"] : ",";
-					$this->respond(\Monkey\Utility::encodeCSV($csvData, $delimiter, null), 200, CSV);
+					$this->respond(\Kiwi\Utility::encodeCSV($csvData, $delimiter, null), 200, CSV);
 				} else {
 					$this->error("Unaccepted", 406, $accept);
 				}
@@ -226,7 +226,7 @@ class ExpressionController extends \Monkey\Controller {
 			if ($condition == null || Expression::deleteCondition($condition)) {
 				$this->respond(null, 204, JSON);
 			} else {
-				$this->error("An internal error has happened: ".\Monkey\Application::$conn->lastError, 500, JSON);
+				$this->error("An internal error has happened: ".\Kiwi\Application::$conn->lastError, 500, JSON);
 			}
 		} else $this->error("Unaccepted", 406, $accept);
 	}
@@ -244,7 +244,7 @@ class ExpressionController extends \Monkey\Controller {
 				if ($con->replace()) {
 					$this->respond(["uri" => "expression/viewer?id=$id"], 200, JSON);
 				} else {
-					$this->error("An internal error has happened: ".\Monkey\Application::$conn->lastError, 500, JSON);
+					$this->error("An internal error has happened: ".\Kiwi\Application::$conn->lastError, 500, JSON);
 				}
 			} else $this->error("Not found", 404, JSON);
 		} else $this->error("Unaccepted", 406, $accept);
@@ -270,7 +270,7 @@ class ExpressionController extends \Monkey\Controller {
 	public function importer ($input, $accept, $method) {
 		UserController::authenticate(3, $accept);
 		if ($method == "GET" && $accept == HTML) {
-			$view = \Monkey\View::loadFile("layout2.tpl");
+			$view = \Kiwi\View::loadFile("layout2.tpl");
 			$view->set($input);
 			$view->set($_SESSION["forImporter"]);
 			unset($_SESSION["forImporter"]);
@@ -309,7 +309,7 @@ class ExpressionController extends \Monkey\Controller {
 			}
 
 			$currentPage = array_slice($all, $pageSize*($page-1), $pageSize);
-			$view = \Monkey\View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set([
 				"showFootNote" => "none",
 				"pageTitle" => "All expression data sets (page $page)",
@@ -349,14 +349,14 @@ class ExpressionController extends \Monkey\Controller {
 				}
 				array_unshift($data, ["position", "+ strand", "- strand"]);
 			}
-			$view = \Monkey\View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set($dataSet);
 			$view->set([
 				"pageTitle" => "Data set: ".$dataSet->title,
 				"showFootNote" => "none",
 				"content" => "{{expression.viewer.tpl}}",
 				"pubmed" => $dataSet->pubmed ? "[pubmed|{$dataSet->pubmed}]" : "",
-				"data" => \Monkey\Utility::encodeCSV($data,",\t",null),
+				"data" => \Kiwi\Utility::encodeCSV($data,",\t",null),
 				"navlinks" => [
 					["href" => "expression/list", "innerHTML" => "All data sets"],
 				],
@@ -375,7 +375,7 @@ class ExpressionController extends \Monkey\Controller {
 			$id = $this->filter($input, "id", "/^\d+$/", ["Id is required", 400, JSON]);
 			$dataSet = Expression::getCondition($id);
 			if ($dataSet) {
-				$view = \Monkey\View::loadFile("layout2.tpl");
+				$view = \Kiwi\View::loadFile("layout2.tpl");
 				$view->set($dataSet);
 				$view->set([
 					"headerTitle" => "Update expression data set",

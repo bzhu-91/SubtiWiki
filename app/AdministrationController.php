@@ -1,11 +1,11 @@
 <?php
 require_once("ViewAdapters.php");
 
-class AdministrationController extends \Monkey\Controller {
+class AdministrationController extends \Kiwi\Controller {
 	public function read ($input, $accept) {
 		if ($accept == HTML) {
 			UserController::authenticate(2,HTML);
-			$view = \Monkey\View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set([
 				"content" => "{{administration.view.tpl}}",
 				"title" => "Administration",
@@ -40,7 +40,7 @@ class AdministrationController extends \Monkey\Controller {
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{gene.import.tpl}}"
@@ -55,7 +55,7 @@ class AdministrationController extends \Monkey\Controller {
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{gene.import.tpl}}"
@@ -91,7 +91,7 @@ class AdministrationController extends \Monkey\Controller {
 							/*if($table[$i]["title"]==""){
 								$table[$i]["title"] = $table[$i]["locus"];
 							}*/
-							$conn = \Monkey\Application::$conn;
+							$conn = \Kiwi\Application::$conn;
 							$result[$i] = $conn->insert($input["tableName"], $table[$i]);
 							if(!$result[$i]){
 								Log::debug($table[$i]);
@@ -112,10 +112,10 @@ class AdministrationController extends \Monkey\Controller {
 							} else if($input["insertType"] == "scalar"){
 								$vals = $rowVals[1];
 							} else $this->error("No insert data type selected!", 404, HTML);
-							$gene = \Monkey\Application::$conn->select($input["tableName"], "*", $ident);
+							$gene = \Kiwi\Application::$conn->select($input["tableName"], "*", $ident);
 							if($input["after"]){
 								try {
-									\Monkey\Utility::insertAfter($gene[0], $insertKey, $vals, $input["after"]);
+									\Kiwi\Utility::insertAfter($gene[0], $insertKey, $vals, $input["after"]);
 								} catch(BaseException $e){
 									Log::debug($gene->locus." ".$e->getMessage());
 									continue;
@@ -124,7 +124,7 @@ class AdministrationController extends \Monkey\Controller {
 								$gene[0][$insertKey] = $vals;
 							}
 							if($gene[0] != null){
-								$result = \Monkey\Application::$conn->update($input["tableName"], $gene[0], $ident);
+								$result = \Kiwi\Application::$conn->update($input["tableName"], $gene[0], $ident);
 								if(!$result){
 									Log::debug($gene->locus);
 								}
@@ -134,7 +134,7 @@ class AdministrationController extends \Monkey\Controller {
 					} else $this->error("Select 'Replace' or 'Merge'", 404, HTML);
 				$this->respond($view, 200, HTML);
 			case JSON:
-				$view = \Monkey\View::loadFile("layout1.tpl");
+				$view = \Kiwi\View::loadFile("layout1.tpl");
 				$view->set([
 					"pageTitle" => "Import",
 					"content" => "{{gene.import.tpl}}"
@@ -149,7 +149,7 @@ class AdministrationController extends \Monkey\Controller {
 		UserController::authenticate(3, $accept);
 		if ($method == "GET" && $accept == JSON) {
 			$tableName = $this->filter($input, "tableName", "has", ["Table name is required", 400, $accept]);
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			if ($conn->getColumnNames($tableName)) {
 				$added = MetaData::fix($tableName);
 				if ($added) {
@@ -173,7 +173,7 @@ class AdministrationController extends \Monkey\Controller {
 			$mode = $this->filter($input, "mode", "/^(replace)|(patch)$/i");
 			// check the existence of the table
 			if ($tableName) {
-				$conn = \Monkey\Application::$conn;
+				$conn = \Kiwi\Application::$conn;
 				$cols = $conn->getColumnNames($tableName);
 				if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			} else $errors[] = "Table name is required";
@@ -210,7 +210,7 @@ class AdministrationController extends \Monkey\Controller {
 			}
 			if (empty($errors)) $errors[] = "Import successful";
 		}
-		$view = \Monkey\View::loadFile("layout1.tpl");
+		$view = \Kiwi\View::loadFile("layout1.tpl");
 		$view->set([
 			"title" => "General importer",
 			"pageTitle" => "General importer",
@@ -238,7 +238,7 @@ class AdministrationController extends \Monkey\Controller {
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{expression.import.tpl}}"
@@ -253,7 +253,7 @@ class AdministrationController extends \Monkey\Controller {
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{expression.import.tpl}}"
@@ -269,7 +269,7 @@ class AdministrationController extends \Monkey\Controller {
 					foreach($fileArray as $key => $value){
 						if($key == "condition"){
 							$table_name = "Condition";
-							$conn = \Monkey\Application::$conn;
+							$conn = \Kiwi\Application::$conn;
 							$result[] = $conn->insert($table_name, $value);
 						}else if($key == "data"){
 							if($fileArray["condition"]["type"] == "T"){
@@ -281,14 +281,14 @@ class AdministrationController extends \Monkey\Controller {
 								$dataArray["con".$fileArray["condition"]["id"]] = $subvalue;
 								$dataArray["locus"] = $subkey;
 								$where = array("locus" => $subkey);
-								$conn = \Monkey\Application::$conn;
+								$conn = \Kiwi\Application::$conn;
 								$result[] = $conn->update($table_name, $dataArray, $where);
 							}
 						}
 					}
 					$this->respond($view, 200, HTML);
 				case JSON:
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Import",
 						"content" => "{{expression.import.tpl}}"
@@ -305,7 +305,7 @@ class AdministrationController extends \Monkey\Controller {
 		if ($accept != HTML) {
 			$this->error("Unaccaptable", 405, $accept);
 		}
-		$view = \Monkey\View::loadFile("layout1.tpl");
+		$view = \Kiwi\View::loadFile("layout1.tpl");
 		$allUsers = User::getAll(1);
 		$view->set([
 			"showFootNote" => "none",
@@ -327,8 +327,8 @@ class AdministrationController extends \Monkey\Controller {
 			$className = $this->filter($input, "className", "has", ["Class name is required", 400, $accept]);
 			$meta = MetaData::get($className);
 			if ($meta) {
-				\Monkey\Utility::decodeLinkForEdit($meta);
-				$view = \Monkey\View::loadFile("layout2.tpl");
+				\Kiwi\Utility::decodeLinkForEdit($meta);
+				$view = \Kiwi\View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Edit template: ".$className,
 					"headerTitle" => "Edit template: ".$className,
@@ -343,7 +343,7 @@ class AdministrationController extends \Monkey\Controller {
 				$this->respond($view, 200, HTML);	
 			} else {
 				try {
-					$view = \Monkey\View::loadFile("layout2.tpl");
+					$view = \Kiwi\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Edit template: ".$className,
 						"headerTitle" => "Edit template: ".$className,

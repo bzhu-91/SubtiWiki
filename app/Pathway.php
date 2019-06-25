@@ -1,9 +1,9 @@
 <?php
-class Pathway extends \Monkey\Model {
+class Pathway extends \Kiwi\Model {
     static $tableName = "Pathway";
 
     public function update () {
-        $conn = \Monkey\Application::$conn;
+        $conn = \Kiwi\Application::$conn;
         if ($this->id) {
             $conn->beginTransaction();
             if (History::record($this, "update") && parent::update()) {
@@ -17,7 +17,7 @@ class Pathway extends \Monkey\Model {
     }
 
     public function insert () {
-        $conn = \Monkey\Application::$conn;
+        $conn = \Kiwi\Application::$conn;
         if ($this->title) {
             $conn->beginTransaction();
             if (parent::insert() && History::record($this, "add")) {
@@ -35,7 +35,7 @@ class Pathway extends \Monkey\Model {
      * @return true/false 
      */
     public function setReactions ($reactions) {
-        $conn = \Monkey\Application::$conn;
+        $conn = \Kiwi\Application::$conn;
         if ($this->id && $reactions) {
             $conn->beginTransaction();
             $sql = "delete from ReactionPathway where pathway = ?";

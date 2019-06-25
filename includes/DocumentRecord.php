@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 
 /**
  * This class implements the virtualization mentioned in the "Document of the database structure".

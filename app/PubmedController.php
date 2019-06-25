@@ -1,6 +1,6 @@
 <?php
 require_once ("ViewAdapters.php");
-class PubmedController extends \Monkey\Controller {
+class PubmedController extends \Kiwi\Controller {
 	public function read ($input, $accept) {
 		if ($input) {
 			if (array_key_exists("ids", $input)) {
@@ -71,7 +71,7 @@ class PubmedController extends \Monkey\Controller {
 				$content = "Not found";
 			}
 		}
-		$view = \Monkey\View::loadFile("layout1.tpl");
+		$view = \Kiwi\View::loadFile("layout1.tpl");
 		$view->set([
 			"result" => $content, 
 			"content" => "{{pubmed.search.tpl}}", 
@@ -97,7 +97,7 @@ class PubmedController extends \Monkey\Controller {
 					foreach ($citations as $citation) {
 						$reports .= $citation->report;
 					}
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"reports" => $reports, 
 						"content" => "{{pubmed.list.tpl}}", 

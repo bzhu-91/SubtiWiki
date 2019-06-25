@@ -1,7 +1,7 @@
 <?php 
 require_once("ViewAdapters.php");
 
-class InteractionController extends \Monkey\Controller {
+class InteractionController extends \Kiwi\Controller {
 	public function read ($input, $accept) {
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i");
 		$radius = $this->filter($input, "radius", "is_numeric");
@@ -15,12 +15,12 @@ class InteractionController extends \Monkey\Controller {
 			foreach ($data["nodes"] as $key => &$gene) {
 				$gene = Gene::simpleGet($gene->id);
 			}
-			$data["nodes"] = \Monkey\Utility::arrayColumns($data["nodes"], ["id", "title"]);
-			\Monkey\Utility::decodeLinkForView($data["edges"]);
+			$data["nodes"] = \Kiwi\Utility::arrayColumns($data["nodes"], ["id", "title"]);
+			\Kiwi\Utility::decodeLinkForView($data["edges"]);
 		}
 		switch ($accept) {
 			case HTML:
-				$view = \Monkey\View::loadFile("layout2.tpl");
+				$view = \Kiwi\View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Interaction Browser",
 					"headerTitle" => "Interaction Browser",
@@ -64,7 +64,7 @@ class InteractionController extends \Monkey\Controller {
 		switch ($accept) {
 			case HTML:
 			$count = $proto->count();
-			$view = \Monkey\View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set([
 				"title" => "All interactions (page $page)",
 				"content" => "{{interaction.list.tpl}}",
@@ -90,8 +90,8 @@ class InteractionController extends \Monkey\Controller {
 			break;
 			case JSON:
 				foreach($all as &$interaction) {
-					$interaction->prot1 = \Monkey\Utility::arrayColumns($interaction->prot1, ["id", "title", "locus"]);
-					$interaction->prot2 = \Monkey\Utility::arrayColumns($interaction->prot2, ["id", "title", "locus"]);
+					$interaction->prot1 = \Kiwi\Utility::arrayColumns($interaction->prot1, ["id", "title", "locus"]);
+					$interaction->prot2 = \Kiwi\Utility::arrayColumns($interaction->prot2, ["id", "title", "locus"]);
 				}
 				if ($all) $this->respond($all, 200, JSON);
 				else $this->error("Not found", 404, JSON);
@@ -164,7 +164,7 @@ class InteractionController extends \Monkey\Controller {
 			case JSON:
 				$id = $this->filter($input, "id", "is_numeric", ["Invalid id", 400, JSON]);
 				$interaction = Interaction::withData($input);
-				\Monkey\Utility::encodeLink($interaction);
+				\Kiwi\Utility::encodeLink($interaction);
 				if ($interaction->update()) {
 					$this->respond(null, 200, JSON);
 				} else {
@@ -195,11 +195,11 @@ class InteractionController extends \Monkey\Controller {
 			} else {
 				// if no argument is given, simply give the blank page
 				if ($accept == HTML_PARTIAL) {
-					$view = \Monkey\View::loadFile("interaction.editor.blank.tpl");
+					$view = \Kiwi\View::loadFile("interaction.editor.blank.tpl");
 					$view->set("updateMode", "replace");
 					$this->respond($view, 200, HTML_PARTIAL);
 				} else {
-					$view = \Monkey\View::loadFile("layout2.tpl");
+					$view = \Kiwi\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Add interaction:",
 						"headerTitle" => "Add interaction:",
@@ -213,8 +213,8 @@ class InteractionController extends \Monkey\Controller {
 			if ($interactions) {
 				$content = "";
 				foreach ($interactions as $interaction) {
-					\Monkey\Utility::decodeLinkForEdit($interaction);
-					$segment = \Monkey\View::loadFile("interaction.editor.tpl");
+					\Kiwi\Utility::decodeLinkForEdit($interaction);
+					$segment = \Kiwi\View::loadFile("interaction.editor.tpl");
 					$segment->set($interaction);
 					$segment->restPrintingStyle = "monkey";
 					$segment->set([
@@ -225,7 +225,7 @@ class InteractionController extends \Monkey\Controller {
 				if ($accept == HTML_PARTIAL) {
 					$this->respond($content, 200, HTML_PARTIAL);
 				} else {
-					$view = \Monkey\View::loadFile("layout2.tpl");
+					$view = \Kiwi\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Edit interaction:",
 						"headerTitle" => "Edit interaction:",
@@ -262,7 +262,7 @@ class InteractionController extends \Monkey\Controller {
 							$row->prot2->title
 						];
 					}	
-					$this->respond(\Monkey\Utility::encodeCSV($csv), 200, CSV);
+					$this->respond(\Kiwi\Utility::encodeCSV($csv), 200, CSV);
 					break;
 				case JSON:
 					$json = [];
@@ -294,7 +294,7 @@ class InteractionController extends \Monkey\Controller {
 			// validate user input
 			$tableName = Interaction::$tableName;
 			$mode = $this->filter($input, "mode", "/^(replace)|(append)$/i");
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$cols = $conn->getColumnNames($tableName);
 			if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			if (!$mode) $errors[] = "Mode is required";
@@ -310,7 +310,7 @@ class InteractionController extends \Monkey\Controller {
 					$row = explode("\t", $row);
 				}
 				$header = array_shift($table);
-				$conn = \Monkey\Application::$conn;
+				$conn = \Kiwi\Application::$conn;
 
 				// check headers
 				$required = ["prot1", "prot2"];
@@ -359,7 +359,7 @@ class InteractionController extends \Monkey\Controller {
 				$errors[] = "Import successful";
 			}
 		}
-		$view = \Monkey\View::loadFile("layout1.tpl");
+		$view = \Kiwi\View::loadFile("layout1.tpl");
 		$view->set([
 			"title" => "Importer for interaction",
 			"pageTitle" => "Importer for interaction",

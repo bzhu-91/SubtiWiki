@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 
 /**
  * This class is a wrap-around of the PDO class. Magic function __call is implement to "inherit" all methods from PDO

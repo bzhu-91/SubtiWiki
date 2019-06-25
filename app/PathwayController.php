@@ -1,7 +1,7 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class PathwayController extends \Monkey\Controller {
+class PathwayController extends \Kiwi\Controller {
 	public function read ($input, $accept) {
 		$id = $this->filter($input, "id", "is_numeric");
 		$proteinId = $this->filter($input, "protein", "/^[a-f0-9]{40}$/i");
@@ -10,7 +10,7 @@ class PathwayController extends \Monkey\Controller {
 				$id = 1;
 			}
 			$pathway = Pathway::get($id);
-			$view = \Monkey\View::loadFile("layout2.tpl");
+			$view = \Kiwi\View::loadFile("layout2.tpl");
 			$view->set($pathway);
 			$view->set([
 				"pageTitle" => "Pathway browser",
@@ -20,7 +20,7 @@ class PathwayController extends \Monkey\Controller {
 				"styles" => ["browser", "pathway"],
 				"vars" => [
 					"pathwayId" => $id,
-					"pathways" => \Monkey\Utility::arrayColumns(Pathway::getAll(1), ["id", "title"]),
+					"pathways" => \Kiwi\Utility::arrayColumns(Pathway::getAll(1), ["id", "title"]),
 					"conditions" => Expression::getConditions(),
 					"datasetDisplayMode" => $GLOBALS["DATASET_DISPLAY_MODE"]
 				],
@@ -54,7 +54,7 @@ class PathwayController extends \Monkey\Controller {
 				}
 			} else {
 				$allPathways = Pathway::getAll(1);
-				$data = \Monkey\Utility::arrayColumns($allPathways, ["id", "title"]);
+				$data = \Kiwi\Utility::arrayColumns($allPathways, ["id", "title"]);
 				$this->respond($data, 200, JSON);
 			}
 		}
@@ -64,7 +64,7 @@ class PathwayController extends \Monkey\Controller {
 		UserController::authenticate(1, $accept);
 		if ($accept == HTML && $method == "GET") {
 			$id = $this->filter($input, "id", "is_numeric");
-			$view = \Monkey\View::loadFile("layout4.tpl");
+			$view = \Kiwi\View::loadFile("layout4.tpl");
 			$view->set([
 				"headerTitle" => "Edit pathway",
 				"content" => "{{pathway.editor.tpl}}{{jsvars:vars}}",

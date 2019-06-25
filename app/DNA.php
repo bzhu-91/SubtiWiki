@@ -2,7 +2,7 @@
 /**
  * abstraction
  */
-class DNA extends \Monkey\Model {
+class DNA extends \Kiwi\Model {
 	public $subtype;
 	public $title;
 	public $id;
@@ -11,14 +11,14 @@ class DNA extends \Monkey\Model {
 	public static function get ($id) {
 		$className = get_called_class();
 		$instance = new $className;
-		if (\Monkey\Utility::startsWith($id, "gene")) {
+		if (\Kiwi\Utility::startsWith($id, "gene")) {
 			$gene = Gene::simpleGet(substr($id, 5));
 			if ($gene === null) return null;
 			$instance->id = $id;
 			$instance->subtype = "gene";
 			$instance->title = $gene->title;
 			return $instance;
-		} elseif (\Monkey\Utility::startsWith($id, "operon")) {
+		} elseif (\Kiwi\Utility::startsWith($id, "operon")) {
 			$operon = Operon::get(substr($id, 7));
 			if ($operon === null) return null;
 			$instance->id = $id;

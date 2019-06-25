@@ -1,10 +1,10 @@
 <?php
-class Wiki extends \Monkey\Model {
+class Wiki extends \Kiwi\Model {
     static $tableName = "Wiki";
 
     public function insert () {
         if ($this->title) {
-            $conn = \Monkey\Application::$conn;
+            $conn = \Kiwi\Application::$conn;
             $conn->beginTransaction();
             if (parent::insert() && History::record($this, "add")){
                 $conn->commit();
@@ -18,7 +18,7 @@ class Wiki extends \Monkey\Model {
     
     public function update () {
         if ($this->id && $this->title) {
-            $conn = \Monkey\Application::$conn;
+            $conn = \Kiwi\Application::$conn;
             $conn->beginTransaction();
             if (History::record($this, "update") && parent::update()){
                 $conn->commit();
@@ -32,7 +32,7 @@ class Wiki extends \Monkey\Model {
 
     public function delete () {
         if ($this->id && $this->title) {
-            $conn = \Monkey\Application::$conn;
+            $conn = \Kiwi\Application::$conn;
             $conn->beginTransaction();
             if (History::record($this, "remove") && parent::delete()){
                 $conn->commit();

@@ -84,8 +84,8 @@ class MetaboliteController extends Controller {
 				if ($error) {
 					$this->error($messages[$error], $error, JSON);
 				} else {
-					$results = \Monkey\Utility::arrayColumns($results, ["id", "title", "synonym"]);
-					\Monkey\Utility::decodeLinkForView($results);
+					$results = \Kiwi\Utility::arrayColumns($results, ["id", "title", "synonym"]);
+					\Kiwi\Utility::decodeLinkForView($results);
 					$this->respond($results, 200, JSON);
 				}
 				break;
@@ -120,7 +120,7 @@ class MetaboliteController extends Controller {
 				} else $this->error("Not found", 404, HTML);
 				break;
 			case JSON:
-				if ($metabolite) $this->respond(\Monkey\Utility::arrayColumns($metabolite, ["id", "title", "function"]), 200, JSON);
+				if ($metabolite) $this->respond(\Kiwi\Utility::arrayColumns($metabolite, ["id", "title", "function"]), 200, JSON);
 				else $this->error("Not found", 404, JSON);
 				break;
 		}
@@ -134,7 +134,7 @@ class MetaboliteController extends Controller {
 			$query = $this->filter($input, "query", "has", ["Invalid query", 400, JSON]);
 			$queries = explode(";", $query);
 			foreach ($queries as &$keypath) {
-				$keypath = new \Monkey\KeyPath($keypath);
+				$keypath = new \Kiwi\KeyPath($keypath);
 			}
 			if ($ids) {
 				$ids = explode(",", $ids);

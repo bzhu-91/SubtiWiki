@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 
 define("JSON", "JSON");
 define("HTML", "HTML");
@@ -71,21 +71,21 @@ class Router {
 		// gather data from post or get
 		$input = [];
 		foreach ($_GET as $key => $value) {
-			$input[$key] = \Monkey\Utility::autocast($value);
+			$input[$key] = \Kiwi\Utility::autocast($value);
 		}
 		foreach ($_POST as $key => $value) {
-			$input[$key] = \Monkey\Utility::autocast($value);
+			$input[$key] = \Kiwi\Utility::autocast($value);
 		}
 		foreach (self::getPutData() as $key => $value) {
-			$input[$key] = \Monkey\Utility::autocast($value);
+			$input[$key] = \Kiwi\Utility::autocast($value);
 		}
 		if (array_key_exists("data", $input)) {
 			foreach ($input["data"] as $key => $value) {
-				$input[$key] = \Monkey\Utility::autocast($value);
+				$input[$key] = \Kiwi\Utility::autocast($value);
 			}
 			unset($input["data"]);
 		}
-		\Monkey\Utility::clean($input);
+		\Kiwi\Utility::clean($input);
 		return $input;
 	}
 

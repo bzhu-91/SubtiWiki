@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 /**
  * This class implements active record pattern, see wiki page https://en.wikipedia.org/wiki/Active_record_pattern
  */

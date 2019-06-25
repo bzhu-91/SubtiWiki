@@ -1,7 +1,7 @@
 <?php
 require_once("ViewAdapters.php");
 
-class ReactionController extends Controller {
+class ReactionController extends \Kiwi\Controller {
 	
     public function read ($input, $accept) {
         if ($input) {
@@ -61,7 +61,7 @@ class ReactionController extends Controller {
 				];
 			}
 		}
-		$kps = \Monkey\Utility::deepWalk($reaction, function ($kp, &$val){
+		$kps = \Kiwi\Utility::deepWalk($reaction, function ($kp, &$val){
 			if (!$val->type) {
 				switch(get_class($val)){
 					case "Complex":
@@ -100,7 +100,7 @@ class ReactionController extends Controller {
 			case HTML:
 				if ($reactions) {
 					$count = Reaction::count();
-					$view = View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"title" => "All reactions (page $page)",
 						"pageTitle" => "All reactions (page $page)",
@@ -118,7 +118,7 @@ class ReactionController extends Controller {
 				} else $this->error("Not found", 404, HTML);
 				break;
 			case JSON:
-				if ($reactions) $this->respond(Utility::arrayColumns($reactions, ["id", "equation"]), 200, JSON);
+				if ($reactions) $this->respond(\Kiwi\Utility::arrayColumns($reactions, ["id", "equation"]), 200, JSON);
 				else $this->error("Not found", 404, JSON);
 				break;
 		}
@@ -184,7 +184,7 @@ class ReactionController extends Controller {
 			if ($reaction) {
 				$reaction = $this->prepareReactionData($reaction);
 			}
-			$view = View::loadFile("layout2.tpl");
+			$view = \Kiwi\View::loadFile("layout2.tpl");
 			$view->set($reaction);
 			$view->set([
 				"pageTitle" => "Edit reaction:",

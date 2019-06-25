@@ -1,7 +1,7 @@
 <?php
 require_once("ViewAdapters.php");
 
-class RegulonController extends \Monkey\Controller {
+class RegulonController extends \Kiwi\Controller {
 	public function read ($input, $accept) {
 		if ($input) {
 			if (array_key_exists("id", $input)) {
@@ -19,13 +19,13 @@ class RegulonController extends \Monkey\Controller {
 	protected function view ($input, $accept) {
 		$id = $this->filter($input,"id", "/^(protein|riboswitch)\:.+$/i", ["Invalide regulon id", 400, $accept]);
 		$regulon = Regulon::get($id);
-		\Monkey\Utility::decodeLinkForView($regulon);
+		\Kiwi\Utility::decodeLinkForView($regulon);
 		if ($regulon) {
 			$regulon->updateCount();
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => $regulon->getTitle(),
 						"title" => $regulon->getTitle(),
@@ -57,7 +57,7 @@ class RegulonController extends \Monkey\Controller {
 		Statistics::increment("regulonIndex");
 		switch ($accept) {
 			case HTML:
-			$view = \Monkey\View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set([
 				"title" => "All regulons (page $page)",
 				"content" => "{{all.list.tpl}}",
@@ -82,7 +82,7 @@ class RegulonController extends \Monkey\Controller {
 			$this->respond($view, 200, HTML);
 			break;
 			case JSON:
-			if ($regulons) $this->respond(\Monkey\Utility::arrayColumns($regulons, ["id", "title"]), 200, JSON);
+			if ($regulons) $this->respond(\Kiwi\Utility::arrayColumns($regulons, ["id", "title"]), 200, JSON);
 			else $this->error("Not found", 404, JSON);
 			break;
 		}
@@ -92,7 +92,7 @@ class RegulonController extends \Monkey\Controller {
 		UserController::authenticate(1, $accept);
 		$id = $this->filter($input, "id", "/^(protein|riboswitch)\:[^\[\]\|]+$/i", ["Invalide id", 400, $accept]);
 		$regulon = Regulon::withData($input);
-		\Monkey\Utility::encodeLink($regulon);
+		\Kiwi\Utility::encodeLink($regulon);
 		switch ($accept) {
 			case HTML:
 			case HTML_PARTIAL:
@@ -142,7 +142,7 @@ class RegulonController extends \Monkey\Controller {
 			}
 			switch ($accept) {
 				case HTML:
-					$view = \Monkey\View::loadFile("layout2.tpl");
+					$view = \Kiwi\View::loadFile("layout2.tpl");
 					if ($regulon) {
 						$view->set([
 							"pageTitle" => "Edit: ".$regulon->getTitle(),
@@ -154,7 +154,7 @@ class RegulonController extends \Monkey\Controller {
 					}
 					break;
 				case HTML_PARTIAL:
-					$view = \Monkey\View::loadFile("regulon.editor.tpl");
+					$view = \Kiwi\View::loadFile("regulon.editor.tpl");
 					$view->set("mode", "replace");
 					break;
 				default:

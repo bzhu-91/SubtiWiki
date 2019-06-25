@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 /**
  * This class is responsible of generating HTML views (fill a blank).
  * There are a few placeholder types

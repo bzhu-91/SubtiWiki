@@ -1,6 +1,6 @@
 <?php
-class Gene extends \Monkey\Model {
-	use \Monkey\ReferenceCache;
+class Gene extends \Kiwi\Model {
+	use \Kiwi\ReferenceCache;
 
 	static $tableName = "Gene";
 
@@ -64,7 +64,7 @@ class Gene extends \Monkey\Model {
 
 	public function fetchSequences () {
 		if ($this->id) {
-			$con = \Monkey\Application::$conn;
+			$con = \Kiwi\Application::$conn;
 			$result = $con->select("Sequence",["dna", "aminos"], "gene like ?", [$this->id]);
 			if ($result) {
 				$this->DNA = $result[0]["dna"];
@@ -74,9 +74,9 @@ class Gene extends \Monkey\Model {
 	}
 
 	public function patch () {
-		$results = \Monkey\Utility::deepSearch($this, "[[this]]");
+		$results = \Kiwi\Utility::deepSearch($this, "[[this]]");
 		foreach ($results as $keypath) {
-			$keypath = new \Monkey\KeyPath($keypath);
+			$keypath = new \Kiwi\KeyPath($keypath);
 			$data = null;
 			if ((string) $keypath == "categories") {
 				$data = "{{this}}";
@@ -102,7 +102,7 @@ class Gene extends \Monkey\Model {
 				$keypath->set($this, $data);
 			}
 		}
-		\Monkey\Utility::clean($this); 
+		\Kiwi\Utility::clean($this); 
 	}
 
 	public function fetchOperons () {
@@ -147,7 +147,7 @@ class Gene extends \Monkey\Model {
 		// if use get_called_class()::lookupTable, each class will has its 		own copy
 		$primaryKeyName = static::$primaryKeyName;
 		if (!static::$lookupTable) {
-			$con = \Monkey\Application::$conn;
+			$con = \Kiwi\Application::$conn;
 			if ($con && static::$tableName) {
 				$result = $con->select(static::$tableName, ["id", "title", "locus", "function"], "1");
 				$keys = array_column($result, $primaryKeyName);
@@ -168,7 +168,7 @@ class Gene extends \Monkey\Model {
 	public static function initValidateTable() {
 		$className = get_called_class();
 		if (!$className::$validateTable) {
-			$con = \Monkey\Application::$conn;
+			$con = \Kiwi\Application::$conn;
 			$className = get_called_class();
 			if ($con && static::$tableName) {
 				$result = $con->select(static::$tableName, "*", "1");
@@ -185,13 +185,13 @@ class Gene extends \Monkey\Model {
 				}
 				$table1 = array_combine($keys, $result);
 				$table2 = array_combine($locus, $result);
-				$className::$validateTable = \Monkey\Utility::arrayMerge($table1, $table2);
+				$className::$validateTable = \Kiwi\Utility::arrayMerge($table1, $table2);
 			} else throw new Exception("Should set the connection and table_name for Entity");
 		}
 	}
 
 	public function update () {
-		$conn = \Monkey\Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (History::record($this, "update") && parent::update()) {
 			$conn->commit();
@@ -206,7 +206,7 @@ class Gene extends \Monkey\Model {
 		if (!$this->id) {
 			$this->id = sha1(json_encode($this));
 		}
-		$conn = \Monkey\Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (History::record($this, "add") && parent::insert($this) && MetaData::track($this)) {
 			$conn->commit();
@@ -219,7 +219,7 @@ class Gene extends \Monkey\Model {
 
 	// only the replace function need to trace the meta scheme
 	public function replace () {
-		$conn = \Monkey\Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (History::record($this, "update") && parent::replace(["count", "id"]) && MetaData::track($this)) {
 			$conn->commit();
@@ -231,7 +231,7 @@ class Gene extends \Monkey\Model {
 	}
 
 	public function delete () {
-		$conn = \Monkey\Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (History::record($this, "remove") && parent::delete()) {
 			$conn->commit();

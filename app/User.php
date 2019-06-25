@@ -1,7 +1,7 @@
 <?php
-class User extends \Monkey\Model {
+class User extends \Kiwi\Model {
 
-	use \Monkey\ReferenceCache;
+	use \Kiwi\ReferenceCache;
 
 	static $tableName = "User";
 	static $primaryKeyName = "name"; // by default is "id"
@@ -16,7 +16,7 @@ class User extends \Monkey\Model {
 		// if use get_called_class()::lookupTable, each class will has its own copy
 		$className = get_called_class();
 		if (!$className::$lookupTable) {
-			$con = \Monkey\Application::$conn;
+			$con = \Kiwi\Application::$conn;
 			$className = get_called_class();
 			if ($con && static::$tableName) {
 				$result = $con->select(static::$tableName, ["name", "id", "token", "registration"], "1");
@@ -42,7 +42,7 @@ class User extends \Monkey\Model {
 	public function login($password) {
 		$sql = "select id from ".self::$tableName." where password = concat(':B:',substr(password, 4,8),':',md5(concat(substr(password,4,8),'-',?))) and name = ?";
 		if ($this->id) {
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$result = $conn->doQuery($sql, [$password, $this->name]);
 			if ($result) {
 				$_SESSION["name"] = $this->name;
@@ -118,7 +118,7 @@ class User extends \Monkey\Model {
 	}
 
 	public function update () {
-		$conn = \Monkey\Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		if ($this->name) {
 			$old = self::get($this->name);
 			if ($this->email && $this->email != $old->email) {

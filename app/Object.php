@@ -1,5 +1,5 @@
 <?php
-class Object extends \Monkey\Model {
+class Object extends \Kiwi\Model {
 	public $id;
 	public $title;
 

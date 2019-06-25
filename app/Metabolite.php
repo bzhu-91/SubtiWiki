@@ -1,5 +1,5 @@
 <?php
-class Metabolite extends \Monkey\Model {
+class Metabolite extends \Kiwi\Model {
 	static $tableName = "Metabolite";
 	static $primaryKeyName = "id";
 	static $relationships = [
@@ -14,7 +14,7 @@ class Metabolite extends \Monkey\Model {
 	];
 	public function update () {
 		if ($this->id) {
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$conn->beginTransaction();
 			$result = true;
 			// need to update the equations of related reactions
@@ -34,7 +34,7 @@ class Metabolite extends \Monkey\Model {
 	}
 
 	public function insert () {
-		$conn = \Monkey\Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (($id = parent::insert()) && History::record($this, "add")) {
 			$conn->commit();

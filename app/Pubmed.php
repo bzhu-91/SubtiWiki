@@ -1,5 +1,5 @@
 <?php
-class Pubmed extends \Monkey\Model {
+class Pubmed extends \Kiwi\Model {
 	static $tableName ="Pubmed";
 
 	public function downloadData () {

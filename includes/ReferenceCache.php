@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 
 /**
  * A memory cache of look up table and validate table.

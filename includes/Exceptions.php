@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 
 /**
  * BaseException

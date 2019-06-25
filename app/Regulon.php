@@ -1,5 +1,5 @@
 <?php
-class Regulon extends \Monkey\Model {
+class Regulon extends \Kiwi\Model {
 	static $tableName = "Regulon";
 
 	public $id;
@@ -10,7 +10,7 @@ class Regulon extends \Monkey\Model {
 
 	public function getRegulator () {
 		if ($this->id) {
-			$this->_regulator = \Monkey\Model::parse("{".str_replace(":", "|", $this->id)."}");
+			$this->_regulator = \Kiwi\Model::parse("{".str_replace(":", "|", $this->id)."}");
 		}
 		return $this->_regulator;
 	}
@@ -33,18 +33,18 @@ class Regulon extends \Monkey\Model {
 		if (!$this->_genes) {
 			$this->getRegulator();
 			if ($this->_regulator){
-				$operons = \Monkey\Application::$conn->doQuery("select mode, _genes as genes from Operon join Regulation on regulated = concat('{operon|', Operon.id, '}') where regulator like ?", [(string) $this->_regulator]);
-				$genes = \Monkey\Application::$conn->doQuery("select mode, regulated as gene from Regulation where regulated like '{gene|%}' and regulator like ?", [(string) $this->_regulator]);
+				$operons = \Kiwi\Application::$conn->doQuery("select mode, _genes as genes from Operon join Regulation on regulated = concat('{operon|', Operon.id, '}') where regulator like ?", [(string) $this->_regulator]);
+				$genes = \Kiwi\Application::$conn->doQuery("select mode, regulated as gene from Regulation where regulated like '{gene|%}' and regulator like ?", [(string) $this->_regulator]);
 				$groups = [];
 				foreach ($operons as $row) {
-					\Monkey\Utility::decodeLinkForView($row["genes"]);
+					\Kiwi\Utility::decodeLinkForView($row["genes"]);
 					if (!array_key_exists($row["mode"], $groups)) {
 						$groups[$row["mode"]] = [];
 					}
 					$groups[$row["mode"]][] = $row["genes"];
 				}
 				foreach ($genes as $row) {
-					$gene = \Monkey\Model::parse($row["gene"]);
+					$gene = \Kiwi\Model::parse($row["gene"]);
 					if (!array_key_exists($row["mode"], $groups)) {
 						$groups[$row["mode"]] = [];
 					}
@@ -99,7 +99,7 @@ class Regulon extends \Monkey\Model {
 	}
 
 	public static function getAll () {
-		$conn = \Monkey\Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$others = $conn->doQuery("select distinct regulator from Regulation where regulator not in (select concat('{',replace(id,':','|'),'}') from Regulon)");
 		$all = parent::getAll("1");
 		if ($all) {
@@ -139,7 +139,7 @@ class Regulon extends \Monkey\Model {
 	 */
 	public function update () {
 		if ($this->id) {
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$conn->beginTransaction();
 			if (History::record($this, "update") && parent::update()) {
 				$conn->commit();
@@ -157,7 +157,7 @@ class Regulon extends \Monkey\Model {
 	 */
 	public function insert () {
 		if ($this->_regulator) {
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$result = $conn->doQuery("select regulator from Regulation where regulator like ?", [(string) $this->_regulator]);
 			if ($result) {
 				if (parent::insert()) {

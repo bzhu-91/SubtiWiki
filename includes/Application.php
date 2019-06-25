@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 
 require_once 'Config.php';
 require_once 'includes/Exceptions.php';
@@ -79,7 +79,7 @@ class Application {
 			}
 		});
 
-		set_exception_handler(["\Monkey\Application", "handle"]);
+		set_exception_handler(["\Kiwi\Application", "handle"]);
 
 		// set the default template dir
 		View::setDefaultLoadDir(realpath("./templates"));
@@ -97,7 +97,7 @@ class Application {
 	 */
 	public static function handle ($exception) {
 		if (!($exception instanceof ClassNotFoundException)) {
-			// \Monkey\Utility::sendEmail("bzhu@gwdg.de", "Bzhu", "Error captured with ".$GLOBALS["SITE_NAME"], (string) $exception);
+			// \Kiwi\Utility::sendEmail("bzhu@gwdg.de", "Bzhu", "Error captured with ".$GLOBALS["SITE_NAME"], (string) $exception);
 		}
 		Log::debug($exception);
 		$view = View::loadFile("Error.php");

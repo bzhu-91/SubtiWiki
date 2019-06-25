@@ -1,5 +1,5 @@
 <?php
-namespace Monkey;
+namespace Kiwi;
 
 require_once("PHPMailer/PHPMailer.php");
 require_once("PHPMailer/Exception.php");

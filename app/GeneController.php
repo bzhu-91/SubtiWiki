@@ -1,7 +1,7 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class GeneController extends \Monkey\Controller {
+class GeneController extends \Kiwi\Controller {
 	/** get method */		
 	public function read ($input, $accept) {
 		if ($input) {
@@ -28,7 +28,7 @@ class GeneController extends \Monkey\Controller {
 			$ids = $this->filter($input, "ids", "has");
 			$queries = explode(";", $query);
 			foreach ($queries as &$keypath) {
-				$keypath = new \Monkey\KeyPath($keypath);
+				$keypath = new \Kiwi\KeyPath($keypath);
 			}
 			if ($ids) {
 				$ids = explode(",", $ids);
@@ -86,8 +86,8 @@ class GeneController extends \Monkey\Controller {
 		$id = $this->filter($input, "id", "/^[0-9a-f]{40}$/i", ["Invalid id", 400, $accept]);
 		$gene = Gene::get($id);
 		if ($gene) {
-			\Monkey\Utility::clean($gene);
-			\Monkey\Utility::decodeLinkForView($gene);
+			\Kiwi\Utility::clean($gene);
+			\Kiwi\Utility::decodeLinkForView($gene);
 			$gene->updateCount(); // start counter
 
 			$data = MetaData::sort($gene);
@@ -100,7 +100,7 @@ class GeneController extends \Monkey\Controller {
 			}
 			switch ($accept) {
 				case HTML:
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$this->autoAdapters($gene, $view);
 					$this->setAdapters($gene, $view);
 					$view->set($data);
@@ -168,10 +168,10 @@ class GeneController extends \Monkey\Controller {
 	 * @param  KeyPath|null $keypath current keypath, for recursive call
 	 * @return none		
 	 */
-	protected function autoAdapters ($gene, $view, \Monkey\KeyPath $keypath = null) {
+	protected function autoAdapters ($gene, $view, \Kiwi\KeyPath $keypath = null) {
 		if ($keypath === null) {
 			// use __ for delimiter incase windows
-			$keypath = new \Monkey\KeyPath();
+			$keypath = new \Kiwi\KeyPath();
 		}
 		// get all the defined templates
 		foreach ($gene as $key => $value) {
@@ -203,7 +203,7 @@ class GeneController extends \Monkey\Controller {
 		});
 
 		$view->registerAdapter("Expression and Regulation->Operons->each", function($each) {
-			$segment = \Monkey\View::loadFile("operon.view.tpl");
+			$segment = \Kiwi\View::loadFile("operon.view.tpl");
 			$operon = Operon::withData($each);
 			$data = MetaData::sort($operon);
 			$segment->set($data);
@@ -260,7 +260,7 @@ class GeneController extends \Monkey\Controller {
 				if (count($results) == 1) {
 					header("Location: ".$GLOBALS["WEBROOT"]."/gene?id=".$results[0]->id);
 				} else {
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Search: $keyword",
 						"showFootNote" => "none"
@@ -285,7 +285,7 @@ class GeneController extends \Monkey\Controller {
 				if ($error) {
 					$this->respond("<p>No result</p>", 200, HTML);
 				} else {
-					$view = \Monkey\View::load("{{geneTable:genes}}");
+					$view = \Kiwi\View::load("{{geneTable:genes}}");
 					$view->set("genes", $results);
 					$this->respond($view, 200, HTML_PARTIAL);
 				}
@@ -294,8 +294,8 @@ class GeneController extends \Monkey\Controller {
 				if ($error) {
 					$this->error($messages[$error], $error, JSON);
 				} else {
-					$results = \Monkey\Utility::arrayColumns($results, ["id", "title", "function"]);
-					\Monkey\Utility::decodeLinkForView($results);
+					$results = \Kiwi\Utility::arrayColumns($results, ["id", "title", "function"]);
+					\Kiwi\Utility::decodeLinkForView($results);
 					$this->respond($results, 200, JSON);
 				}
 				break;
@@ -310,7 +310,7 @@ class GeneController extends \Monkey\Controller {
 			case HTML:
 			$count = Gene::count();
 			if ($genes) {
-					$view = \Monkey\View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"title" => "All genes (page $page)",
 						"content" => "{{all.list.tpl}}",
@@ -327,7 +327,7 @@ class GeneController extends \Monkey\Controller {
 				} else $this->error("Not found", 404, HTML);
 				break;
 			case JSON:
-				if ($genes) $this->respond(\Monkey\Utility::arrayColumns($genes, ["id", "title", "function"]), 200, JSON);
+				if ($genes) $this->respond(\Kiwi\Utility::arrayColumns($genes, ["id", "title", "function"]), 200, JSON);
 				else $this->error("Not found", 404, JSON);
 				break;
 		}
@@ -360,7 +360,7 @@ class GeneController extends \Monkey\Controller {
 						MetaData::insertKeyValuePair($new, "synonyms", $old->title);						
 					}
 				}
-				\Monkey\Utility::encodeLink($new);
+				\Kiwi\Utility::encodeLink($new);
 				MetaData::insertKeyValuePair($new, "lastUpdate", date("Y-m-d H:i:s"));	
 				MetaData::insertKeyValuePair($new, "lastAuthor", User::getCurrent()->name);	
 				// track the meta data change
@@ -424,7 +424,7 @@ class GeneController extends \Monkey\Controller {
 				header("Location: ".$GLOBALS['WEBROOT']."/gene?id=".$gene->id);
 				break;
 			case JSON:
-				$this->respond(\Monkey\Utility::arrayColumns($gene, ["id", "title", "function"]), 200, JSON);
+				$this->respond(\Kiwi\Utility::arrayColumns($gene, ["id", "title", "function"]), 200, JSON);
 				break;
 			case HTML_PARTIAL:
 				$this->error("Not acceptable", 406, HTML);
@@ -449,11 +449,11 @@ class GeneController extends \Monkey\Controller {
 				}
 			}
 			$summary = (object) $summary;
-			\Monkey\Utility::decodeLinkForView($summary);
+			\Kiwi\Utility::decodeLinkForView($summary);
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = \Monkey\View::loadFile("gene.summary.tpl");
+					$view = \Kiwi\View::loadFile("gene.summary.tpl");
 					$this->autoAdapters($summary, $view);
 					$view->set($summary);
 					$this->respond($view, 200, HTML);
@@ -477,9 +477,9 @@ class GeneController extends \Monkey\Controller {
 		if ($id) {
 			$gene = Gene::raw($id);
 			if ($gene) {
-				\Monkey\Utility::decodeLinkForEdit($gene);
+				\Kiwi\Utility::decodeLinkForEdit($gene);
 				$data = MetaData::fill($gene, "insert text here");
-				$view = \Monkey\View::loadFile("layout2.tpl");
+				$view = \Kiwi\View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Edit: ".$gene->title,
 					"headerTitle" => "Edit: ".$gene->title,
@@ -525,7 +525,7 @@ class GeneController extends \Monkey\Controller {
 				});
 				$gene->synonyms = implode(", ", $syns);
 				unset($gene->names);
-				$conn = \Monkey\Application::$conn;
+				$conn = \Kiwi\Application::$conn;
 				if ($conn->replace("Gene", $gene, ["id" => $gene->id])) {
 					Log::debug($gene->title);
 				} else {
@@ -538,7 +538,7 @@ class GeneController extends \Monkey\Controller {
 	public function exporter ($input, $accept, $method) {
 		if ($accept == HTML) {
 			if ($method == "GET") {
-				$view = \Monkey\View::loadFile("layout1.tpl");
+				$view = \Kiwi\View::loadFile("layout1.tpl");
 				$view->set([
 					"pageTitle" => "Gene export wizard",
 					"title" => "Gene export wizard",
@@ -573,7 +573,7 @@ class GeneController extends \Monkey\Controller {
 			$mode = $this->filter($input, "mode", "/^(replace)|(patch)$/i");
 			$type = $this->filter($input, "type", "/^(scalar)|(array)$/i");
 			// check the existence of the table
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$cols = $conn->getColumnNames($tableName);
 			if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			if (!$mode) $errors[] = "Mode is required";
@@ -602,7 +602,7 @@ class GeneController extends \Monkey\Controller {
 									}
 									$row = array_combine($header, $row);
 									$row["lastAuthor"] = User::getCurrent()->name;
-									$row = \Monkey\Utility::inflate($row);
+									$row = \Kiwi\Utility::inflate($row);
 									if ($hashId) $row["id"] = sha1(json_encode($row));
 									$gene = Gene::withData($row);
 									$gene->lastAuthor = User::getCurrent()->name;
@@ -629,7 +629,7 @@ class GeneController extends \Monkey\Controller {
 								if (array_key_exists($gene->locus, $dict)) {
 									if ($tpye == "array") $val = explode(";", $dict[$gene->locus]);
 									else $val = $dict[$gene->locus];
-									if (\Monkey\Utility::setValueFromKeypath($gene, $keypath, $val)) {
+									if (\Kiwi\Utility::setValueFromKeypath($gene, $keypath, $val)) {
 										$gene->lastAuthor = User::getCurrent()->name;
 										if (!$gene->update()) $errors[] = "Update of gene with the locus {$gene->locus} is not successful.";
 									} else $errors[] = "Update of gene with the locus {$gene->locus} is not successful, merge of the data failed.";
@@ -641,7 +641,7 @@ class GeneController extends \Monkey\Controller {
 			}
 			if (empty($errors)) $errors[] = "Import successful";
 		}
-		$view = \Monkey\View::loadFile("layout1.tpl");
+		$view = \Kiwi\View::loadFile("layout1.tpl");
 		$view->set([
 			"title" => "Importer for Gene table",
 			"pageTitle" => "Importer for Gene table",

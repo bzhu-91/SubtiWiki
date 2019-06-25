@@ -41,8 +41,8 @@ class Protein extends Gene {
 	];
 
 	public static function withData ($data) {
-		\Monkey\Utility::clean($data);
-		\Monkey\Utility::toObject($data);
+		\Kiwi\Utility::clean($data);
+		\Kiwi\Utility::toObject($data);
 		$protein = new Protein();
 		foreach ($data as $key => $value) {
 			$protein->{$key} = $value;
@@ -76,7 +76,7 @@ class Protein extends Gene {
 	public function fetchDomains () {
 		if ($this->id) {
 			$sql = "select * from ProteinDomain where protein like ?";
-			$result = \Monkey\Application::$conn->doQuery($sql, [$this->id]);
+			$result = \Kiwi\Application::$conn->doQuery($sql, [$this->id]);
 			if ($result) {
 				foreach ($result as &$row) {
 					$row = (object) $row;
@@ -87,11 +87,11 @@ class Protein extends Gene {
 	}
 
 	public function patch () {
-		$results = \Monkey\Utility::deepSearch($this, "[[this]]");
+		$results = \Kiwi\Utility::deepSearch($this, "[[this]]");
 		foreach ($results as $keypath) {
 			$data = null;
-			$keypath = new \Monkey\KeyPath($keypath);
-			if (\Monkey\Utility::startsWith($keypath, "paralogous protein")) {
+			$keypath = new \Kiwi\KeyPath($keypath);
+			if (\Kiwi\Utility::startsWith($keypath, "paralogous protein")) {
 				$data = $this->fetchParalogues();
 			} elseif ($keypath == "domains") {
 				$data = $this->fetchDomains();
@@ -102,7 +102,7 @@ class Protein extends Gene {
 				$keypath->set($this, $data);
 			}
 		}
-		\Monkey\Utility::clean($this); 
+		\Kiwi\Utility::clean($this); 
 	}
 
 	public function getStructures () {
@@ -119,7 +119,7 @@ class Protein extends Gene {
 			$row->to = $row->prot2;
 			unset($row->prot1);
 			unset($row->prot2);
-			\Monkey\Utility::decodeLinkForView($row);
+			\Kiwi\Utility::decodeLinkForView($row);
 		}
 		return new Graph($data, false);
 	}
@@ -135,7 +135,7 @@ class Protein extends Gene {
 				}
 			}
 			$paralogue->lastAuthor = User::getCurrent()->name;
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$conn->beginTransaction();
 			if ($paralogue->insert() && History::record($paralogue, "add")){
 				$conn->commit();
@@ -158,7 +158,7 @@ class Protein extends Gene {
 				}
 			}
 			$paralogue->lastAuthor = User::getCurrent()->name;
-			$conn = \Monkey\Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$conn->beginTransaction();
 			if (History::record($paralogue, "update") && $paralogue->replace(["id", "prot1", "prot2"])){
 				$conn->commit();
