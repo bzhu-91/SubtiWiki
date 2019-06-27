@@ -1,7 +1,17 @@
 <?php
 require_once("ViewAdapters.php");
 
+/**
+ * Provides operations on Complexes.
+ * 
+ * RESTful API summary:
+ * 
+ */
 class ComplexController extends Controller {
+
+    /**
+     * API: GET:*
+     */
     public function read ($input, $accept) {
         if ($input) {
             if (array_key_exists("id", $input)) {

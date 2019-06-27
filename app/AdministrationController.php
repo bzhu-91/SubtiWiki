@@ -1,6 +1,11 @@
 <?php
 require_once("ViewAdapters.php");
 
+/**
+ * Provide administrative functions.
+ * RESTful API summary:
+ * 
+ */
 class AdministrationController extends \Kiwi\Controller {
 	public function read ($input, $accept) {
 		if ($accept == HTML) {

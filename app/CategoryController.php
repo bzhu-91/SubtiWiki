@@ -1,14 +1,23 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class CategoryController extends \Kiwi\Controller {
+/**
+ * Provides operations on Categories.
+ * RESTful API summary:
+ * - GET:/category
+ * - GET:/category?keyword=:keyword
+ * - GET:/category?id=:id
+ * - GET:/category?gene=:geneId
+ * - PUT:/category/id=:id
+ * - POST:/category
+ * - DELETE:/category
+ * - POST:/category/assignement?category=:categoryId&gene=:geneId
+ * - DELETE:/category/assignement?category=:categoryId&gene=:geneId
+ * - GET:/category/exporter
+ * - GET:/category/assignmentExporter
+ */
 
-	/**
-	 * correspond to get method
-	 * @param  array $input  client side input
-	 * @param  enum $accept response content type
-	 * @return none         
-	 */
+class CategoryController extends \Kiwi\Controller {
 	public function read ($input, $accept) {
 		if ($input) {
 			if (array_key_exists("id", $input)) {
@@ -23,9 +32,17 @@ class CategoryController extends \Kiwi\Controller {
 	}
 
 	/**
-	 * index page, when no input data is provided
-	 * @param  enum $accept response content type
-	 * @return none         
+	 * API: show all categories.
+	 * API: show all categories
+	 * URL: /category
+	 * Method: GET
+	 * URL Params: none
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 200, accept: JSON, Content: [{id: "SW.1.1", title: "DNA replication"},...,]
+	 * - code: 200, accept: HTML, Content: a html page
+	 * Error response: none
+	 * Notes: page visits is tracked
 	 */
 	protected function index ($accept) {
 		$data = Category::getAll("1");
@@ -62,6 +79,20 @@ class CategoryController extends \Kiwi\Controller {
 		}
 	}
 
+	/**
+	 * API: search for a category with keyword.
+	 * API: search for a category with keyword
+	 * URL: /category?keyword=:keyword
+	 * Method: GET
+	 * URL Params: keyword=[string]
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 200, accept: JSON, Content: [{id: "SW.1.1", title: "DNA replication"},...,]
+	 * - code: 200, accept: HTML, Content: a html page for search result
+	 * Error response:
+	 * - code: 404, accept: JSON, Content: {message: "No results found"}
+	 * - code: 400, accept: JSON, Content: {message: "Keyword too short"}
+	 */
 	protected function search ($input, $accept) {
 		$keyword = $input["keyword"];
 		$messages = [400 => "Keyword too short", 404 => "No results found"];
@@ -110,6 +141,21 @@ class CategoryController extends \Kiwi\Controller {
 		}
 	}
 
+	/**
+	 * API: search for a category with gene.
+	 * API: search for a category with gene
+	 * URL: /category?gene=:gene
+	 * Method: GET
+	 * URL Params: gene=[md5 hash string, gene id]
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 200, accept: JSON, Content: [{id: "SW.1.1", title: "DNA replication"},...,]
+	 * - code: 200, accept: HTML_PARTIAL, Content: a html segment for search result
+	 * Error response:
+	 * - code: 404, accept: JSON, Content: {message: "No results found"}
+	 * - code: 406, accept: HTML, Content: {message: "Unaccepted"}
+	 * - code: 404, accept: HTML_PARTIAL, Content: ""
+	 */
 	protected function findForGene ($input, $accept) {
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i", ["Invalid gene id", 400, $accept]);
 		$gene = Gene::simpleGet($geneId);
@@ -139,10 +185,17 @@ class CategoryController extends \Kiwi\Controller {
 	}
 
 	/**
-	 * view page, when id is given
-	 * @param  array $input  client-side input
-	 * @param  enum $accept response content type
-	 * @return none         
+	 * API: show details of a category.
+	 * API: show details of a category
+	 * URL: /category?id=:id
+	 * Method: GET
+	 * URL Params: id=[alpha-numeric, category id]
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 200, accept: JSON, Content: {id: "SW.1.1", title: "DNA replication", children: [{}....]}
+	 * - code: 200, accept: HTML, Content: a html page
+	 * Error response:
+	 * - code: 404, accept: JSON, Content: {message: "Category with id :id not found"}
 	 */
 	protected function view ($input, $accept) {
 		$id = $this->filter($input, "id", "/^SW(\.\d+)*$/i", ["Page not found", 404, $accept]);
@@ -206,9 +259,8 @@ class CategoryController extends \Kiwi\Controller {
 		} else $this->error("Category with id $id not found", 404, $accept);
 	}
 
-	// recursive function to load all child categories with genes displayed
 	/**
-	 * recursive functino to load all child categories with genes displayed
+	 * recursive functino to load all child categories with genes displayed.
 	 * @param  [Category] $children array of categories
 	 * @return String           the html presentation of those child categories
 	 */
@@ -239,6 +291,21 @@ class CategoryController extends \Kiwi\Controller {
 		return $str;
 	}
 
+	/**
+	 * API: update the data of a category.
+	 * API: update the data of a category
+	 * URL: /category?id=:id
+	 * Method: PUT
+	 * URL Params: id=[alpha-numeric, category id]
+	 * Data Params: {id:..,title:...,description:...}
+	 * Success Response:
+	 * - code: 200, accept: JSON, Content: {uri: "catgeory?id=:id"}
+	 * Error response:
+	 * - code: 400, accept: JSON, Content: {message: "Invalid category id"}
+	 * - code: 403, accept: -, Content: {message: "Unauthorised"}
+	 * - code: 500, accept: JSON, Content: {message: "An unexpected error has happened. Update is not successful."}
+	 * - code: 500, accept: JSON, Content: {message: the sql error}
+	 */
 	public function update ($input, $accept) {
 		switch ($accept) {
 			case HTML:
@@ -263,10 +330,20 @@ class CategoryController extends \Kiwi\Controller {
 	}
 
 	/**
-	 * create a new category under the parent category
-	 * @param  array $input  client side input
-	 * @param  enum $accept response content type
-	 * @return none         
+	 * API: create a new category.
+	 * API: create a new category
+	 * URL: /category
+	 * Method: POST
+	 * URL Params: none
+	 * Data Params: {title:...,description:...}
+	 * Success Response:
+	 * - code: 201, accept: JSON, Content: {uri: "catgeory?id=:id"}
+	 * Error response:
+	 * - code: 403, accept: -, Content: {message: "Unauthorised"}
+	 * - code: 404, accept: JSON, Content: {message: "Parent category not found"}
+	 * - code: 500, accept: JSON, Content: {message: "An unexpected error has happened. New category is not saved."}
+	 * - code: 500, accept: JSON, Content: {message: "New category cannot be created because the parent category has genes assigned to it"}
+	 * - code: 500, accept: JSON, Content: {message: the sql error}
 	 */
 	public function create ($input, $accept) {
 		switch ($accept) {
@@ -299,10 +376,19 @@ class CategoryController extends \Kiwi\Controller {
 	}
 
 	/**
-	 * remove a category which has no gene or children
-	 * @param  array $input  client side input
-	 * @param  enum $accept response content type
-	 * @return none         
+	 * API: remove a category which has no genes nor children.
+	 * API: remove a category which has no genes nor children
+	 * URL: /category?id=:categoryId
+	 * Method: POST
+	 * URL Params: categoryId=[alpha-numeric]
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 204, accept: JSON, Content: none
+	 * Error response:
+	 * - code: 403, accept: -, Content: {message: "Unauthorised"}
+	 * - code: 500, accept: JSON, Content: {message: "This category can not be removed because there are genes assigned to it"}
+	 * - code: 500, accept: JSON, Content: {message: "This category can not be removed because it has subcategories"}
+	 * - code: 500, accept: JSON, Content: {message: "An unexpected error has happened. Deletion is not successful"}
 	 */
 	public function delete ($input, $accept) {
 		switch ($accept) {
@@ -329,10 +415,17 @@ class CategoryController extends \Kiwi\Controller {
 	}
 
 	/**
-	 * provide editor of the category
-	 * @param  array $input  client side input
-	 * @param  enum $accept response content type
-	 * @return none         
+	 * API: create a editor interface for a category.
+	 * API: create a editor interface for a category
+	 * URL: /category?id=:categoryId
+	 * Method: GET
+	 * URL Params: categoryId=[alpha-numeric]
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 200, accept: HTML, Content: a html page
+	 * - code: 200, accept: HTML_PARTIAL, Content: a html segment
+	 * Error response:
+	 * - code: 404, accept: JSON, Content: {message: "Unaccepted"}
 	 */
 	public function editor ($input, $accept) {
 		UserController::authenticate(1, $accept);
@@ -402,10 +495,29 @@ class CategoryController extends \Kiwi\Controller {
 	}
 
 	/**
-	 * assign gene to category
-	 * @param  array $input  client side input
-	 * @param  enum $accept response content type
-	 * @return none         
+	 * API: assignment a gene to a category.
+	 * API: assignment a gene to a category
+	 * URL: /category/assignment?category=:categoryId&gene=:geneId
+	 * Method: POST
+	 * URL Params: categoryId=[alpha-numeric], geneId=[alpha-numeric]
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 201, accept: JSON, Content: null
+	 * Error response:
+	 * - code: 404, accept: JSON, Content: {message: "Gene not found"}
+	 * - code: 404, accept: JSON, Content: {message: "Category not found"}
+	 * - code: 500, accept: JSON, Content: {message: "An unexpected error has happened."}
+	 * 
+	 * API: remove a gene from a category
+	 * URL: /category/assignment?category=:categoryId&gene=:geneId
+	 * Method: DELETE
+	 * URL Params: categoryId=[alpha-numeric], geneId=[alpha-numeric]
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 204, accept: JSON, Content: null
+	 * Error response:
+	 * - code: 404, accept: JSON, Content: {message: "Gene or category not found"}
+	 * - code: 500, accept: JSON, Content: {message: "Internal error."}
 	 */
 	public function assignment ($input, $accept, $method) {
 		UserController::authenticate(1, $accept);
@@ -455,14 +567,29 @@ class CategoryController extends \Kiwi\Controller {
 		}
 	}
 
+	/**
+	 * API: export all categories.
+	 * API: export all categories
+	 * URL: /category/exporter
+	 * Method: GET
+	 * URL Params: none
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 200, accept: CSV, Content: a csv file, with columns id and title
+	 * - code: 200, accept: JSON, Content: [{id: "SW.1", title:"metabolism"},...]
+	 * Error response:
+	 * - code: 405, accept: HTML/HTML_PARTIAL, Content: {message: "Unaccepted method"}
+	 * - code: 406, accept: HTML/HTML_PARTIAL, Content: {message: "Not accepted"}
+	 */
 	public function exporter ($input, $accept, $method) {
 		if ($method == "GET") {
 			Statistics::increment("categoryExport");
 			$all = Category::getAll(1);
 			switch ($accept) {
 				case HTML:
-				case CSV:
 				case HTML_PARTIAL:
+					$this->error("Not accepted", 406, $accept);
+				case CSV:
 					$csv = [["id", "category"]];
 					foreach ($all as $row) {
 						$csv[] = [
@@ -477,9 +604,23 @@ class CategoryController extends \Kiwi\Controller {
 					$this->respond($json, 200, JSON);
 					break;
 			}
-		} else $this->error("Unaccepted method", 406, $accept);
+		} else $this->error("Unaccepted method", 405, $accept);
 	}
 
+	/**
+	 * API: export all assignments of gene and category.
+	 * API: export all assignments of gene and category
+	 * URL: /category/assignmentExporter
+	 * Method: GET
+	 * URL Params: none
+	 * Data Params: none
+	 * Success Response:
+	 * - code: 200, accept: CSV, Content: a csv file, with columns "catgegory id", "category", "gene locus", "gene name"
+	 * - code: 200, accept: JSON, Content: [{gene: {id: ..., title: ... }, category: {id: ..., title: ...}}]
+	 * Error response:
+	 * - code: 405, accept: HTML/HTML_PARTIAL, Content: {message: "Unaccepted method"}
+	 * - code: 406, accept: HTML/HTML_PARTIAL, Content: {message: "Not accepted"}
+	 */
 	public function assignmentExporter ($input, $accept, $method) {
 		if ($method == "GET") {
 			Statistics::increment("geneCategoryExport");
@@ -487,8 +628,9 @@ class CategoryController extends \Kiwi\Controller {
 			$all = $assignment->getAll();
 			switch ($accept) {
 				case HTML:
-				case CSV:
 				case HTML_PARTIAL:
+					$this->error("Not accepted", 406, $accept);
+				case CSV:
 					$csv = [["category id", "category", "gene locus", "gene name"]];
 					foreach ($all as $row) {
 						$csv[] = [
@@ -517,7 +659,7 @@ class CategoryController extends \Kiwi\Controller {
 					$this->respond($json, 200, JSON);
 					break;
 			}
-		} else $this->error("Unaccepted method", 406, $accept);
+		} else $this->error("Unaccepted method", 405, $accept);
 	}
 }
 ?>

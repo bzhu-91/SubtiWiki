@@ -1,4 +1,7 @@
 <?php
+/**
+ * For protein-protein, protein-ligand, RNA-Protein, complexes..
+ */
 class Complex extends \Kiwi\Model {
     static $tableName = "Complex";
 
@@ -21,6 +24,10 @@ class Complex extends \Kiwi\Model {
         ]
     ];
 
+    /**
+     * insert to database, History recorded
+     * @return boolean whether insertion is successful or not
+     */
     public function insert () {
         $conn = \Kiwi\Application::$conn;
         $conn->beginTransaction();
@@ -33,6 +40,10 @@ class Complex extends \Kiwi\Model {
         }
     }
 
+    /**
+     * update to database, History recorded
+     * @return boolean whether update is successful or not
+     */
     public function update () {
         $conn = \Kiwi\Application::$conn;
         $conn->beginTransaction();
@@ -45,6 +56,10 @@ class Complex extends \Kiwi\Model {
         }
     }
 
+    /**
+     * delete an instance, foreign key to ReactionCatalyst checked
+     * @return boolean whether update is successful or not
+     */
     public function delete  () {
         // if is associated with a reaction
         if ($this->has("reaction")) {
@@ -61,6 +76,13 @@ class Complex extends \Kiwi\Model {
         }
     }
 
+    /**
+     * add member to a complex
+     * @param mixed $member the member
+     * @param number $coefficient the coefficient
+     * @param string $modification the modification of the member, can be "P" or "Met"
+     * @return boolean whether the operation is successful
+     */
     public function addMember ($member, $coefficient, $modification) {
         if ($this->id) {
             $hasMember = $this->hasPrototype("member");
@@ -80,6 +102,12 @@ class Complex extends \Kiwi\Model {
         }
     }
 
+    /**
+     * update the coefficient
+     * @param mixed $member the member
+     * @param number $coefficient the coefficient to be update
+     * @return boolean whether the operation is successful
+     */
     public function updateMember ($member, $coefficient) {
         if ($this->id) {
             $members = $this->has("member");
@@ -102,6 +130,11 @@ class Complex extends \Kiwi\Model {
         }
     }
 
+    /**
+     * remove a member
+     * @param mixed $member the member
+     * @return boolean whether the operation is successful
+     */
     public function removeMember ($member) {
         if ($this->id) {
             $members = $this->has("member");

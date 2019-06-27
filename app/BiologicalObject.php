@@ -1,4 +1,7 @@
 <?php
+/**
+ * An abstract presentation of the general biological objects
+ */
 class BiologicalObject extends \Kiwi\Model {
 	public $id;
 	public $title;

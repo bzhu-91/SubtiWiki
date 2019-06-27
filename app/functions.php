@@ -25,13 +25,6 @@ function FAQ () {
 }
 
 function debug ($input, $accept, $method) {
-	$reactions = \Reaction::getAll(1);
-	foreach ($reactions as $reaction) {
-		if (!$reaction->updateEquation()) {
-			\Kiwi\Log::debug("R".$reaction->id.\Kiwi\Application::$conn->lastError);
-		}
-	}
-	\Log::debug("done");
 }
 
 function exports () {
@@ -45,8 +38,8 @@ function exports () {
 			["Regulations", "<a href='regulation/exporter' download='regulations-".date("Y-m-d")."'>here</a>"],
 			["Operons", "<a href='operon/exporter' download='operons-".date("Y-m-d")."'>here</a>"],
 			["Interaction", "<a href='interaction/exporter' download='interaction-".date("Y-m-d")."'>here</a>"],
-			["Categories", "<a href='category/exporter' download='categories-".date("Y-m-d")."'>here</a>"],
-			["Gene categories", "<a href='category/assignmentExporter' download='geneCategories-".date("Y-m-d").".csv'>here</a>"],
+			["Categories", "<a href='category/exporter?__accept=CSV' download='categories-".date("Y-m-d")."'>here</a>"],
+			["Gene categories", "<a href='category/assignmentExporter?__accept=CSV' download='geneCategories-".date("Y-m-d").".csv'>here</a>"],
 			["Genes", "<a href='gene/exporter'>here</a>"]
 		],
 		"showFootNote" => "none"

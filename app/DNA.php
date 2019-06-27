@@ -1,6 +1,6 @@
 <?php
 /**
- * abstraction
+ * abstraction of DNA, used in Pathway related apps
  */
 class DNA extends \Kiwi\Model {
 	public $subtype;
@@ -8,6 +8,11 @@ class DNA extends \Kiwi\Model {
 	public $id;
 	public $type = "DNA";
 
+	/**
+	 * get an instance of DNA, can be either a gene or operon
+	 * @param string $id the id of the DNA, in the format of {gene|xxxxxxxxx} or {operon|xxxxxxxxxxx}
+	 * @return DNA/null the instance
+	 */
 	public static function get ($id) {
 		$className = get_called_class();
 		$instance = new $className;
