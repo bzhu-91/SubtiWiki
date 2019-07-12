@@ -294,6 +294,13 @@ class GeneController extends \Kiwi\Controller {
 		if (strlen($keyword) < 2) {
 			$error = 400;
 		} else {
+			// change BSU00010 to BSU_00010
+			// compatible with old locus tag format
+			if (preg_match_all("/^bsu/i", $keyword)) {
+				if ($keyword[3] != "_") {
+					$keyword = "BSU_".substr($keyword, 3);
+				}
+			}
 			$mode = $this->filter($input, "mode", "has");
 			switch ($input["mode"]) {
 				case "blur":
