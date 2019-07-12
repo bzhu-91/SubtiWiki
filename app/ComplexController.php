@@ -5,7 +5,15 @@ require_once("ViewAdapters.php");
  * Provides operations on Complexes.
  * 
  * RESTful API summary:
- * 
+ * GET:/complex?keyword=:keyword
+ * GET:/complex?page=:pageNumber&page_size=:pageSize
+ * GET:/complex?id=:id
+ * PUT:/complex?id=:id
+ * POST:/complex
+ * DELETE:/complex?id=:id
+ * POST:/complex/member?complex=:complexId&member=:member
+ * PUT:/complex/member?complex=:complexId&member=:member
+ * DELETE:/complex/member?complex=:complexId&member=:member
  */
 class ComplexController extends Controller {
 
@@ -31,6 +39,18 @@ class ComplexController extends Controller {
         }
     }
 
+    /**
+    * API: search for a certain complex.
+    * API: search for a certain complex
+    * URL: /complex?keyword=:keyword
+    * Method: GET
+    * URL Params: keyword=[string]
+    * Success Reponse: 
+    * - code: 200, accept: JSON, content: [{id:xxx, title:xxx}, ...]
+    * Error response: 
+    * - code: 404, accept: JSON, content: {message: "Not found"}
+    * - code: 400, accept: JSON, content: {message: xxxx}
+    **/
     protected function search ($input, $accept) {
         $keyword = $this->filter($input,"keyword", "/^.{2,}$/i");
         if ($accept == JSON) {
@@ -47,6 +67,19 @@ class ComplexController extends Controller {
         }
     }
 
+    /**
+     * API: list all complexes, include paging.
+     * API: list all complexes, include paging
+     * URL: /complex?page=:pageNumber&page_size=:pageSize
+     * Method: GET,
+     * URL Params: pageNumber=[int], pageSize=[int]
+     * Success Response:
+     * - code 200, accept: HTML
+     * - code 200, accept: JSON, content: [{id:xxx, title: xxxx}, ...]
+     * - code 200, accept: CSV, content: csv file with the columns "id", "title"
+     * Error Response:
+     * - code 404, accept: JSON/CSV
+    **/
     protected function list ($input, $accept) {
         $page = $this->filter($input, "page", "/^\d+$/", ["Page number is required", 400, $accept]);
         $pageSize = $this->filter($input, "page_size", "/^\d+$/", ["Page size is required", 400, $accept]);
@@ -109,6 +142,19 @@ class ComplexController extends Controller {
 
     }
 
+    /**
+     * API: get the details of a complex.
+     * API: get the details of a complex
+     * URL: /complex?id=:id
+     * Method: GET
+     * URL Params: id=[int]
+     * Success Response:
+     * - code: 200, accepet: HTML
+     * - code: 200, accepet: JSON, content: {id:xxx, title:xxx}
+     * Error Reponse:
+     * - code 404, accept: -
+     * - code 406, accept: CSV
+     */
     protected function view ($input, $accept) {
         $id = $this->filter($input, "id", "/^\d+$/i", ["Id is required", 400, $accept]);
         $complex = Complex::get($id);
@@ -140,6 +186,19 @@ class ComplexController extends Controller {
         } else $this->error("Not found", 404, $accept);
     }
 
+    /**
+     * API: update the data of a complex.
+     * API: update the data of a complex
+     * URL: /complex?id=:id
+     * Method: PUT
+     * URL Params: id=[int]
+     * Data Params: {title: xxxx}
+     * Success Response:
+     * - code:200, accept:JSON,content: null
+     * Error Response:
+     * - code: 500, accept:JSON
+     * - code: 406, accept:!JSON
+     */
     public function update ($input, $accept) {
         $id = $this->filter($input, "id", "/^\d+$/", ["Id is required", 400, $accept]);
         if ($accept == JSON) {
@@ -154,6 +213,18 @@ class ComplexController extends Controller {
         }
     }
 
+    /**
+     * API: remove a comlpex.
+     * API: remove a comlpex
+     * URL: /complex?id=:id
+     * Method: DELETE
+     * URL Params: id=[int]
+     * Success Response:
+     * - code: 204, accept: JSON, content: null
+     * Error Response:
+     * - code: 500, accept: JSON, content: {message: "Internal errror"}
+     * - code: 406, accept: !JSON
+     */
     public function delete ($input, $accept) {
         $id = $this->filter($input, "id", "/^\d+$/", ["Id is required", 400, $accept]);
         if ($accept == JSON) {
@@ -168,6 +239,19 @@ class ComplexController extends Controller {
         }
     }
 
+
+    /**
+     * API: create a complex.
+     * API: create a complex
+     * URL: /complex
+     * Method: POST
+     * Data Params: {title: xxxx}
+     * Success Response:
+     * - code: 201, accept:JSON, content:{uri:"complex/editor?id=:newid"}
+     * Error Response:
+     * - code:500
+     * - code:406
+     */
     public function create ($input, $accept) {
         $title = $this->filter($input, "title", "has", ["Title is required", 400, $accept]);
         if ($accept == JSON) {
@@ -182,6 +266,16 @@ class ComplexController extends Controller {
         }
     }
 
+    /**
+     * API: provides a editor page.
+     * API: provides a editor page
+     * URL: /complex/editor[?id=:id]
+     * Method: GET
+     * URL Params: id=[int]
+     * Success Response:
+     * - code:200, accept:HTML
+     * - code 405
+     */
     public function editor ($input, $accept, $method) {
         if ($accept == HTML && $method == "GET") {
             UserController::authenticate(1, HTML);
@@ -231,9 +325,47 @@ class ComplexController extends Controller {
         } else $this->error("Unaccepted", 405, $accept);
     }
 
+    /**
+     * Multiple APIs related to complex member
+     * API: add member
+     * URL: /complex/member?complex=:complexId&member=:member
+     * Method: POST
+     * URL Params: complexId=[int]; member=[string, {DNA:xxxxxxx} or {RNA:xxxxxxx} or {protein|xxxxxx} or {metabolite|xxxxxxxxx}]
+     * Success response:
+     * - code:201, accept:JSON, content: {uri:complex/editor?id=:id}
+     * Error response:
+     * - code:400, accept:JSON, content: {message:"Complex id is required"}
+     * - code:404, accept:JSON, content: {message:"Complex not found"}
+     * - code:406, accept:!JSON, content: {message: "Unacccept"}
+     * - code:500, accept:JSON, content: {message:"An internal error has happened, please contact admin."}
+     * 
+     * API: remove member
+     * URL: /complex/member?complex=:complexId&member=:member
+     * Method: DELETE
+     * URL Params: complexId=[int]; member=[string, {DNA:xxxxxxx} or {RNA:xxxxxxx} or {protein|xxxxxx} or {metabolite|xxxxxxxxx}]
+     * Success response:
+     * - code:204, accept:JSON
+     * Error response:
+     * - code:400, accept:JSON, content: {message:"Complex id is required"}
+     * - code:404, accept:JSON, content: {message:"Complex not found"}
+     * - code:406, accept:!JSON, content: {message: "Unacccept"}
+     * - code:500, accept:JSON, content: {message:"An internal error has happened, please contact admin."}
+     * 
+     * API: update coefficient of member
+     * URL: /complex/member?complex=:complexId&member=:member
+     * Method: DELETE
+     * URL Params: complexId=[int]; member=[string, {DNA:xxxxxxx} or {RNA:xxxxxxx} or {protein|xxxxxx} or {metabolite|xxxxxxxxx}]
+     * Success response:
+     * - code:200, accept:JSON, content: {url:"complex/editor?id={$complex->id}"}
+     * Error response:
+     * - code:400, accept:JSON, content: {message:"Complex id is required"}
+     * - code:404, accept:JSON, content: {message:"Complex not found"}
+     * - code:406, accept:!JSON, content: {message: "Unacccept"}
+     * - code:500, accept:JSON, content: {message:"An internal error has happened, please contact admin."}
+     */
     public function member ($input, $accept, $method) {
         if ($accept != JSON) {
-            $this->error("Unaccepted", 400, $accept);
+            $this->error("Unaccepted", 406, $accept);
         }
         $complex = $this->filter($input, "complex", "is_numeric", ["Complex id is required", 400, JSON]);
         $complex = Complex::get($complex);
@@ -312,7 +444,7 @@ class ComplexController extends Controller {
                 $member = Model::parse($member);
                 if ($member) {
                     if ($complex->removeMember($member)) {
-                        $this->respond(["uri" => "complex/editor?id={$complex->id}"], 200, JSON);
+                        $this->respond(["uri" => "complex/editor?id={$complex->id}"], 204, JSON);
                     } else {
                         $this->error("An internal error has happened, please contact admin", 500, JSON);
                     }

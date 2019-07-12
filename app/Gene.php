@@ -1,9 +1,18 @@
 <?php
+/**
+ * Class for Gene (as abstraction for DNA, transribed RNA and translated Protein)
+ */
 class Gene extends \Kiwi\Model {
+	/**
+	 * use ReferenceCache trait to create a in-memory cache of table
+	 */
 	use \Kiwi\ReferenceCache;
 
 	static $tableName = "Gene";
 
+	/**
+	 * relationships of the entity Gene
+	 */
 	static $relationships = [
 		"categories" => [
 			"tableName" => "GeneCategory",
@@ -48,6 +57,11 @@ class Gene extends \Kiwi\Model {
 		],
 	];
 
+	/**
+	 * get the gene instance by id, the attribute "The protein" will be instantialized with the Protein class
+	 * @param string $id the id of the gene
+	 * @return Gene the instance or null
+	 */
 	public static function get ($id) {
 		$ins = parent::get($id);
 		if ($ins) {
@@ -62,6 +76,9 @@ class Gene extends \Kiwi\Model {
 		return $ins;
 	}
 
+	/**
+	 * get the sequences (DNA, amino acids)
+	 */
 	public function fetchSequences () {
 		if ($this->id) {
 			$con = \Kiwi\Application::$conn;
@@ -73,6 +90,9 @@ class Gene extends \Kiwi\Model {
 		}
 	}
 
+	/**
+	 * patch the {{this}} reference in the data
+	 */
 	public function patch () {
 		$results = \Kiwi\Utility::deepSearch($this, "[[this]]");
 		foreach ($results as $keypath) {
@@ -105,6 +125,10 @@ class Gene extends \Kiwi\Model {
 		\Kiwi\Utility::clean($this); 
 	}
 
+	/**
+	 * get the operons.
+	 * @return array array of Relationship objects
+	 */
 	public function fetchOperons () {
 		if ($this->id) {
 			$relationships = $this->has("operons");
@@ -117,6 +141,10 @@ class Gene extends \Kiwi\Model {
 		}
 	}
 
+	/**
+	 * get the coordinates on the genome.
+	 * @return string the position in the format of start_stop_strand, where strand can be 1 (for forward) or 0 (for reverse)
+	 */
 	public function fetchCoordinates() {
 		$pos = Genome::getAll(["object" => (string) $this]);
 		if ($pos) {
@@ -124,6 +152,10 @@ class Gene extends \Kiwi\Model {
 		}
 	}
 
+	/**
+	 * get the non-transcriptional regulations
+	 * @return [string] the regulations in string representation
+	 */
 	public function fetchOtherRegulations () {
 		if ($this->id) {
 			$relationships = $this->has("otherRegulations");
@@ -142,6 +174,9 @@ class Gene extends \Kiwi\Model {
 		}
 	}
 
+	/**
+	 * override the initLookupTable from ReferenceCache trait, include "locus" and "function" as extra columns
+	 */
 	public static function initLookupTable () {
 		// if use self::lookupTable, this will be shared between all classes 	which use this trait
 		// if use get_called_class()::lookupTable, each class will has its 		own copy
@@ -163,7 +198,7 @@ class Gene extends \Kiwi\Model {
 	}
 
 	/**
-	 * @override
+	 * override the initValidateTable from ReferenceCache trait, include "locus" and "function" as extra columns
 	 */
 	public static function initValidateTable() {
 		$className = get_called_class();
@@ -190,6 +225,10 @@ class Gene extends \Kiwi\Model {
 		}
 	}
 
+	/**
+	 * override the update function in Model class, include versioning
+	 * @return boolean whether the update is successful or not
+	 */
 	public function update () {
 		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
@@ -202,6 +241,10 @@ class Gene extends \Kiwi\Model {
 		}
 	}
 
+	/**
+	 * override the insert function in Model class, include versioning
+	 * @return boolean whether the update is successful or not
+	 */
 	public function insert () {
 		if (!$this->id) {
 			$this->id = sha1(json_encode($this));
@@ -217,7 +260,10 @@ class Gene extends \Kiwi\Model {
 		}
 	}
 
-	// only the replace function need to trace the meta scheme
+	/**
+	 * override the replace function in Model class, including versioning and schema tracking
+	 * @return boolean whether the update is successsful or not
+	 */
 	public function replace () {
 		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
@@ -230,6 +276,10 @@ class Gene extends \Kiwi\Model {
 		}
 	}
 
+	/**
+	 * override the delete function in Model class, including versioning
+	 * @return boolean whether the deletion is successful or not
+	 */
 	public function delete () {
 		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();

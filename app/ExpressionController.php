@@ -8,8 +8,14 @@ require_once ("ViewAdapters.php");
  * - GET: /expression?gene=:geneId
  * - GET: /expression?range=:range&condition=:conditionId[&sampling=:sampling]
  * - GET: /expression?condition=:conditionId[&genes=:geneIds]
- * 
- * 
+ * - POST: /expression
+ * _ PUT: /expression?id=:conditionId
+ * - DELETE: /expression?id=:conditionId
+ * - GET: /expression/condition
+ * - GET: /expression/importer
+ * - GET: /expression/list
+ * - GET: /expression/viewer
+ * - GET: /expression/editor
  */
 class ExpressionController extends \Kiwi\Controller {
 	/**
