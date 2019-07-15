@@ -10,7 +10,7 @@ function download (title, callback) {
         url: url,
         success: function (response) {
             var $html = $(response);
-            var $contentDiv = $html.filter("div#bodyContent");
+            var $contentDiv = $html.find("div#bodyContent");
             var result = {
                 title: title,
                 article: $contentDiv.prop("outerHTML")
