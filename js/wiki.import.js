@@ -51,7 +51,7 @@ function main (title) {
     // then upload the page
     var uploadCallback = function (result) {
         if (result) {
-            alert("success");
+            window.location.reload();
         } else {
             alert("error");
         }
