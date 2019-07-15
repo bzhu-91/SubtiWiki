@@ -1,7 +1,13 @@
 <?php
+/**
+ * The class for wiki, this is a replacement of the mediawiki engine.
+ */
 class Wiki extends \Kiwi\Model {
     static $tableName = "Wiki";
-
+    /**
+     * the insert function, tracks the version changes.
+     * @return boolean the result of the insertion
+     */
     public function insert () {
         if ($this->title) {
             $conn = \Kiwi\Application::$conn;
@@ -16,6 +22,10 @@ class Wiki extends \Kiwi\Model {
         }
     }
     
+    /**
+     * the udpate function, tracks the version changes
+     * @return boolean the result of the update
+     */
     public function update () {
         if ($this->id && $this->title) {
             $conn = \Kiwi\Application::$conn;
@@ -30,6 +40,10 @@ class Wiki extends \Kiwi\Model {
         }
     }
 
+    /**
+     * the delete function, tracks the version changes
+     * @return boolean the result of the update
+     */
     public function delete () {
         if ($this->id && $this->title) {
             $conn = \Kiwi\Application::$conn;
@@ -44,6 +58,10 @@ class Wiki extends \Kiwi\Model {
         }
     }
 
+    /**
+     * create a string in the format of [wiki|the_title_of_the_wiki_page]
+     * @return string the markup string
+     */
     public function toLinkMarkup () {
         if ($this->title) {
             return "[wiki|".$this->title."]";
