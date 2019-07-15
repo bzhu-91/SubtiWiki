@@ -136,8 +136,10 @@ class WikiController extends \Kiwi\Controller {
                 $view = \Kiwi\View::loadFile("layout1.tpl");
                 $view->set($input);
                 $view->set([
-                    "content" => "This page does not exist. Would you like to <a href='wiki/editor?title={{:title}}'>create a page with the title: {{:title}}</a>?",
-                    "showFootNote" => "none"
+                    "content" => "This page does not exist. Would you like to <a href='wiki/editor?title={{:title}}'>create a page with the title: {{:title}}</a>? <p><button id='import'>Import from old SubtiWiki</button></p>",
+                    "showFootNote" => "none",
+                    "jsAfterContent" => ["wiki.import"],
+                    "jsvars" => "var pageTitle = '{{:title}}';"
                 ]);
                 $this->respond($view, 200, HTML);
             } else {
@@ -185,6 +187,18 @@ class WikiController extends \Kiwi\Controller {
         }
     }
 
+    /**
+     * API: create a wiki page.
+     * URL: /wiki
+     * Method: post
+     * URL Param: none
+     * Data Param: {title: xxxx, article: xxxxx}
+     * Success Response:
+     * - code:201, accept:JSON, content: {"uri":"wiki?id=xxx"}
+     * Error Response:
+     * - code:500, accept:JSON, content: {"message": "The arti ..."}
+     * - code:406, accept:!JSON, content: {"message": "Unaccepted"}
+     */
     public function create ($input, $accept) {
         UserController::authenticate(1, $accept);
         if ($accept == JSON) {
@@ -202,7 +216,7 @@ class WikiController extends \Kiwi\Controller {
             } else {
                 $this->error("The article with same title already exists", 500, JSON);
             }
-        } else $this->error("Unaccepted", 405, $accept);
+        } else $this->error("Unaccepted", 406, $accept);
     }
 
     public function editor ($input, $accept, $method) {
