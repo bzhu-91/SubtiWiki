@@ -434,8 +434,12 @@ class GeneController extends \Kiwi\Controller {
 			$old = Gene::raw($id);
 			if ($old) {
 				$new = Gene::withData($input);
+				// disallow ; in gene name, this symbol is used as general delimiter
+				if (strpos($new->title, ";") !== false) {
+					$this->error("; is disallowed in gene names", 400, JSON);
+				}
+				// handle name change in gene
 				if ($new->title != $old->title) {
-					// handle name change in gene
 					if ($new->synonyms) {
 						$new->synonyms = array_map("trim", explode(",", $new->synonyms));
 						if (!in_array($old->title, $new->synonyms)) {
@@ -484,6 +488,10 @@ class GeneController extends \Kiwi\Controller {
 		UserController::authenticate(2, $accept);
 		if ($accept == JSON) {
 			$gene = Gene::withData($input);
+			// disallow ; in gene name, this symbol is used as general delimiter
+			if (strpos($gene->title, ";") !== false) {
+				$this->error("; is disallowed in gene names", 400, JSON);
+			}
 			if ($gene->insert()) {
 				$this->respond(["uri" => "gene?id=".$gene->id], 201, JSON);
 			} else $this->error("Internal error", 500, JSON);
@@ -660,7 +668,7 @@ class GeneController extends \Kiwi\Controller {
 	/**
 	 * migrating from v3 to v4, will be deleteds
 	 */
-	public function migrate ($input) {
+	public function migrate ($input, $accept, $method) {
 		$password = $this->filter($input, "password", "/^bzhu2018__$/i", ["Not found", 404, $accept]);
 		$genes = Gene::getAll(1);
 		foreach ($genes as $gene) {
@@ -672,12 +680,13 @@ class GeneController extends \Kiwi\Controller {
 				unset($gene->names);
 				$conn = \Kiwi\Application::$conn;
 				if ($conn->replace("Gene", $gene, ["id" => $gene->id])) {
-					Log::debug($gene->title);
+					\Kiwi\Log::debug("okay: ".$gene->title);
 				} else {
-					Log::debug("x: ".$gene->title);
+					\Kiwi\Log::debug("x: ".$gene->title);
 				}
 			}
 		}
+		echo "Finished";
 	}
 
 	/**
