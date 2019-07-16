@@ -68,8 +68,9 @@
 			<div class="content" id="content-complex">This protein is not in any complexes</div>
 		</div>
 		<div class="tab-content">
-			<div class="content" id="content-reaction">This protein is not invovled in any reactions</div>
 			<!-- reactions -->
+			<div class="content" id="content-reaction">This protein is not invovled in any reactions</div>
+			<p><a href="pathway/editor" class="button">Open pathway editor</a></p>
 		</div>
 	</div>
 </div>
