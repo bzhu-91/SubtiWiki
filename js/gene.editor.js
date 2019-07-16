@@ -81,7 +81,59 @@ $(window).on("load", function(){
 			$("#content-regulon").html("").append($editor);
 			patch_textarea();
 		}
-	})
+	});
+
+	// load complexes
+	$.ajax({
+		url: "complex?member={gene|"+geneId+"}",
+		dataType: "json",
+		success: function (data) {
+			var $table = $("<table></table>").addClass("common");
+			$table.append
+			for (let i = 0; i < data.length; i++) {
+				const complex = data[i];
+				$table.append(
+					$("<tr></tr>").append(
+						$("<td></td>").append(
+							$("<a></a>").attr("href", "complex?id=" + complex.id).html(complex.title)
+						),
+						$("<td></td>").append(
+							$("<a></a>").attr("href", "complex/editor?id=" + complex.id).html("Edit").addClass("button")
+						)
+					)
+				)
+			}
+			$("#content-complex").html("").append($table);
+		},
+	});
+
+	$.ajax({
+        url: "reaction?catalyst=" + encodeURIComponent(geneTitle)  + "&page=1&page_size=max",
+        dataType: "json",
+        success: function (data) {
+			var $table = $("<table></table>").addClass("common");
+			$table.append(
+				$("<tr></tr>").append(
+					$("<th></th>").html("Reaction"),
+					$("<th></th>").html("Operation")
+				)
+			)
+			for (let i = 0; i < data.length; i++) {
+				const reaction = data[i];
+				$table.append(
+					$("<tr></tr>").append(
+						$("<td></td>").append(
+							reaction.equation
+						),
+						$("<td></td>").append(
+							$("<a></a>").attr("href", "reaction/editor?id=" + reaction.id).html("Edit").addClass("button")
+						)
+					)
+				)
+			}
+			$("#content-reaction").html("").append($table);
+        }
+    })
 
 	$("textarea").monkey();
 	patch_textarea();

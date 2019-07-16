@@ -24,6 +24,18 @@ class Complex extends \Kiwi\Model {
         ]
     ];
 
+    public static function findByMember ($member) {
+        $sql = "select distinct complex from `".self::$tableName."` where member like ? ";
+        $searchResult = \Kiwi\Application::$conn->doQuery($sql, [$member]);
+        if ($searchResult) {
+            $result = [];
+            foreach($searchResult as $row) {
+                $result[] = self::get($row["complex"]);
+            }
+            return $result;
+        }
+    }
+
     /**
      * insert to database, History recorded
      * @return boolean whether insertion is successful or not

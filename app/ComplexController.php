@@ -15,7 +15,7 @@ require_once("ViewAdapters.php");
  * PUT:/complex/member?complex=:complexId&member=:member
  * DELETE:/complex/member?complex=:complexId&member=:member
  */
-class ComplexController extends Controller {
+class ComplexController extends \Kiwi\Controller {
 
     /**
      * API: GET:*
@@ -24,7 +24,7 @@ class ComplexController extends Controller {
         if ($input) {
             if (array_key_exists("id", $input)) {
                 $this->view($input, $accept);
-            } elseif (array_key_exists("keyword", $input)) {
+            } elseif (array_key_exists("keyword", $input) || array_key_exists("member", $input)) {
                 $this->search($input, $accept);
             } elseif (array_key_exists("page", $input)) {
                 $this->list($input, $accept);
@@ -53,6 +53,7 @@ class ComplexController extends Controller {
     **/
     protected function search ($input, $accept) {
         $keyword = $this->filter($input,"keyword", "/^.{2,}$/i");
+        $member = $this->filter($input, "member", "has");
         if ($accept == JSON) {
             if ($keyword) {
                 $data = Complex::getAll("title like ?", ["%".$keyword."%"]);
@@ -61,8 +62,20 @@ class ComplexController extends Controller {
                 } else {
                     $this->error("Not found", 404, JSON);
                 }
-            } else {
-                $this->error("Keyword is required and should belonger than 2 characters", 400, $accept);
+            } elseif ($member) {
+                $member = \Kiwi\Model::parse($member);
+                if ($member) {
+                    $results = Complex::findByMember($member);
+                    if ($results) {
+                        $this->respond(Utility::arrayColumns($results, ["id", "title"]), 200, JSON);
+                    } else {
+                        $this->error("Not found", 404, JSON);
+                    }
+                } else {
+                    $this->error("Unknown member", 400, JSON);
+                }
+            } else { 
+                $this->error("Keyword or member is required", 400, JSON);
             }
         }
     }
