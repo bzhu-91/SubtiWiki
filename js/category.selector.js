@@ -20,35 +20,34 @@ var CategorySelector = CategorySelector || function (domSelector) {
 
 CategorySelector.prototype.loadData = function (callback) {
     var self = this;
-    ajax.get({
+    $.ajax({
         url: "category",
-        headers: {Accept: "application/json"}
-    }).done(function(status, data, error, xhr){
-        if (!error) {
-            if (status == 200) {
-                data.forEach(function(category){
-                    self.hashTable[category.id] = category;
-                });
-                for(id in self.hashTable) {
-                    var category = self.hashTable[id];
-                    var parentId = CategorySelector.getParentId(id);
-                    if (parentId == "SW") {
-                        self.root._children.push(category);
-                    } else {
-                        var parent = self.hashTable[parentId];
-                        if (!("_children" in parent)) {
-                            parent._children = [];
-                        }
-                        parent._children.push(category);
-                        category._parent = parent;
+        dataType:"json",
+        success: function (data) {
+            data.forEach(function(category){
+                self.hashTable[category.id] = category;
+            });
+            for(id in self.hashTable) {
+                var category = self.hashTable[id];
+                var parentId = CategorySelector.getParentId(id);
+                if (parentId == "SW") {
+                    self.root._children.push(category);
+                } else {
+                    var parent = self.hashTable[parentId];
+                    if (!("_children" in parent)) {
+                        parent._children = [];
                     }
+                    parent._children.push(category);
+                    category._parent = parent;
                 }
-                callback();
             }
-        } else {
+            callback();
+        },
+        error: function () {
             $(self.domSelector).html("Error loading the category selector");
+
         }
-    });
+    })
 }
 
 CategorySelector.getParentId = function (id) {

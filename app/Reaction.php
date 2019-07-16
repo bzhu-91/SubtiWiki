@@ -1,12 +1,12 @@
 <?php
-class Reaction extends Model {
+class Reaction extends \Kiwi\Model {
     static $tableName = "Reaction";
     static $relationships = [
         "metabolite" => [
             "tableName" => "ReactionMetabolite",
             "mapping" => [
                 "reaction" => "Reaction",
-                "metabolite" => "Metabolite"
+                "metabolite" => "mixed"
             ],
             "position" => 1
         ],
@@ -31,7 +31,7 @@ class Reaction extends Model {
     private $fromEquation = false;
 
     // call this->update
-    protected function updateEquation () {
+    public function updateEquation () {
         if($this->id) {
             $metabolites = self::has("metabolite", true);
             if($metabolites) {
@@ -46,25 +46,38 @@ class Reaction extends Model {
                 $equation = "";
                 $lhs = [];
                 foreach($left as $hasMetabolite) {
+                    $name = "";
                     if ($hasMetabolite->coefficient > 1) {
-                        $lsh[] = $hasMetabolite->coefficient." ".$hasMetabolite->metabolite->title;
+                        $name = $hasMetabolite->coefficient." ".$hasMetabolite->metabolite->title;
                     } else {
-                        $lhs[] = $hasMetabolite->metabolite->title;
+                        $name = $hasMetabolite->metabolite->title;
                     }
+                    if ($hasMetabolite->modification) {
+                        $name .= "<sup>".$hasMetabolite->modification."</sup>";
+                    }
+                    $lhs[] = $name;
                 }
                 $rhs = [];
                 foreach($right as $hasMetabolite) {
+                    $name = "";
                     if ($hasMetabolite->coefficient > 1) {
-                        $rhs[] = $hasMetabolite->coefficient." ".$hasMetabolite->metabolite->title;
+                        $name = $hasMetabolite->coefficient." ".$hasMetabolite->metabolite->title;
                     } else {
-                        $rhs[] = $hasMetabolite->metabolite->title;
+                        $name = $hasMetabolite->metabolite->title;
                     }
+                    if ($hasMetabolite->modification) {
+                        $name .= "<sup>".$hasMetabolite->modification."</sup>";
+                    }
+                    $rhs[] = $name;
                 }
-                $equal = " = ";
-                if ($this->reversible) $equal = " <=> ";
+                $equal = " ⟹ ";
+                if ($this->reversible) $equal = " ⟺ ";
                 $equation = implode(" + ", $lhs).$equal.implode(" + ", $rhs);
 
                 $this->equation = $equation;
+                return parent::update();
+            } else {
+                $this->equation = "";
                 return parent::update();
             }
         }
@@ -89,7 +102,7 @@ class Reaction extends Model {
     }
 
     public function update () {
-        $conn = Application::$conn;
+        $conn = \Kiwi\Application::$conn;
         $conn->beginTransaction();
         if (History::record($this, "update") && parent::update()) {
             $conn->commit();
@@ -101,7 +114,7 @@ class Reaction extends Model {
     }
 
     public function insert () {
-        $conn = Application::$conn;
+        $conn = \Kiwi\Application::$conn;
         $conn->beginTransaction();
         if (parent::insert() && History::record($this, "add")) {
             $conn->commit();
@@ -111,19 +124,45 @@ class Reaction extends Model {
             return false;
         }
     }
+
+    public static function searchByCatalyst($keyword, $page, $pageSize) {
+        $sql = "select Reaction.id, Reaction.equation from Reaction join ReactionCatalyst on Reaction.id = ReactionCatalyst.reaction join Gene on ReactionCatalyst.Catalyst like concat('{protein|', Gene.id, '}') where Gene.title like ? or Gene._synonyms like ?";
+        $vals = ["%{$keyword}%", "%{$keyword}%"];
+        if ($page && $pageSize) {
+            $sql .= " limit ?,?";
+            $vals[] = $pageSize*($page-1);
+            $vals[] = $pageSize;
+        }
+        $reGene = \Kiwi\Application::$conn->doQuery($sql, $vals);
+
+        $sql = "select Reaction.id, Reaction.equation from Reaction join ReactionCatalyst on Reaction.id = ReactionCatalyst.reaction join Complex on ReactionCatalyst.catalyst like concat('{complex|', Complex.id, '}') join ComplexMember on ComplexMember.complex = Complex.id join Gene on ComplexMember.member like concat('{protein|', Gene.id, '}') where Gene.title like ? or Gene._synonyms like ?";
+        $vals = ["%{$keyword}%", "%{$keyword}%"];
+        if ($page && $pageSize) {
+            $sql .= " limit ?,?";
+            $vals[] = $pageSize*($page-1);
+            $vals[] = $pageSize;
+        }
+        $reComplex = \Kiwi\Application::$conn->doQuery($sql, $vals);
+        $re = array_merge($reGene, $reComplex);
+        foreach($re as &$reaction){
+            $reaction = Reaction::withData($reaction);
+        }
+        return $re;
+    }
     
-    public function addMetabolite (Metabolite $metabolite, $side, $coefficient = 1) {
+    public function addMetabolite ($metabolite, $side, $coefficient = 1, $modification) {
         # check duplicate
         if($this->id) {
             $data = [
                 "reaction" => $this,
                 "metabolite" => $metabolite,
                 "side" => $side,
-                "coefficient" => $coefficient
+                "coefficient" => $coefficient,
+                "modification" => $modification
             ];
             $prototype = self::hasPrototype("metabolite");
             $hasMetabolite = $prototype->clone($data);
-            $conn = Application::$conn;
+            $conn = \Kiwi\Application::$conn;
             $conn->beginTransaction();
             if ($hasMetabolite->insert() && History::record($this, "update") && $this->updateEquation() ) {
                 $conn->commit();
@@ -135,63 +174,54 @@ class Reaction extends Model {
         }
     }
 
-    public function updateMetabolite (Metabolite $metabolite, $coefficient) {
+    public function updateMetabolite ($hasMetabolite, $coefficient, $modification) {
         if ($this->id) {
-            $metabolites = self::has("metabolite");
-            if($metabolites) {
-                $rows = array_values(array_filter($metabolites, function($each) use ($metabolite) {
-                    return $each->metabolite->id == $metabolite->id;
-                }));
-                if($rows) {
-                    $hasMetabolite = $row[0];
-                    $hasMetabolite->coefficient = $coefficient;
-                    $conn = Application::$conn;
-                    $conn->beginTransaction();
-                    if($hasMetabolite->update() && History::record($this, "update") && $this->updateEquation() ) {
-                        $conn->commit();
-                        return true;
-                    } else {
-                        $conn->rollback();
-                        return false;
-                    }
+            $hasMetabolite = self::hasPrototype("metabolite")->getWithId($hasMetabolite);
+            if ($hasMetabolite) {
+                $hasMetabolite->coefficient = $coefficient;
+                $hasMetabolite->modification = $modification;
+                $conn = \Kiwi\Application::$conn;
+                $conn->beginTransaction();
+                if($hasMetabolite->update() && History::record($this, "update") && $this->updateEquation() ) {
+                    $conn->commit();
+                    return true;
+                } else {
+                    $conn->rollback();
+                    return false;
                 }
-            }
+            } else return false;
         }
     }
 
-    public function removeMetabolite ($metabolite) {
+    public function removeMetabolite ($hasMetabolite) {
         if ($this->id) {
-            $metabolites = self::has("metabolite");
-            if($metabolites) {
-                $row = array_values(array_filter($metabolites, function($each) use ($metabolite) {
-                    return $each->metabolite->id == $metabolite->id;
-                }));
-                if($row) {
-                    $row = $row[0];
-                    $conn = Application::$conn;
-                    $conn->beginTransaction();
-                    if($row->delete() && History::record($this, "update") && $this->updateEquation()) {
-                        $conn->commit();
-                        return true;
-                    } else {
-                        $conn->rollback();
-                        return false;
-                    }
+            $hasMetabolite = self::hasPrototype("metabolite")->getWithId($hasMetabolite);
+            if ($hasMetabolite) {
+                $conn = \Kiwi\Application::$conn;
+                $conn->beginTransaction();
+                if($hasMetabolite->delete() && History::record($this, "update") && $this->updateEquation() ) {
+                    $conn->commit();
+                    return true;
+                } else {
+                    $conn->rollback();
+                    return false;
                 }
-            }
+            } else return true;
         }
     }
 
-    public function addCatalyst ($catalyst) {
+    public function addCatalyst ($catalyst, $novel, $modification) {
         # check duplicate
         if($this->id) {
             $data = [
                 "reaction" => $this,
                 "catalyst" => $catalyst,
+                "novel" => $novel,
+                "modification" => $modification
             ];
             $prototype = self::hasPrototype("catalyst");
             $hasCatalyst = $prototype->clone($data);
-            $conn = Application::$conn;
+            $conn = \Kiwi\Application::$conn;
             $conn->beginTransaction();
             if ($hasCatalyst->insert() && History::record($hasCatalyst, "add")) {
                 $conn->commit();
@@ -203,25 +233,19 @@ class Reaction extends Model {
         }
     }
 
-    public function removeCatalyst ($catalyst) {
+    public function removeCatalyst ($hasCatalyst) {
         if ($this->id) {
-            $catalysts = self::has("catalyst");
-            if($catalysts) {
-                $row = array_values(array_filter($catalysts, function($each) use ($catalyst) {
-                    return (string) $catalyst == (string) $each->catalyst;
-                }));
-                if($row) {
-                    $row = $row[0];
-                    $conn = Application::$conn;
-                    $conn->beginTransaction();
-                    if(History::record($row, "remove") && $row->delete()) {
-                        $conn->commit();
-                        return true;
-                    } else {
-                        $conn->rollback();
-                        return false;
-                    }
-                } else return true;
+            $hasCatalyst = self::hasPrototype("catalyst")->getWithId($hasCatalyst);
+            if ($hasCatalyst) {
+                $conn = \Kiwi\Application::$conn;
+                $conn->beginTransaction();
+                if(History::record($hasCatalyst, "remove") && $hasCatalyst->delete()) {
+                    $conn->commit();
+                    return true;
+                } else {
+                    $conn->rollback();
+                    return false;
+                }
             } else return true;
         }
     }

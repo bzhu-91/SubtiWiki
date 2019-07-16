@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto'); 
 
 :root {
-	--primary-color: #2e7d32; --secondary-color: #4caf50; --accent-color: gray; 
+	--primary-color: #1976d2; --secondary-color: #2196F3; --accent-color: gray; 
 }
 
 /* css released under Creative Commons License -  http://creativecommons.org/licenses/by/2.0/deed.en  */
@@ -26,6 +26,7 @@ body {
 
 a {
 	text-decoration: none; /*#999; */
+	color: #1565c0;
 }
 
 a:hover {
@@ -56,8 +57,8 @@ li {
 	line-height: 1.5em; list-style-position: inside; text-indent: -1.3em; padding-left: 1.3em; 
 }
 
-ul {
-	padding-left: 0px; 
+p {
+	line-height: 1.5em;
 }
 
 /* ----------container zentriert das layout-------------- */
@@ -108,7 +109,14 @@ label, .label {
 }
 
 button, a.button, .button, input[type=submit]{
-	display:inline-block; line-height: 1em; background: var(--secondary-color); color: white; border: none; padding: 5px; border-radius: 3px; cursor: pointer; box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); -moz-box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); cursor: pointer; margin-left: 5px; font-size: 1em; font-family: inherit; 
+	display:inline-block; line-height: 1em; background: var(--secondary-color); color: white; border: none; padding: 5px; border-radius: 3px; cursor: pointer; box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); -moz-box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.07); cursor: pointer; font-size: 1em; font-family: inherit; 
+}
+
+button:not(:first-child),
+a.button:not(:first-child),
+.button:not(:first-child),
+input[type=submit]:not(:first-child) {
+	margin-left: 5px;
 }
 
 a.button:hover {
@@ -128,7 +136,7 @@ button:active, .button:active {
 }
 
 textarea, .textarea{
-	font-family: monospace; line-height: 1.2em; 
+	font-family: monospace; line-height: 1.2em; resize: vertical;
 }
 
 /* new nav */
@@ -153,7 +161,7 @@ textarea, .textarea{
 }
 
 #top nav a, nav a:visited {
-	background-color: #E8F5E9; color: #333; display: block; padding: 5px 15px; text-decoration: none; border-radius: 0 0 2px 2px; 
+	background-color: #E3F2FD; color: #333; display: block; padding: 4px 10px; text-decoration: none; border-radius: 0 0 2px 2px; 
 }
 
 
@@ -213,7 +221,11 @@ section: before {
 }
 
 section#content {
-	float: left; width: 75%; padding: 20px; background-color: #fff; min-height:600px; 
+	float: left; width: 75%; padding: 20px; background-color: #fff; min-height:600px;background: white;
+}
+
+section#content > #content-wrapper {
+	opacity: 0;
 }
 /* -------------- side infos ------------- */
 
@@ -251,7 +263,7 @@ footer a:visited {
 
 
 input {
-	border: 1px solid #999; border-radius: 3px; font-family: monospace; vertical-align: middle; margin-right: 5px; padding: 5px; 
+	border: 1px solid #999; border-radius: 3px; font-family: monospace; vertical-align: middle; padding: 5px; 
 }
 
 .box {

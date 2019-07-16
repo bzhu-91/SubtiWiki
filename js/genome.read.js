@@ -16,19 +16,17 @@ $(document).on("submit", "#gene", function (ev) {
 
 	var geneName = this.geneName.value.trim();
 	if (geneName.length > 1) {
-		ajax.get({
+		$.ajax({
 			url: "gene?mode=title&keyword=" + encodeURIComponent(geneName),
-			headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr) {
-			if (error) {
-				SomeLightBox.error("Connection to server lost.");
-			} else if (status == 200) {
+			dataType:"json",
+			success: function (data) {
 				if (data.length == 1) {
 					window.location = $("base").attr("href") + "genome?gene=" + data[0].id
 				} else {
 					SomeLightBox.error("Gene " + geneName + " is ambigious");
 				}
-			} else {
+			},
+			error: function () {
 				SomeLightBox.error("Gene " + geneName + " is not found");
 			}
 		})
@@ -44,19 +42,17 @@ $(document).on("submit", "#flanking", function (ev) {
 	var up = this.up.value == "" ? 0 : this.up.value;
 	var down = this.down.value == "" ? 0 : this.down.value;
 	if (geneName.length > 1) {
-		ajax.get({
+		$.ajax({
 			url: "gene?mode=title&keyword=" + encodeURIComponent(geneName),
-			headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr) {
-			if (error) {
-				SomeLightBox.error("Connection to server lost.");
-			} else if (status == 200) {
+			dataType:"json",
+			success: function (data) {
 				if (data.length == 1) {
 					window.location = $("base").attr("href") + "genome?gene=" + data[0].id + "&up=" + up + "&down=" + down;
 				} else {
 					SomeLightBox.error("Gene " + geneName + " is ambigious");
 				}
-			} else {
+			},
+			error: function () {
 				SomeLightBox.error("Gene " + geneName + " is not found");
 			}
 		})
@@ -225,26 +221,22 @@ GenomeBrowser.prototype.loadByRegion = function (start, stop) {
 
 GenomeBrowser.prototype.loadContextData = function (callback) {
 	var self = this;
-
-	var onDone = function (status, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if(status == 200) {
-			self.contextData = data;
-			switch (self.mode) {
-				case "gene":
-				case "flanking":
-					data.forEach(function(each){
-						if (each.id == self.geneId) {
-							self.gene = each;
-						}
-					})
-			}
-			$("#data").show();
-			callback();
-		} else {
-			SomeLightBox.error(data.message);
+	var success = function (data) {
+		self.contextData = data;
+		switch (self.mode) {
+			case "gene":
+			case "flanking":
+				data.forEach(function(each){
+					if (each.id == self.geneId) {
+						self.gene = each;
+					}
+				})
 		}
+		$("#data").show();
+		callback();
+	} 
+	var error = function () {
+		SomeLightBox.error(data.message);
 	}
 
 	var span = 30000;
@@ -253,19 +245,23 @@ GenomeBrowser.prototype.loadContextData = function (callback) {
 		case "flanking":
 			span = Math.max(span, Math.max(self.up, self.down));
 		case "gene":
-			ajax.get({
+			$.ajax({
 				url: "genome/context?gene=" + self.geneId + "&span=" + span,
-				headers: {Accept: "application/json"}
-			}).done(onDone);
+				dataType:"json",
+				success: success,
+				error: error
+			})
 			break;
 		case "region":
 			var mid = Math.ceil((self.start + self.stop) / 2);
 			var halfLen = Math.ceil((self.stop - self.start) / 2);
 			span = Math.max(span, halfLen);
-			ajax.get({
+			$.ajax({
 				url: "genome/context?position=" + mid + "&span=" + span,
-				headers: {Accept: "application/json"}
-			}).done(onDone);
+				dataType:"json",
+				success: success,
+				error: error
+			});
 	}
 }
 
@@ -326,15 +322,15 @@ GenomeBrowser.prototype.loadSequenceDataByGene = function (callback) {
 GenomeBrowser.prototype.loadSequenceData = function (l, r, s, callback){
 	var self = this;
 	self.contextBrowser.diagram.selectRange(l,r);
-	ajax.get({
+	$.ajax({
 		url: "genome/sequence?position=" + l + "_" + r + "_" + s,
-		headers: {Accept: "application/json"}
-	}).done(function(status, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (status == 200) {
+		dataType:"json",
+		success: function (data) {
 			self.plainDNASequence = data.sequence;
 			callback();
+		},
+		error: function () {
+			SomeLightBox.error("Connection to server lost");
 		}
 	});
 }

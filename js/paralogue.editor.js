@@ -1,5 +1,5 @@
 $(document).ready(function(){
-	window.Editor.init(".editor");
+	$("textarea").monkey();
 });
 
 $(document).on("click", ".delBtn[target=paralogue]", function(){
@@ -12,39 +12,39 @@ $(document).on("click", ".delBtn[target=paralogue]", function(){
 	if (id) {
 		var mode = $(self).attr("mode");
 		SomeLightBox.alert({
-			title: {
-				title: "Delete",
-				color: "red"
-			},
+			title: "Delete",
 			message: "Do you want to remove this paralogue?",
 			confirm: {
 				title: "Delete",
 				color: "red",
 				onclick : function () {
-					ajax.delete({
+					$.ajax({
+						type: "delete",
 						url: "protein/paralogue?id=" + id,
-						headers: {Accept: "application/json"}
-					}).done(function(status, data, error, xhr){
-						if (status == 204) {
-							if (mode == "redirect") {
-								SomeLightBox.alert("Success", "Deletion is succcessful");
-								setTimeout(function(){
-									window.location = "paralogue";
-								}, 300);
-							} else {
-								container.remove();
+						dataType:"json",
+						statusCode: {
+							204: function () {
+								if (mode == "redirect") {
+									SomeLightBox.alert("Success", "Deletion is succcessful");
+									setTimeout(function(){
+										window.location = "paralogue";
+									}, 300);
+								} else {
+									container.remove();
+								}
+							},
+							500: function (error) {
+								SomeLightBox.error(error.message);
 							}
-						} else if (error) {
-							SomeLightBox.error("Server connection is lost.");
-						} else {
-							SomeLightBox.error(data.message);
 						}
 					});
 				}
 			},
 			cancel: {
-				title: "Cancel"
-			}
+				title: "Cancel",
+				color: "gray"
+			},
+			theme: "red"
 		})
 	} else {
 		container.remove();

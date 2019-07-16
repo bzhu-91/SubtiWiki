@@ -56,22 +56,29 @@ $(document).on("submit", "#email", function(ev) {
 	ev.preventDefault(ev);
 	ev.stopPropagation();
 
-	var form = $("#invitation")[0];
-	
 	invitation.body = this.body.value.trim();
 	invitation.sendEmail = !this.sendEmail.checked;
 
-	ajax.post({
+	var keys = ["body", "email", "token", "type", "name"];
+	var data = {};
+	for (let i = 0; i < keys.length; i++) {
+		const key = keys[i];
+		data[key] = invitation[key];
+		
+	}
+
+	$.ajax({
+		type:"post",
 		url: "user/invitation",
-		headers: {Accept: "application/json"},
-		data: ajax.serialize(invitation)
-	}).done(function(status, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (status == 201) {
-			SomeLightBox.alert("Success", data.message);
-		} else {
-			SomeLightBox.error(data.message);
+		dataType:"json",
+		data: data,
+		statusCode: {
+			201: function (data) {
+				SomeLightBox.alert("Success", data.message);
+			},
+			500: function (data) {
+				SomeLightBox.error(data.message);
+			}
 		}
 	});
 })

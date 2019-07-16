@@ -21,12 +21,11 @@
 		<link rel="stylesheet" href="css/layout1.css" type="text/css" />
 		<link rel="stylesheet" href="css/common.css" type="text/css" />
 
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 		<script type="text/javascript" src="js/libs/md5.js"></script>
 		<script type="text/javascript" src="js/libs/Lucille.js"></script>
 		<script type="text/javascript" src="js/markup.js"></script>
-		<script type="text/javascript" src="js/patch_AJAX.js"></script>
 		<script type="text/javascript" src="js/patch_textarea.js"></script>
 		{{css:css}}{{js:jsBeforeContent}}
 	</head>
@@ -59,33 +58,40 @@
 				<nav>{{navlink:navlinks}}</nav>
 			</div>
 			<section id="content">
-				{{banner.php}}
-				<h1>
-					<span>{{:title}}</span>
-					<span style="float:right; font-size: smaller">{{:titleExtra}}</span>
-				</h1>
-				{{:content}}
-				<div class="footnote box" style="margin-top: 50px; display: {{:showFootNote}}">
-					<p style="display: none;">{{:bank_id}}</p>
-					<p style="display: none;">{{:id}}</p>
-					<p><b>Page visits: </b>{{:count}}</p>
-					<p><b>Time of last update: </b>{{:lastUpdate}}</p>
-					<p><b>Author of last update: </b>{{:lastAuthor}}</p>
+				<div id="content-wrapper">
+					{{banner.php}}
+					<h1>
+						<span>{{:title}}</span>
+						<span style="float:right; font-size: smaller">{{:titleExtra}}</span>
+					</h1>
+					{{:content}}
+					<div class="footnote box" style="margin-top: 50px; display: {{:showFootNote}}">
+						<p style="display: none;">{{:bank_id}}</p>
+						<p style="display: none;">{{:id}}</p>
+						<p><b>Page visits: </b>{{:count}}</p>
+						<p><b>Time of last update: </b>{{:lastUpdate}}</p>
+						<p><b>Author of last update: </b>{{:lastAuthor}}</p>
+					</div>
 				</div>
 			</section>
 			<aside>
 				<div id="highlights">
 					<h3>Highlights</h3>
 					<ul style="padding-left: 0" id="highlights">
-					<li><a href="gene/random">Random gene</a></li>
+					<li><a href="wiki?title=Conferences">Conferences</a></li>
+					<li><a href="wiki?title=Paper%20of%20the%20month">Paper of the month</a></li>
+					<li><a href="wiki?title=labs">Bacillus labs</a></li>
 					<li><a href="category">All categories</a></li>
-					<li><a href="people">People</a></li>
+					<li><a href="gene/random">Random gene</a></li>
+					<li><a href="https://academic.oup.com/nar/article/46/D1/D743/4372578" target="_blank" style="color: #E65100">Please cite us ^_^</a></li>
+					<li><a href="wiki?title=People">Credits</a></li>
 				</div><!-- highlights -->
 				<div id="special">
 					<h3>Special pages</h3>
 					<ul style="padding-left: 0" id="specialPages">
 						<li><a href="gene/exporter">Gene export wizard</a></li>
 						<li><a href="exports">Exports</a></li>
+						<li><a href="user">User list</a></li>
 						<li><a href="history">History</a></li>
 						<li><a href="statistics">Statistics</a></li>
 					</ul>

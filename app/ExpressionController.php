@@ -1,7 +1,69 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class ExpressionController extends Controller {
+/**
+ * Provide operations on Expression (Expression browser)
+ * RESTful API summary:
+ * - GET: /expression
+ * - GET: /expression?gene=:geneId
+ * - GET: /expression?range=:range&condition=:conditionId[&sampling=:sampling]
+ * - GET: /expression?condition=:conditionId[&genes=:geneIds]
+ * - POST: /expression
+ * _ PUT: /expression?id=:conditionId
+ * - DELETE: /expression?id=:conditionId
+ * - GET: /expression/condition
+ * - GET: /expression/importer
+ * - GET: /expression/list
+ * - GET: /expression/viewer
+ * - GET: /expression/editor
+ */
+class ExpressionController extends \Kiwi\Controller {
+	/**
+	 * multiple APIs.
+	 * 
+	 * API: expression browser
+	 * URL: /expression
+	 * Method: GET
+	 * Success Response:
+	 * - code: 200, accept: HTML, Content: a html page
+	 * Error response:
+	 * - code: 400, accept: -, Content: {message: "Bad request"}
+	 * - code: 406, accept:HTML_partial, Content: {message: "Unaccepted"}
+	 * 
+	 * API: show expression data of a gene
+	 * URL: /expression?gene=:geneId
+	 * URL Params: geneId=[sha1 hash string]
+	 * Method: GET
+	 * Success Response:
+	 * - code: 200, accept: HTML, Content: a html page
+	 * - code: 200, accept: JSON, Content: expression level, {1: 12.3}
+	 * Error Response:
+	 * - code: 400, accept: JSON/CSV, Content: {message: "Bad request"}
+	 * - code: 404, accept: JSON/CSV, Content: {message: "Data not found"}
+	 * - code: 406, accept: HTML_PARTIAL, Content: {message: "Unaccepted"}
+	 * 
+	 * API: show expression data of a range
+	 * URL: /expression?range=:range&condition=:conditionId[&sampling=:sampling]
+	 * Method: GET
+	 * URL Params: range=[string] in the format of start_stop_strand, where strand is 1 or 0; conditionId=[int]; sampling=[int], default 1
+	 * Success Response:
+	 * - code: 200, accept: JSON, content: {45543: 12.3, 45544: 1.32, ...}
+	 * - code: 200, accept: CSV, content: csv with columns "position", "value"
+	 * Error Response:
+	 * - code: 404, accept: JSON/CSV, Content: {message: "Data not found"}
+	 * - code: 406, accept: HTML_PARTIAL, Content: {message: "Unaccepted"}
+	 * 
+	 * API: show expression level of a certain conditions
+	 * URL: /expression?condition=:conditionId[&genes=:geneIds]
+	 * Method: GET
+	 * URL Params: geneIds=[geneIds, seperated by comma], conditionId=[int, id of the condition]
+	 * Success Response:
+	 * - code: 200, accept: JSON, content: {xxxxxxxxxxxx: 12.2, xxxxxxxxxxxxx: 123.212}
+	 * - code: 200, accept: CSV, content: csv file with columns "gene", "value"
+	 * Error Response:
+	 * - code: 404, accept: JSON/CSV, Content: {message: "Data not found"}
+	 * - code: 406, accept: HTML_PARTIAL, Content: {message: "Unaccepted"}
+	 */
 	public function read ($input, $accept){
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i");
 		$condition = $this->filter($input, "condition", "/^\d+$/i");
@@ -11,7 +73,7 @@ class ExpressionController extends Controller {
 		$sampling = $this->filter($input, "sampling", "^\d+$");
 		
 		if ($accept == HTML) {
-			$view = View::loadFile("layout2.tpl");
+			$view = \Kiwi\View::loadFile("layout2.tpl");
 			$view->set([
 				"pageTitle" => "Expression Browser",
 				"headerTitle" => "Expression Browser",
@@ -26,13 +88,18 @@ class ExpressionController extends Controller {
 					"expression.read"
 				],
 				"styles" => ["expression.read"],
-				"bsupath" => $bsupath,
 				"vars" => [
 					"genomeLength" => $GLOBALS["GENOME_LENGTH"]
 				]
 			]);
 			if ($alternative) {
 				$view->set("jsAfterContent", ["expression.read", "expression.read.alternative"]);
+			}
+			if ($geneId) {
+				$gene = Gene::get($geneId);
+				$view->set([
+					"bsupath" => $gene->outlinks->bsupath,
+				]);
 			}
 			$this->respond($view, 200, HTML);
 		} elseif ($accept == HTML_PARTIAL) {
@@ -82,11 +149,13 @@ class ExpressionController extends Controller {
 				} else $geneIds = [];
 				$data = Expression::getByCondition($condition, $geneIds);
 				if ($data) {
-					$csvData = [["condition", "value"]];
+					$csvData = [["gene", "value"]];
 					foreach($data as $key => $value) {
 						$csvData[] = [$key, $value];
 					}
 				}
+			} else {
+				$this->error("Bad request", 400, $accept);
 			}
 			
 
@@ -95,7 +164,7 @@ class ExpressionController extends Controller {
 					$this->respond($data, 200, JSON);
 				} elseif($accept == CSV) {
 					$delimiter = $input["delimiter"] ? $input["delimiter"] : ",";
-					$this->respond(Utility::encodeCSV($csvData, $delimiter, null), 200, CSV);
+					$this->respond(\Kiwi\Utility::encodeCSV($csvData, $delimiter, null), 200, CSV);
 				} else {
 					$this->error("Unaccepted", 406, $accept);
 				}
@@ -103,116 +172,113 @@ class ExpressionController extends Controller {
 		}
 	}
 
+	/**
+	 * API: import a dataset.
+	 * API: import a dataset
+	 * URL: /expression
+	 * Method: POST
+	 * Data Params: {
+	 * 		file: uploaded_file, 
+	 * 		description: the_description_of_a_dataset, 
+	 *		type: type_of_dataset}
+	 * Success Response: redirect
+	 * Error Response: redirect
+	 **/
 	public function create ($input, $accept) {
-		/*
-			the upload file size is restricted by the php.ini
-			by default is 2MB
-			however, this method is implemented in the way that much larger (~30MB) can be handled
-		*/
-		$title = $this->filter($input, "title", "has");
-		$_SESSION["forImporter"] = [];
-		if ($title === null) {
-			$_SESSION["forImporter"]["errorMsg"] = "Title of the dataset is required";
-			header("Location: ".$GLOBALS['WEBRROT']."expression/importer");
-			return;
-		}
-		$type = $this->filter($input, "type", "has");
-		if ($type === null) {
-			$_SESSION["forImporter"]["errorMsg"] = "Type of the dataset is required";
-			header("Location: ".$GLOBALS['WEBRROT']."expression/importer");
-			return;
-		}
-		
-		if ($_FILES["dataset"] && $_FILES["dataset"]["size"] > 0) {
-			
-			/* 
-			the tilling array data is very huge and is usually over the capacity of the server (memory per process too small)
-			hence, the file will be chopped into chunks of 400 rows, and insert chunk by chunk
-			*/
-			$file = fopen($_FILES["dataset"]["tmp_name"], "r");
-			if ($file) {
-				$row = fgetcsv($file, 0, "\t");
-				$row = fgetcsv($file, 0, "\t");
-				$rowNr = 0; // row number, exclude the header;
-				$values = [];
-	
-				// start import
-	
-				if (!Expression::startImport($title, $input["description"], $type)) {
-					$_SESSION["forImporter"]["errorMsg"] = "Data set with the same name and type already exists";
-					header("Location: ".$GLOBALS['WEBRROT']."expression/importer");
-					return;
-				}
-	
-				while ($row) {
-					if (count($row) != 1 || $row[0] !== null) { // when the $row was not an empty row
-						if (count($row) != 2) {
-							// cell count error
-							$_SESSION["forImporter"]["errorMsg"] = "File format error. Error at row ".($rowNr+1);
-							header("Location: ".$GLOBALS['WEBRROT']."expression/importer");
-							return;
+		if ($accept == JSON) {
+			$title = $this->filter($input, "title", "has");
+			$conditionId = $this->filter($input, "condition", "/^\d+$/");
+			if ($conditionId) {
+				$condition = ExperimentalCondition::get($conditionId);
+				if ($condition) {
+					if ($_FILES["file"] && $_FILES["file"]["size"] > 0) {
+						/*  the tilling array data is very huge and is usually over the capacity of the server (memory per process too small)
+						hence, the file will be chopped into chunks of 400 rows, and insert chunk by chunk */
+						$file = fopen($_FILES["file"]["tmp_name"], "r");
+						if ($file) {
+							$row = fgetcsv($file, 0, "\t");
+							$row = fgetcsv($file, 0, "\t");
+							$rowNr = 0; // row number, exclude the header;
+							$values = [];
+							// start import
+							if (Expression::startImport($condition)) {
+								while ($row) {
+									if (count($row) != 1 || $row[0] !== null) { // when the $row was not an empty row
+										if (count($row) == 2) {
+											// trim off the white characters
+											// in windows, new line is \r\n, is_numeric will not work if the number string has a leading or tailing \t\r\n
+											array_walk($row, function(&$each){
+												$each = trim($each);
+											});
+											// check the second cell is a number or not
+											if (is_numeric($row[1])) {
+												$values[$row[0]] = (double) $row[1];
+											} else {
+												$this->error("File format error, values are not numbers at row ".($rowNr+1),400,JSON);
+											}
+											// process chunks
+											if ($rowNr % 400 == 0 && $rowNr != 0) { // chunk size = 400
+												if (Expression::importData($values)) {
+													$values = []; // clear the chunk
+												} else {
+													$this->error("Duplicated row exists in the uploaded file", 400, JSON);
+												}
+											}
+										} else {
+											// cell count error
+											$this->error("File format error. Error at row ".($rowNr+1), 400, JSON);
+										}
+										
+									}
+									$rowNr++; // 
+									$row = fgetcsv($file, 0, "\t");
+								}
+								// wrap up the remaining data in $values
+								if (!empty($values)) {
+									if (!Expression::importData($values)) {
+										$this->error("Duplicated row exists in the uploaded file", 400, JSON);
+									}
+								}
+								// okay done, now end import
+								Expression::endImport();
+								$this->respond(["message" => "Upload okay"], 200, JSON);
+							} else $this->error("An internal error has happened", 500, JSON);
+						} else {
+							$this->error("File cannot be accessed", 500, JSON);
 						}
-						// trim off the white characters
-						// in windows, new line is \r\n, is_numeric will not work if the number string has a leading or tailing \t\r\n
-						array_walk($row, function(&$each){
-							$each = trim($each);
-						});
-	
-						if (!is_numeric($row[1])) {
-							// not a number
-							$_SESSION["forImporter"]["errorMsg"] = "File format error, values are not numbers at row ".($rowNr+1);
-							header("Location: ".$GLOBALS['WEBRROT']."expression/importer");
-							return;
-						}
-	
-						$values[$row[0]] = (double) $row[1];
-
-						
-						if ($rowNr % 400 == 0 && $rowNr != 0) { // chunk size = 400
-							if (!Expression::importData(null, $values)) {
-								// something wrong, mostly possile error: violation of the unique constraint
-								$_SESSION["forImporter"]["errorMsg"] = "Duplicated row exists in the uploaded file";
-								header("Location: ".$GLOBALS['WEBRROT']."expression/importer");
-								return;
-							}
-							$values = []; // clear the chunk
-						}
+					} else {
+						$this->error("No file is uploaded", 400, JSON);
 					}
-					$rowNr++; // 
-					$row = fgetcsv($file, 0, "\t");
+				} else {
+					$this->error("Dataset with the id is not found", 400, JSON);
 				}
-	
-				// wrap up the remaining data in $values
-				if (!empty($values)) {
-					if (!Expression::importData(null, $values)) {
-						// last batch successful
-						// something wrong, mostly possile error: violation of the unique constraint
-						$_SESSION["forImporter"]["errorMsg"] = "Duplicated row exists in the uploaded file";
-						header("Location: ".$GLOBALS['WEBRROT']."expression/importer");
-						return;
-					}
+			} elseif ($title) {
+				// create condition
+				$type = $this->filter($input, "type", "has", ["Dataset type is required", 400, JSON]);
+				$condition = ExperimentalCondition::withData($input);
+				if ($condition->insert()) {
+					$this->respond(["uri" => "expression/editor?id=".$condition->id], 201, JSON);
+				} else {
+					$this->error("Duplicated data set with the name $title", 500, JSON);
 				}
-	
-				// okay done, now end import
-				Expression::endImport();
-				$_SESSION["forImporter"]["msg"] = "Import successful";
-				header("Location: ".$GLOBALS['WEBRROT']."expression/importer");
-				return;
 			} else {
-				$_SESSION["forImporter"]["errorMsg"] = "Can not open the file";
+				$this->error("Condition id or title is required", 400, JSON);
 			}
-
-			
-		} else {
-			$_SESSION["forImporter"]["errorMsg"] = "No file is uploaded or file is empty";
-			header("Location: ".$GLOBALS['WEBRROT']."expression/importer");
-			return;
-		}
+		} else $this->error("Unaccepted", 400, $accept);
 	}
 
 	/**
-	 * @usergroup 3
-	 */
+	 * API: remove a dataset.
+	 * API: remove a dataset
+	 * URL: /expression?id=:conditionId
+	 * URL Params: conditionId=[int]
+	 * Method: DELETE
+	 * Success Response:
+	 * - code: 204, accept: JSON, content: null
+	 * Error Response:
+	 * - code: 406, accept: - , content: {message: "Unaccepted"}
+	 * - code: 500, accept: JSON, content: {message: "An internal error has happened"}
+	 **/
 	public function delete ($input, $accept) {
 		if ($accept == JSON) {
 			UserController::authenticate(3, $accept);
@@ -221,14 +287,24 @@ class ExpressionController extends Controller {
 			if ($condition == null || Expression::deleteCondition($condition)) {
 				$this->respond(null, 204, JSON);
 			} else {
-				$this->error("An internal error has happened: ".Application::$conn->lastError, 500, JSON);
+				$this->error("An internal error has happened: ".\Kiwi\Application::$conn->lastError, 500, JSON);
 			}
 		} else $this->error("Unaccepted", 406, $accept);
 	}
 
 	/**
-	 * @usergroup 3
-	 */
+	 * API: update the informataion of a dataset.
+	 * API: update the informataion of a dataset
+	 * URL: /expression?id=:conditionId
+	 * URL Params: conditionId=[int]
+	 * Method: PUT
+	 * Success Response:
+	 * - code: 204, accept: JSON, content: null
+	 * Error Response:
+	 * - code: 406, accept: - , content: {message: "Unaccepted"}
+	 * - code: 404, accept: JSON , content: {message: "Not found"}
+	 * - code: 500, accept: JSON, content: {message: "An internal error has happened: " + lasterror}
+	 **/
 	public function update ($input, $accept) {
 		if ($accept == JSON) {
 			UserController::authenticate(3, $accept);
@@ -239,12 +315,22 @@ class ExpressionController extends Controller {
 				if ($con->replace()) {
 					$this->respond(["uri" => "expression/viewer?id=$id"], 200, JSON);
 				} else {
-					$this->error("An internal error has happened: ".Application::$conn->lastError, 500, JSON);
+					$this->error("An internal error has happened: ".\Kiwi\Application::$conn->lastError, 500, JSON);
 				}
 			} else $this->error("Not found", 404, JSON);
 		} else $this->error("Unaccepted", 406, $accept);
 	}
 
+	/**
+	 * API: get all conditions.
+	 * API: get all conditions
+	 * URL: /expression/condition
+	 * Success Response:
+	 * - code: 200, accept: JSON, content: [{id: 1, title: "heat treatment"}, ...]
+	 * Error Response:
+	 * - code: 406, accept: - 
+	 * - code: 405, accept: -
+	 */
 	public function condition ($input, $accept, $method) {
 		switch ($method) {
 			case "GET":
@@ -253,7 +339,7 @@ class ExpressionController extends Controller {
 					$data = Expression::getConditions();
 					$this->respond($data, 200, JSON);
 				} else {
-					$this->error("Unacceptable", 406, HTML);
+					$this->error("Unacceptable", 406, $accept);
 				} 
 				break;
 			default:
@@ -262,15 +348,21 @@ class ExpressionController extends Controller {
 		}
 	}
 
+	/**
+	 * API: create a importer page.
+	 * API: create a importer page
+	 * URL: /expression/importer
+	 * Method: GET
+	 * Success Response:
+	 * - code: 200, accept: HTML
+	 * Error Response:
+	 * - code: 405, accept: - 
+	 */
 	public function importer ($input, $accept, $method) {
 		UserController::authenticate(3, $accept);
 		if ($method == "GET" && $accept == HTML) {
-			$view = View::loadFile("layout2.tpl");
-			$view->set($input);
-			$view->set($_SESSION["forImporter"]);
-			unset($_SESSION["forImporter"]);
+			$view = \Kiwi\View::loadFile("layout2.tpl");
 			$view->set([
-				"title" => "Import expression data",
 				"pageTitle" => "Import expression data",
 				"headerTitle" => "Import expression data",
 				"content" => "{{expression.importer.tpl}}",
@@ -279,8 +371,6 @@ class ExpressionController extends Controller {
 					"type" => $input["type"],
 					"types" => Expression::getAllConditionTypes()
 				],
-				"showError" => $input["errorMsg"] ? "block" : "none",
-				"showMsg" => $input["msg"] ? "block" : "none",
 				"showFootNote" => "none"
 			]);
 			$this->respond($view, 200, HTML);
@@ -289,6 +379,16 @@ class ExpressionController extends Controller {
 		}
 	}
 
+	/**
+	 * API: list all datasets.
+	 * API: list all datasets
+	 * URL: /expression/list
+	 * Method: GET
+	 * Success Response:
+	 * - code: 200, accept: HTML
+	 * Error Response:
+	 * - code: 405, accept: -
+	 */
 	public function list ($input, $accept, $method) {
 		if ($accept == HTML && $method == "GET") {
 			$page = $this->filter($input, "page", "/^\d+$/");
@@ -304,7 +404,7 @@ class ExpressionController extends Controller {
 			}
 
 			$currentPage = array_slice($all, $pageSize*($page-1), $pageSize);
-			$view = View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set([
 				"showFootNote" => "none",
 				"pageTitle" => "All expression data sets (page $page)",
@@ -319,9 +419,19 @@ class ExpressionController extends Controller {
 				]
 			]);
 			$this->respond($view, 200, HTML);
-		} else $this->error("Not available", 404, $accept);
+		} else $this->error("Not available", 405, $accept);
 	}
 
+	/**
+	 * API: view the dataset.
+	 * API: view the dataset
+	 * URL: /expression/viewer
+	 * Method: GET
+	 * Success Response:
+	 * - code: 200, accept: HTML
+	 * Error Response:
+	 * - code: 405, accept: !HTML
+	 */
 	public function viewer ($input, $accept, $method) {
 		if ($accept == HTML && $method == "GET") {
 			$id = $this->filter($input, "id", "is_numeric", ["Not found", 404, HTML]);
@@ -344,14 +454,14 @@ class ExpressionController extends Controller {
 				}
 				array_unshift($data, ["position", "+ strand", "- strand"]);
 			}
-			$view = View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set($dataSet);
 			$view->set([
 				"pageTitle" => "Data set: ".$dataSet->title,
 				"showFootNote" => "none",
 				"content" => "{{expression.viewer.tpl}}",
 				"pubmed" => $dataSet->pubmed ? "[pubmed|{$dataSet->pubmed}]" : "",
-				"data" => Utility::encodeCSV($data,",\t",null),
+				"data" => \Kiwi\Utility::encodeCSV($data,",\t",null),
 				"navlinks" => [
 					["href" => "expression/list", "innerHTML" => "All data sets"],
 				],
@@ -361,16 +471,27 @@ class ExpressionController extends Controller {
 				]
 			]);
 			$this->respond($view, 200, HTML);
-		} else $this->error("Not available", 404, $accept);
+		} else $this->error("Not available", 405, $accept);
 	}
 
+	/**
+	 * API: edit the dataset.
+	 * API: edit the dataset
+	 * URL: /expression/editor
+	 * Method: GET
+	 * Success Response:
+	 * - code: 200, accept: HTML
+	 * Error Response:
+	 * - code: 405, accept: !HTML
+	 * - code: 404, accept: HTML
+	 */
 	public function editor ($input, $accept, $method) {
 		if ($accept == HTML && $method == "GET") {
 			UserController::authenticate(3, HTML);
 			$id = $this->filter($input, "id", "/^\d+$/", ["Id is required", 400, JSON]);
 			$dataSet = Expression::getCondition($id);
 			if ($dataSet) {
-				$view = View::loadFile("layout2.tpl");
+				$view = \Kiwi\View::loadFile("layout2.tpl");
 				$view->set($dataSet);
 				$view->set([
 					"headerTitle" => "Update expression data set",

@@ -1,1 +1,1 @@
-{{::rest}}{{jsvars:vars}}
+<p>{{:description}}</p>{{::rest}}{{jsvars:vars}}

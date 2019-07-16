@@ -18,17 +18,18 @@ $(document).on("submit", "#registration", function(ev){
 			email: ("email" in self) ? self.email.value.trim(): ""
 		};
 
-		ajax.post({
+		$.ajax({
+			type:"post",
 			url: "user",
-			data: ajax.serialize(data),
-			headers: {Accept: "application/json"},
-		}).done(function(status, data, error, xhr) {
-			if (error) {
-				SomeLightBox.error("Connection with server lost");
-			} else if (status == 201) {
-				SomeLightBox.alert("Success", "Your account is ready");
-			} else {
-				SomeLightBox.error(data.message);
+			data: data,
+			dataType:"json",
+			statusCode: {
+				201: function () {
+					SomeLightBox.alert("Success", "Your account is ready");
+				},
+				500: function (data) {
+					SomeLightBox.error(data.message);
+				}
 			}
 		});
 	}

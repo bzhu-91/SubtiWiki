@@ -1,11 +1,16 @@
 <?php
+namespace Kiwi;
+
+/**
+ * Log
+ */
 class Log {
 	const log_file_name = "var/log";
 
 	static public function message($msg) {
 		try {
 			$logfile = fopen(realpath(Log::log_file_name), "a+");
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 		}
 		if ($logfile) {
 			$caller = debug_backtrace()[0];

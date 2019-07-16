@@ -1,7 +1,7 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class RegulationController extends Controller {
+class RegulationController extends \Kiwi\Controller {
 
 	public function read ($input, $accept) {
 		$geneId = $this->filter($input, "gene", "/^[a-f0-9]{40}$/i");
@@ -22,11 +22,11 @@ class RegulationController extends Controller {
 					$node = Gene::simpleGet($node->id);
 				}
 			}
-			$data["nodes"] = Utility::arrayColumns($data["nodes"], ["id", "title"]);
+			$data["nodes"] = \Kiwi\Utility::arrayColumns($data["nodes"], ["id", "title"]);
 		}
 		switch ($accept) {
 			case HTML:
-				$view = View::loadFile("layout2.tpl");
+				$view = \Kiwi\View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Regulation Browser",
 					"headerTitle" => "Regulation Browser",
@@ -72,7 +72,7 @@ class RegulationController extends Controller {
 		switch ($accept) {
 			case HTML:
 			$count = $proto->count();
-			$view = View::loadFile("layout1.tpl");
+			$view = \Kiwi\View::loadFile("layout1.tpl");
 			$view->set([
 				"title" => "All regulations (page $page)",
 				"content" => "{{regulation.list.tpl}}",
@@ -97,8 +97,8 @@ class RegulationController extends Controller {
 			break;
 			case JSON:
 				foreach($all as &$interaction) {
-					$interaction->prot1 = Utility::arrayColumns($interaction->prot1, ["id", "title", "locus"]);
-					$interaction->prot2 = Utility::arrayColumns($interaction->prot2, ["id", "title", "locus"]);
+					$interaction->prot1 = \Kiwi\Utility::arrayColumns($interaction->prot1, ["id", "title", "locus"]);
+					$interaction->prot2 = \Kiwi\Utility::arrayColumns($interaction->prot2, ["id", "title", "locus"]);
 				}
 				if ($all) $this->respond($all, 200, JSON);
 				else $this->error("Not found", 404, JSON);
@@ -115,12 +115,14 @@ class RegulationController extends Controller {
 				$this->error("Not acceptable", 406, HTML);
 				break;
 			case JSON:
-				$regulator = $this->filter($input, "regulator", "/^\{(protein|riboswitch)\|[^\[\]\|]+\}$/i", ["Invalid regulator", 400, JSON]);
+				$regulator = $this->filter($input, "regulator", "has", ["Invalid regulator", 400, JSON]);
+				$type = $this->filter($input, "type", "/^(protein)|(riboswitch)$/i", ["Regulator type is required", 400, JSON]);
+
 				$regulated = $this->filter($input, "regulated", "/^\{(gene|operon)\|[0-9a-f]{40}+\}$/i", ["Invalid regulated object", 400, JSON]);
 				$mode = $this->filter($input, "mode", "has", ["Mode is required", 400, JSON]);
 
-				$regulator = Model::parse($regulator);
-				$regulated = Model::parse($regulated);
+				$regulator = \Kiwi\Model::parse("{".$type."|".$regulator."}");
+				$regulated = \Kiwi\Model::parse($regulated);
 
 
 				if ($regulator === null) {
@@ -130,9 +132,9 @@ class RegulationController extends Controller {
 					$this->error("Regulated object can not be parsed", 404, JSON);
 				}
 
-				$regulation = new Regulation($regulator, $mode, $regulated, $input["description"]);
+				$regulation = new Regulation($regulator, $mode, $regulated, str_replace("[pubmed|]", "", $input["description"]));
 				if ($regulation->insert()) {
-					$this->respond(["newid" => $regulation->id], 201, JSON);
+					$this->respond(["uri" => $_SERVER['HTTP_REFERER']], 201, JSON);
 				} else {
 					$this->error("This regulation already exists.", 400, JSON);
 				}
@@ -169,15 +171,14 @@ class RegulationController extends Controller {
 				$id = $this->filter($input, "id", "is_numeric", ["Invalid id", 400, JSON]);
 				$mode = $this->filter($input, "mode", "has", ["Mode is required", 400, JSON]);
 
-				$regulation = new Regulation();
-				$regulation->id = $id;
+				$regulation = (new Regulation())->getWithId($id);
 				$regulation->mode = $mode;
 				$regulation->description = $input["description"];
 
 				if ($regulation->update()) {
 					$this->respond(null, 200, JSON);
 				} else {
-					$this->error("Operon with the same genes already exists", 500, JSON);
+					$this->error(\Kiwi\Application::$conn->lastError, 500, JSON);
 				}
 		}
 	}
@@ -214,7 +215,7 @@ class RegulationController extends Controller {
 		} elseif ($regulatorId) {
 			$regulations = Regulation::getByRegulator($regulatorId);
 		} elseif (empty($input)) {
-			$view = View::loadFile("regulation.blank.tpl");
+			$view = \Kiwi\View::loadFile("regulation.blank.tpl");
 			$this->respond($view, 200, HTML);
 		} else {
 			$this->error("Invalid input", 400, $accept);
@@ -223,7 +224,7 @@ class RegulationController extends Controller {
 		if ($regulations) {
 			$content = "";
 			foreach ($regulations as $regulation) {
-				$view = View::loadFile("regulation.editor.tpl");
+				$view = \Kiwi\View::loadFile("regulation.editor.tpl");
 				$view->set($regulation);
 				$view->set("type", get_class($regulation->regulator));
 				$content .= $view->generate(1,1);
@@ -252,7 +253,7 @@ class RegulationController extends Controller {
 							$row->regulated->title,
 						];
 					}	
-					$this->respond(Utility::encodeCSV($csv), 200, CSV);
+					$this->respond(\Kiwi\Utility::encodeCSV($csv), 200, CSV);
 					break;
 				case JSON:
 					$json = [];
@@ -273,6 +274,43 @@ class RegulationController extends Controller {
 					break;
 			}
 		} else $this->error("Unaccpeted method", 406, $accept);
+	}
+
+	public function cache ($input, $accept, $method) {
+		if ($accept == JSON) {
+			$target = $this->filter($input, "target", "/^[0-9a-f]{40}$/i", ["Target is required", 400, JSON]);
+			$radius = $this->filter($input, "radius", "/^\d$/", ["Radius is required", 400, JSON]);
+			if ($method == "POST") {
+					$content = $this->filter($input, "content");
+					$conn = \Kiwi\Application::$conn;
+					if ($input["chunkNr"]) {
+						$re = $conn->doQuery("insert into RegulationNetworkCache (target, radius, content) values (?,?,?) on duplicate key update content = JSON_MERGE_PRESERVE(content, ?)", [$target, $radius, $content, $content]);
+					} else {
+						$re = $conn->doQuery("insert into RegulationNetworkCache (target, radius, content) values (?,?,?) on duplicate key update content = ?", [$target, $radius, $content, $content]);
+					}
+					if ($re) {
+						$this->respond(["message" => "okay"], 200, JSON);
+					} else {
+						$this->error("Internal error", 500, JSON);
+					}
+			} elseif ($method == "GET") {
+				$conn = \Kiwi\Application::$conn;
+				$result = $conn->doQuery("select content from RegulationNetworkCache where target = ? and radius = ?", [$target, $radius]);
+				if ($result) {
+					$this->respond($result[0]["content"], 200, JSON);
+				} elseif ($radius >= 3) {
+					// for high radius subnetworks , use cache from other networks with the similar radius;
+					$result = $conn->doQuery("select content from RegulationNetworkCache where and radius = ?", [$radius]);
+					if ($result) {
+						$this->respond($result[0]["content"], 200, JSON);
+					} else {
+						$this->error("Not found", 404, JSON);
+					}
+				} else {
+					$this->error("Not found", 404, JSON);
+				}
+			} else $this->error("Unaccepted methods", 405, $accept);
+		} else $this->error("Not accepted", 406, $accept);
 	}
 }
 ?>

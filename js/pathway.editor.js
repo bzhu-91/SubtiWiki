@@ -16,6 +16,50 @@ if (Object.assign) {
     }
 }
 
+var findAll = function (obj,key, keypath, count) {
+    keypath = keypath || [];
+    count = count || 0;
+    count++;
+    var result = [];
+    if (count > 1000) return result;
+    for(var k in obj) {
+        if (obj.hasOwnProperty(k)) {
+            keypath.push(k);
+            if (k == key) {
+                result.push(keypath.slice(0));
+            }
+            if (obj[k] && (typeof obj[k] == "object" || obj[k] instanceof Object)) {
+                result = result.concat(findAll(obj[k], key, keypath, count));
+            }
+            keypath.pop();
+        }
+    }
+    return result;
+}
+
+var setProperty = function (obj, keypath, val) {
+    var last = keypath.pop();
+    var o = obj;
+    for(var i = 0; i < keypath.length; i++){
+        var k = keypath[i];
+        if (k in o) {
+            o = o[k];
+        } else return false;
+    }
+    o[last] = val;
+}
+
+var getProperty = function (obj, keypath) {
+    var o = obj;
+    for(var i = 0; i < keypath.length; i++){
+        var k = keypath[i];
+        if (k in o) {
+            o = o[k];
+        } else return false;
+    }
+    return o;
+}
+
 $(document).ready(function(){
     $("#top-menu-bar").tooltip();
     if (window.pathwayId) {
@@ -35,41 +79,95 @@ var PathwayModel = PathwayModel || {
 
 PathwayModel.loadIndex = function (callback) {
     var self = this;
-    ajax.get({
+    $.ajax({
         url: "reaction?page=1&page_size=max",
-        headers: {Accept: "application/json"}
-    }).done(function(status,data,error,xhr){
-        if (error) {
-            SomeLightBox.error("connection to server lost");
-        } else if(status == 200) {
+        dataType:"json",
+        success: function (data) {
             self.reactionIndex = data;
             if (callback) callback();
+        },
+        error: function () {
+            SomeLightBox.error("connection to server lost");
         }
     });
 }
 
-PathwayModel.loadReaction = function (reactionId, callback) {
+PathwayModel.prepareReactionData = function (data) {
+    data = JSON.parse(JSON.stringify(data).replace(/title/gi, "label").replace(/modification/gi, "extra"))
+    // process data
+    var reactants = [];
+    data.reactants.forEach(function(r){
+        var keys = ["coefficient", "extra"];
+        keys.forEach(function(k){
+            r.metabolite[k] = r[k];
+        })
+        reactants.push(r.metabolite);
+    });
+    data.reactants = reactants;
+
+    var products = [];
+    data.products.forEach(function(r){
+        var keys = ["coefficient", "extra"];
+        keys.forEach(function(k){
+            r.metabolite[k] = r[k];
+        })
+        products.push(r.metabolite);
+    });
+    data.products = products;
+
+    var catalysts = [];
+    if (data.catalysts) data.catalysts.forEach(function(r){
+        var keys = ["novel", "extra"];
+        keys.forEach(function(k){
+            r.catalyst[k] = r[k];
+        })
+        catalysts.push(r.catalyst);
+    });
+    data.catalysts = catalysts;
+
+    // handle complex members
+    var keypaths = findAll(data, "members");
+    keypaths.sort(function(a,b){
+        return b.length - a.length;
+    });
+    keypaths.forEach(function(keypath){
+        var membersOld = getProperty(data, keypath);
+        if (membersOld) {
+            var members = [];
+            membersOld.forEach(function(r){
+                var keys = ["coefficient", "extra"];
+                keys.forEach(function(k){
+                    r.member[k] = r[k];
+                })
+                members.push(r.member);
+            });
+            setProperty(data, keypath, members);
+        }
+    });
+    return data;
+}
+
+PathwayModel.loadReaction = function (reactionId, callback, remote) {
     var self = this;
-    if (reactionId in self.reactionData) {
+    if ((reactionId in self.reactionData) && !remote) {
         callback(self.reactionData[reactionId]);
     } else {
-        ajax.get({
+        $.ajax({
             url: "reaction?id="+reactionId,
-            headers: {Accept: "application/json"}
-        }).done(function(status, data, error, xhr){
-            if (error) {
-                SomeLightBox.error("Connection to server lost");
-            } else if (status == 200) {
+            dataType:"json",
+            success: function (data) {
+                data = self.prepareReactionData(data);
                 self.reactionData[data.id] = data; // cache the result
                 callback(data);
-            } else {
-                SomeLightBox.error(data.message);
+            },
+            error: function () {
+                SomeLightBox.error("Connection to server lost");
             }
         });
     }
 }
 
-PathwayModel.searchReaction = function (keyword) {
+PathwayModel.searchReactionByMetabolite = function (keyword) {
     var results = [];
     keyword = keyword.toLowerCase();
     var keywords = [];
@@ -107,6 +205,19 @@ PathwayModel.searchReaction = function (keyword) {
         reactions.push(result.reaction);
     });
     return reactions;
+}
+
+PathwayModel.searchReactionByCatalyst = function (keyword, callback) {
+    $.ajax({
+        url: "reaction?catalyst=" + encodeURIComponent(keyword)  + "&page=1&page_size=max",
+        dataType: "json",
+        success: function (data) {
+            callback(data)
+        },
+        error: function () {
+            callback([]);
+        }
+    })
 }
 
 var PathwaySearchViewController = PathwaySearchViewController || {
@@ -147,14 +258,18 @@ PathwaySearchViewController.hide = function () {
 }
 
 PathwaySearchViewController.searchForReaction = function (keyword) {
+    var self = this;
     if (keyword.length >= 2) {
-        this.resultsContainer.html("");
-        var results = PathwayModel.searchReaction(keyword);
-        if (results.length) {
-            this.createResultList(results);
-        } else {
-            this.resultsContainer.html("No results found");
-        }
+        self.resultsContainer.html("");
+        var resultByMetabolites = PathwayModel.searchReactionByMetabolite(keyword);
+        PathwayModel.searchReactionByCatalyst(keyword, function(resultByCatalyst){
+            var results = resultByMetabolites.concat(resultByCatalyst);
+            if (results.length) {
+                self.createResultList(results);
+            } else {
+                self.resultsContainer.html("No results found");
+            }
+        });
     } else SomeLightBox.error("Keyword too short");
 }
 
@@ -193,7 +308,32 @@ var PathwayEditor = PathwayEditor || {
     elementsOnMembrane: {
         right: [],
         bottom: []
-    }
+    },
+    editorDialog: new SomeLightBox({
+        width: "80%",
+        height: "80%"
+    }).loadById("reaction-editor").ondismiss(function(ev){
+        // requires the update function of Pathway.Reaction class
+        PathwayModel.loadIndex(); // equation change
+        PathwayEditor.updateReaction(this.reaction.id);
+    }),
+    elEditorDialog: new SomeLightBox({
+        width: "80%",
+        height: "80%"
+    }).loadById("el-editor").ondismiss(function(ev){
+        PathwayModel.loadIndex(); // equation change
+        return true;
+    }),
+    creatorDialog: new SomeLightBox({
+        width: "80%",
+        height: "80%",
+    }).loadById("reaction-creator").ondismiss(function(ev){
+        // TODO: reload the reaction index
+        // should call methods in PathwayModel
+        PathwayModel.loadIndex();
+        return true;
+    }),
+    currentZ: 0
 }
 
 PathwayEditor.bubbleUp = function (element) {
@@ -210,13 +350,10 @@ PathwayEditor.init = function () {
 }
 
 PathwayEditor.loadPathways = function () {
-    ajax.get({
+    $.ajax({
         url: "pathway",
-        headers: {Accept: "application/json"}
-    }).done(function(status, data, error, xhr) {
-        if (error) {
-            SomeLightBox.error("Connection to server lost");
-        } else if (status == 200) {
+        dataType:"json",
+        success: function (data) {
             $("#select-pathway").html("<option>Please select</option>");
             data.forEach(function(pathway){
                 $("#select-pathway").append($("<option></option>").html(pathway.title).val(pathway.id));
@@ -224,6 +361,9 @@ PathwayEditor.loadPathways = function () {
             if (window.pathwayId) {
                 $("#select-pathway").val(pathwayId);
             }
+        },
+        error: function () {
+            SomeLightBox.error("Connection to server lost");
         }
     })
 }
@@ -249,6 +389,9 @@ PathwayEditor.drawReaction = function (reactionId) {
         data.width = 100; data.height = 200;
         var reaction = new Pathway.Reaction(data);
         reaction.appendTo(self.canvas);
+        // add z index
+        reaction.z = self.currentZ;
+        self.currentZ++;
         reaction.position(0,0,"left top");
         // set the position of the reaction to the center
         var screenW = $(document.body).width();
@@ -262,6 +405,23 @@ PathwayEditor.drawReaction = function (reactionId) {
             self.reactionViews[data.id].push(reaction);
         } else self.reactionViews[data.id] = [reaction]; // multiple copies of the same reaction can exist
     });
+}
+
+PathwayEditor.updateReaction = function (reactionId) {
+    var self = this;
+    PathwayModel.loadReaction(reactionId, function(data){
+        // find the reaction
+        if (data.id in self.reactionViews) {
+            var reactions = self.reactionViews[data.id];
+            data.isDashed = data.novel;
+            data.hasArrow = !data.reversible;
+            reactions.forEach(function(each) {
+                each.update(data);
+            });
+        } else {
+            console.error("Reaction R" + data.id + " does not exist in this map");
+        }
+    }, true);
 }
 
 PathwayEditor.removeReaction = function (reaction) {
@@ -425,21 +585,34 @@ PathwayEditor.configCanvas = function () {
                 // pop up until the draggable/clickable unit
                 var view = self.bubbleUp(evt.target);
                 if (view && !(view instanceof Pathway.Canvas)) {
-                    // clicking on the other elements
-                    var isMac = window.navigator && window.navigator.platform && window.navigator.platform == "MacIntel";
-                    // if ctrl is pressed in windows/linus or command is pressed in Mac
-                    if ((isMac && evt.metaKey) || (!isMac && evt.ctrlKey)) {
-                        // toggle selection
-                        var idx = self.selectedViews.indexOf(view);
-                        if (idx == -1) {
-                            self.addToSelection(view);
-                        } else {
-                            self.removeFromSelection(view);
-                        }
+                    if (view.getState() == "error" || view.getState() == "warning") {
+                        // show error message instead of selection
+                        var dialogBox = $("<div title='Error'></div>").html(view.errorMessage.replace(/\n/gi, "<br>"));
+                        $(document.body).append(dialogBox);
+                        dialogBox.dialog({
+                            position: {
+                                my: "left top",
+                                of: evt
+                            }
+                        });
+                        view.setState("normal");
                     } else {
-                        // deselect and reselect
-                        self.clearSelection();
-                        self.addToSelection(view);
+                        // clicking on the other elements
+                        var isMac = window.navigator && window.navigator.platform && window.navigator.platform == "MacIntel";
+                        // if ctrl is pressed in windows/linus or command is pressed in Mac
+                        if ((isMac && evt.metaKey) || (!isMac && evt.ctrlKey)) {
+                            // toggle selection
+                            var idx = self.selectedViews.indexOf(view);
+                            if (idx == -1) {
+                                self.addToSelection(view);
+                            } else {
+                                self.removeFromSelection(view);
+                            }
+                        } else {
+                            // deselect and reselect
+                            self.clearSelection();
+                            self.addToSelection(view);
+                        }
                     }
                 } else {
                     // clear selection
@@ -480,7 +653,7 @@ PathwayEditor.loadCanvas = function () {
     var self = this;
     this.membrane = $("rect#membrane")[0];
     this.canvas = new Pathway.Canvas($("#editor svg")[0]);
-
+    self.currentZ = $(".reaction").length;
     // add all the reactions
     $(".reaction").each(function(idx, element){
         var reaction = new Pathway.Reaction(element);
@@ -489,17 +662,36 @@ PathwayEditor.loadCanvas = function () {
         } else {
             self.reactionViews[reaction.id] = [reaction];
         }
+        reaction.z = idx;
         // restore lock group
         var uuids = element.getAttribute("lock");
         if (uuids) {
             var views = [];
             uuids.split(",").forEach(function(uuid){
-                var element = document.querySelector("[uuid='"+uuid+"']");
-                if (element) {
-                    views.push(element.wrapper);
+                var el = document.querySelector("[uuid='"+uuid+"']");
+                if (el) {
+                    views.push(el.wrapper);
+                } else {
+                    console.error(uuid);
                 }
             });
             reaction.setLockGroup(views);
+        }
+    });
+    var ids = [];
+    for(var id in self.reactionViews) {
+      ids.push(id);
+    }
+
+
+    if (ids.length) $.ajax({
+        url: "reaction?ids=" + ids.join(","),
+        dataType:"json",
+        success: function (data) {
+            for(var id in data) {
+                var each = PathwayModel.prepareReactionData(data[id]);
+                self.reactionViews[id].forEach(function(each){each.update(each)});
+            }
         }
     });
 
@@ -636,6 +828,7 @@ PathwayEditor.elementsFromPoint = function (x,y) {
 PathwayEditor.lockViews = function (els) {
     var allSync = [];
     els.forEach(function(el){
+        allSync.push(el);
         var group = el.getSyncGroup();
         if (group.length) {
             allSync = allSync.concat(el.getSyncGroup());
@@ -643,14 +836,19 @@ PathwayEditor.lockViews = function (els) {
         }
     });
 
-    var top = els.shift();
-    allSync = allSync.concat(els);
-
     // remove duplications
     allSync = allSync.filter(function(v,i,a){
 		return a.indexOf(v) === i;
     });
+
+    // sort it according to the reaction z-index
+    allSync = allSync.sort(function(a,b){
+        return b.parent.z - a.parent.z;
+    });
+
+    var top = allSync.shift();
     
+    delete top.top;
     top.setSyncGroup (allSync);
     top.parent.addToLockGroup(top);
     top.show();
@@ -661,7 +859,7 @@ PathwayEditor.lockViews = function (els) {
         view.parent.addToLockGroup(view);
     });
 }
-/// function to unlock locked metabolites incase of deletion or re-layout
+// function to unlock locked metabolites incase of deletion or re-layout
 // will unlock all metabolites in the reaction
 PathwayEditor.freeReaction = function (reaction) {
     var self = this;
@@ -669,29 +867,17 @@ PathwayEditor.freeReaction = function (reaction) {
     reaction.getLockGroup().forEach(function(view){
         var top = view.top ? view.top : view;
         var syncGroup = top.getSyncGroup();
-
-        view.parent.removeFromLockGroup(view);
-        top.removeFromSyncGroup(view);
-        view.show();
-
-        if (syncGroup.length == 1) {
-            // stack will be destroyed
-            if (view == top) {
-                var bottom = syncGroup[0];
-                bottom.show();
-                bottom.parent.removeFromLockGroup(bottom);
-                delete bottom.top;
-                view.clearSyncGroup();
+        if (view == top) {
+            if (syncGroup.length == 1) {
+                self.unlockViews(top);
             } else {
-                top.clearSyncGroup();
-                top.parent.removeFromLockGroup(top);
-                delete view.top;
+                self.lockViews(syncGroup);
+                view.clearSyncGroup();
             }
         } else {
-            if (view == top) {
-                syncGroup.shift();
-                self.lockViews(syncGroup);
-            }
+            top.removeFromSyncGroup(view);
+            top.removeFromSyncGroup(view);
+            view.show();
         }
     });
     reaction.clearLockGroup();
@@ -730,39 +916,43 @@ $(document).on("contextmenu", "rect#membrane", function(evt){
     });
 });
 
-$(document).on("contextmenu", ".metabolite", function(evt) {
+$(document).on("contextmenu", ".protein:not(.nested), .metabolite:not(.nested), .complex:not(.nested), .RNA:not(.nested), .DNA:not(.nested)", function(evt) {
     evt.preventDefault();
     evt.stopPropagation();
-    if ($(this).attr("class").indexOf("nested") == -1) {
-        // clear all the suggestions
-        $("#menu-metabolite-suggestions").html("");
-        var title = this.wrapper.title;
-        var reactionId = this.wrapper.parent.id;
-        if (title) {
-            var results = PathwayModel.searchReaction(title);
-            // need to exclude the calling reaction
-            results.forEach(function(reaction){
-                if (reaction.id != reactionId) {
-                    var li = $("<li></li>");
-                    li.html("R" + reaction.id + ": " + reaction.equation);
-                    li.on("click", function(){
-                        PathwayEditor.drawReaction(reaction.id);
-                        $("#menu-metabolite").hide();
-                    });
-                    $("#menu-metabolite-suggestions").append(li);
-                }
-            });
-            $("#menu-metabolite").show().position({
-                my: "left top",
-                of: evt
-            });
-            $("#menu-metabolite").prop("event", evt); // save the opening event
-        }
-        return true;
-    } else {
-        console.error("is nested")
+    // clear all the suggestions
+    $("#menu-metabolite-suggestions").html("");
+    var title = this.wrapper.label;
+    var reactionId = this.wrapper.parent.id;
+    if (title) {
+        var results = PathwayModel.searchReactionByMetabolite(title);
+        // need to exclude the calling reaction
+        results.forEach(function(reaction){
+            if (reaction.id != reactionId) {
+                var li = $("<li></li>");
+                li.html("R" + reaction.id + ": " + reaction.equation);
+                li.on("click", function(){
+                    PathwayEditor.drawReaction(reaction.id);
+                    $("#menu-metabolite").hide();
+                });
+                $("#menu-metabolite-suggestions").append(li);
+            }
+        });
+        var type = $(this).attr("class").replace(/nested/gi, "").trim();
+        $("#menu-metabolite").find("#btn-edit-metabolite").attr("href", type + "/editor?id="  + this.wrapper.id);
+        $("#menu-metabolite").show().position({
+            my: "left top",
+            of: evt
+        });
+        $("#menu-metabolite").prop("event", evt); // save the opening event
     }
+    return true;
 }); 
+
+$(document).on("click", "#btn-edit-metabolite", function(){
+    $("#menu-metabolite").hide();
+    PathwayEditor.elEditorDialog.show();
+    $("#el-editor-iframe").prop("src", $(this).attr("href"));
+});
 
 $(document).on("click", "#btn-reverse-sides", function(){
     var reaction = $("#menu-reaction").prop("reaction");
@@ -789,7 +979,7 @@ $(document).on("click", "#btn-lock-metabolites", function (evt) {
     $("#menu-metabolite").hide();
     var menuEvent = $("#menu-metabolite").prop("event");
     var x = menuEvent.clientX, y = menuEvent.clientY;
-    // get all DOM elements from the point
+    // get all DOM elements from the point, from bottom to top
     var elements = PathwayEditor.elementsFromPoint(x,y);
     var views = [];
     for(var i = 0; i < elements.length; i++) {
@@ -878,19 +1068,20 @@ $(document).on("click", "#btn-save", function(evt){
     }
     PathwayEditor.clearSelection();
     var outerHTML = $("#editor svg")[0].outerHTML;
-    ajax.put({
+    $.ajax({
+        type: "put",
         url: "pathway",
-        headers: {Accept: "application/json"},
-        data: ajax.serialize({
+        dataType:"json",
+        data: {
             map: outerHTML,
             id: pathwayId,
             reactions: reactions.join(",")
-        })
-    }).done(function(status, data, error, xhr){
-        if (error) {
-            SomeLightBox.error("Connection to server lost");
-        } else if (status == 200) {
+        },
+        success: function (data) {
             SomeLightBox.alert("Save", "Pathway map has been successfully saved");
+        },
+        error: function (data) {
+            SomeLightBox.error(data.message);
         }
     })
 });
@@ -1000,28 +1191,65 @@ $(document).on("click", "#btn-select-connected-components", function (ev) {
     $("#menu-reaction").hide();
 });
 
-$(window).on("keydown", function(evt){
-    var els2move = PathwayEditor.selectedViews.length ? PathwayEditor.selectedViews.concat(PathwayEditor.autoselectViews) : [PathwayEditor.canvas];
-    var dx = 0, dy = 0;
-    switch (evt.keyCode) {
-        case 38:
-            dy = -1;
-            break;
-        case 40:
-            dy = 1;
-            break;
-        case 37:
-            dx = -1;
-            break;
-        case 39:
-            dx = 1;
-            break;
-        case 27:
-            PathwayEditor.clearSelection();
-            break;
+$(document).on("click", "#btn-editor", function(ev) {
+    var reaction = $("#menu-reaction").prop("reaction");
+    PathwayEditor.editorDialog.show();
+    PathwayEditor.editorDialog.reaction = reaction;
+    $("#reaction-editor-iframe").prop("src", "reaction/editor?id=" + reaction.id);
+    $("#menu-reaction").hide();
+});
 
+$(document).on("click", "#btn-add-reaction-to-pathway", function(ev){
+    PathwayEditor.creatorDialog.show();
+    $("#reaction-creator-iframe").prop("src", "reaction/editor");
+});
+
+$(window).on("keydown", function(evt){
+    if (evt.shiftKey) {
+       if (PathwayEditor.selectedViews.length == 1 && PathwayEditor.selectedViews[0] instanceof Pathway.Reaction) {
+           var reaction = PathwayEditor.selectedViews[0];
+           switch (evt.keyCode) {
+               case 38:
+               case 40:
+                    reaction.layoutDirection = reaction.layoutDirection == "vertical" ? "horizontal" : "vertical";
+                    reaction.layout();
+                    reaction.setState("selected");
+                   break;
+               case 37:
+               case 39:
+                    reaction.layoutReversed = !reaction.layoutReversed;
+                    reaction.layout();
+                    reaction.setState("selected");
+                   break;
+               case 27:
+                   PathwayEditor.clearSelection();
+                   break;
+       
+           }
+       }
+    } else {
+        var els2move = PathwayEditor.selectedViews.length ? PathwayEditor.selectedViews.concat(PathwayEditor.autoselectViews) : [PathwayEditor.canvas];
+        var dx = 0, dy = 0;
+        switch (evt.keyCode) {
+            case 38:
+                dy = -1;
+                break;
+            case 40:
+                dy = 1;
+                break;
+            case 37:
+                dx = -1;
+                break;
+            case 39:
+                dx = 1;
+                break;
+            case 27:
+                PathwayEditor.clearSelection();
+                break;
+    
+        }
+        els2move.forEach(function(each){
+            if(each) each.move(dx, dy);
+        });
     }
-    els2move.forEach(function(each){
-        if(each) each.move(dx, dy);
-    });
 });

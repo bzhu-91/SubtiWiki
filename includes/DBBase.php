@@ -1,4 +1,9 @@
 <?php
+namespace Kiwi;
+
+/**
+ * This class is a wrap-around of the PDO class. Magic function __call is implement to "inherit" all methods from PDO
+ */
 class DBBase {
 	public $lastError;
 	public $last_warning;
@@ -12,8 +17,8 @@ class DBBase {
 	 * @param string $pass password
 	 */
 	function __construct($dsn, $user, $pass){
-		$this->dbh = new PDO($dsn, $user, $pass);
-		$this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$this->dbh = new \PDO($dsn, $user, $pass);
+		$this->dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 	}
 	
 	/**
@@ -42,7 +47,7 @@ class DBBase {
 	 * execute the sql statement
 	 * @param  string $sql  sql statement
 	 * @param  array $vals values to replace ? in the where clause
-	 * @return PDO::statement or boolean       
+	 * @return mixed PDOStatement if SQL excution is successful, false if not
 	 */
 	public function doQuery($sql, $vals = []){
 		try {
@@ -51,18 +56,18 @@ class DBBase {
 			for ($i=0; $i < count($vals); $i++) {
 				$value = $vals[$i];
 				if (is_null($value)) {
-					$stmt->bindValue($i + 1, $value, PDO::PARAM_NULL);
+					$stmt->bindValue($i + 1, $value, \PDO::PARAM_NULL);
 				} else if (is_string($value)) {
-	 				$stmt->bindValue($i + 1, $value, PDO::PARAM_STR);
+	 				$stmt->bindValue($i + 1, $value, \PDO::PARAM_STR);
 	 			} else {
-	 				$stmt->bindValue($i + 1, $value, PDO::PARAM_INT);
+	 				$stmt->bindValue($i + 1, $value, \PDO::PARAM_INT);
 	 			}
 			}
 			$stmt->execute();
 			return $stmt;
-		} catch (Exception $e) {
-			Log::debug($e->getMessage());
-			$this->lastError = $e->getMessage();
+		} catch (\Exception $e) {
+			// Log::debug($e->getMessage());
+			$this->lastError = $sql."; --".$e->getMessage();
 			return false;
 		}
 	}
@@ -70,7 +75,7 @@ class DBBase {
 	/**
 	 * get the columns name of the given table
 	 * @param  string $table_name table name
-	 * @return array             array of column names
+	 * @return array array of column names
 	 */
 	public function getColumnNames ($table_name) {
 		if (!array_key_exists($table_name, $this->db_struct)) {
@@ -86,6 +91,26 @@ class DBBase {
 			}
 		} else {
 			return $this->db_struct[$table_name];
+		}
+	}
+
+	/**
+	 * execute a transaction
+	 * @param function $func the function
+	 * @return boolean
+	 */
+	public function transaction ($func) {
+		try {
+			$this->dbh->beginTransaction(); // if already in transaction, exception can be thrown
+		} catch (\Exception $e) {
+			return false;
+		}
+		if ($func()) {
+			$this->dbh->commit();
+			return true;
+		} else {
+			$this->dbh->rollback();
+			return false;
 		}
 	}
 	

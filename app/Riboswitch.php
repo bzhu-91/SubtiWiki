@@ -19,11 +19,11 @@ class Riboswitch extends Gene {
 		$this->title = $id;
 	}
 
-	public static function getRefWithId ($id) {
+	public static function simpleLookUp ($id) {
 		return new Riboswitch($id);
 	}
 
-	public static function getRefWithTitle ($title) {
+	public static function simpleValidate ($title) {
 		return new Riboswitch($title);
 	}
 }

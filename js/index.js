@@ -26,19 +26,17 @@ $(document).ready(function(){
 					break;
 				case 'interaction':
 				case 'regulation':
-					ajax.get({
+					$.ajax({
 						url: "gene?mode=title&keyword=" + encodeURIComponent(box.val().trim()),
-						headers: {Accept: "application/json"}
-					}).done(function(status, data, error, xhr){
-						if (error) {
-							SomeLightBox.error("Connection to server lost");
-						} else if(status == 200) {
+						dataType:"json",
+						success: function (data) {
 							if (data.length > 1) {
 								SomeLightBox.error("gene " + box.val() + " is ambigious");
 							} else {
 								location = baseURL + scope.val() + "?gene=" + data[0].id;
 							}
-						} else {
+						},
+						error: function () {
 							SomeLightBox.error("Gene " + box.val() + " not found");
 						}
 					});

@@ -1,4 +1,13 @@
 <?php
+namespace Kiwi;
+/**
+ * This class is responsible of generating HTML views (fill a blank).
+ * There are a few placeholder types
+ * {{:name}}  // will be replaced with string associated with key "name"
+ * {{upperCase:name}} // will use the adapter "upperCase" on the value associated with key "name"
+ * {{person.tpl}} // will load person.tpl template file
+ * {{:rest}} // will print out all remaining key-value pairs either in HTML or Monkey markup
+ */
 class View {
 	private $template_str = "";
 	private $rendered_str = "";
@@ -14,6 +23,9 @@ class View {
 
 	private static $default_load_dir = false;
 
+	/**
+	 * magic function to enable static and non-static function registerAdapter
+	 */
 	public static function __callStatic ($key, $args){
 		if ("registerAdapter" == $key) {
 			self::$adapters[$args[0]] = $args[1];
@@ -23,6 +35,9 @@ class View {
 		}
 	}
 
+	/**
+	 * magic function to enable static and non-static function registerAdapter
+	 */	
 	public function __call ($key, $args) {
 		if ("registerAdapter" == $key) {
 			if (is_array($args[0])) {
@@ -32,13 +47,23 @@ class View {
 			} else $this->localAdapters[$args[0]] = $args[1];
 		}
 	}
-	// @override
+	
+	/**
+	 * load a template string
+	 * @param string $str the template string
+	 * @return View the view
+	 */
 	public static function load($str){
 		$tpl = new View();
 		$tpl->rendered_str = $tpl->template_str = $str;
 		return $tpl;
 	}
 
+	/**
+	 * load a template file
+	 * @param string $filename absolute/relative path to the template file, if file doesnt exit a blank view will be returned
+	 * @return View 
+	 */
 	public static function loadFile($filename){
 		global $ROOT;
 		if (!realpath($filename)) {
@@ -54,6 +79,11 @@ class View {
 		return $tpl;
 	}
 
+	/**
+	 * set the data.
+	 * View::set($keypath, $value) or.
+	 * View::set($obj)
+	 */
 	public function set ($a, $b = null){
 		if ($b !== null) {
 			$this->data[$a] = $b;
@@ -66,6 +96,9 @@ class View {
 		}
 	}
 
+	/**
+	 * bind the template with the data
+	 */
 	private function bind (){
 		$matches = [];
 
@@ -96,7 +129,7 @@ class View {
 			$keypath = new KeyPath($keys);
 			$val = $keypath->get($this->data);
 			if ($val !== null) {
-				$replacement = $val;
+				$replacement = (string) $val;
 				// consume the first level key
 				$this->key_consumption[$keypath->first()] = true;
 			} else $replacement = "";
@@ -132,6 +165,11 @@ class View {
 		
 	}
 
+	/**
+	 * print json to HTML
+	 * @param KeyPath $keypath
+	 * @param object/array $obj
+	 */
 	private function printValueHTML (KeyPath $keypath, $obj) {
 		if (is_array($obj)) {
 			$obj = json_decode(json_encode($obj));
@@ -202,6 +240,9 @@ class View {
 		return $str;
 	}
 
+	/**
+	 * print json to monkey markup
+	 */
 	private function printValueMonkdey (KeyPath $keypath, $obj) {
 		$str = "";
 		foreach ($obj as $key => $value) {
@@ -240,6 +281,9 @@ class View {
 		return $str;
 	}
 
+	/**
+	 * handle {{::rest}} tag
+	 */
 	private function printRest () {
 		$rest = [];
 		foreach ($this->key_consumption as $key => $value) {
@@ -258,10 +302,18 @@ class View {
 		}
 	}
 
+	/**
+	 * test if all placeholders are replaced or not
+	 */
 	public function isClean (){
 		return !(preg_match("/{{:([^\{\}:]+?)}}/", $this->rendered_str) || preg_match("/{{([^\{\}:]+?)\:([^\{\}:]+?)}}/", $this->rendered_str) || preg_match("/{{([^:{}]+)?}}/", $this->rendered_str));
 	}
 
+	/**
+	 * output binded template
+	 * @param boolean $recursive
+	 * @param boolean $restPrinting
+	 */
 	public function generate ($recursive = false, $restPrinting = false){
 		// all keys are not consumed yet
 		foreach ($this->data as $key => $value) {

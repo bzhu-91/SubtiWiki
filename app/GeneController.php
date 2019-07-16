@@ -1,8 +1,27 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class GeneController extends Controller {
-	/** get method */		
+/**
+ * Offers operations on Gene.
+ * RESTful API summary:
+ * - GET:/gene?query=:columnNames
+ * - GET:/gene?id=:geneIDs
+ * - GET:/gene?keyword=:keyword
+ * - GET:/gene?page=:pageNumber&page_size=:pageSize
+ * - PUT:/gene?id=:id
+ * - POST:/gene
+ * - DELETE:/gene?id=:id
+ * s
+ */
+class GeneController extends \Kiwi\Controller {
+	/**
+	 * Multiple APIs.
+	 * Summary:
+	 * - GET:/gene?query=:columnNames
+	 * - GET:/gene?id=:geneIDs
+	 * - GET:/gene?keyword=:keyword
+	 * - GET:/gene?page=:pageNumber&page_size=:pageSize
+	 */		
 	public function read ($input, $accept) {
 		if ($input) {
 			if (array_key_exists("id", $input)) {
@@ -17,18 +36,30 @@ class GeneController extends Controller {
 		} else $this->index($accept);
 	}
 
-	/* offers table like structure */
+	/**
+	 * API: data export function.
+	 * API: data export function.
+	 * URL: /gene?query=:columnNames
+	 * Method: GET
+	 * URL Params: columnName=string, delimiterd with ";"
+	 * Success Responses:
+	 * - code:200, accept:JSON, content: [{col1:xxx,col2,xxx},...]
+	 * - code:200, accept:CSV, content: a csv file with required cols
+	 * Error Responses:
+	 * - code:406
+	 * - code:404
+	 */
 	protected function query ($input, $accept) {
 		if ($accept == HTML) {
 			// exporter
-		} elseif ($accept == JSON) {
+		} elseif ($accept == JSON || $accept == CSV) {
 			$query = $this->filter($input, "query", "has", ["Invalid query", 400, JSON]);
 			// increment the count
 			Statistics::increment("geneExport");
 			$ids = $this->filter($input, "ids", "has");
 			$queries = explode(";", $query);
 			foreach ($queries as &$keypath) {
-				$keypath = new KeyPath($keypath);
+				$keypath = new \Kiwi\KeyPath($keypath);
 			}
 			if ($ids) {
 				$ids = explode(",", $ids);
@@ -49,16 +80,36 @@ class GeneController extends Controller {
 					}
 					$table[] = $row;
 				}
-				$this->respond($table, 200, JSON);
+				if ($accept == JSON) $this->respond($table, 200, JSON);
+				else {
+					// create csv
+					$csv = "";
+					foreach ($table as $row) {
+						array_walk($row, function($str){
+							return '"'.addslashes($str).'"';
+						});
+						$csv .= implode(", ", $row)."\n";
+					}
+					$csv = rtrim($csv);
+					// header();
+					$this->respond($csv, 200, CSV, [
+						"Content-Disposition: attachment; filename=subtiwiki.gene.export.".date("Y-m-d").".csv"
+					]);
+				}
 			} else {
-				$this->error("not found", 404, JSON);
+				$this->error("not found", 404, $accept);
 			}
 		} else {
 			$this->error("Unaccepted", 406, $accept);
 		}
 	}
 
-	/** no input */
+	/**
+	 * API: get a listing of genes. see GeneController::list
+	 * API: get a listing of genes.
+	 * URL: /gene
+	 * Method: GET
+	 */
 	protected function index ($accept) {
 		$this->list([
 			"page" => 1,
@@ -66,13 +117,25 @@ class GeneController extends Controller {
 		], $accept);
 	}
 
-	/** view gene */
+	/**
+	 * API: get the data of a gene.
+	 * API: get the data of a gene.
+	 * URL: /gene?id=:id,
+	 * Method: GET
+	 * URL Params: id=[sha1 hash string]
+	 * Success Responses:
+	 * - code:200, accept:HTML, content:a gene page
+	 * - code:200, accept:JSON, content: {id:xxx,title:xxx,locus:xxx,...}
+	 * Error Responses:
+	 * - code:404
+	 * - code:406
+	 */
 	protected function view ($input, $accept) {
 		$id = $this->filter($input, "id", "/^[0-9a-f]{40}$/i", ["Invalid id", 400, $accept]);
 		$gene = Gene::get($id);
 		if ($gene) {
-			Utility::clean($gene);
-			Utility::decodeLinkForView($gene);
+			\Kiwi\Utility::clean($gene);
+			\Kiwi\Utility::decodeLinkForView($gene);
 			$gene->updateCount(); // start counter
 
 			$data = MetaData::sort($gene);
@@ -85,7 +148,7 @@ class GeneController extends Controller {
 			}
 			switch ($accept) {
 				case HTML:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$this->autoAdapters($gene, $view);
 					$this->setAdapters($gene, $view);
 					$view->set($data);
@@ -137,7 +200,8 @@ class GeneController extends Controller {
 					}
 					$this->respond($view, 200, HTML);
 				case HTML_PARTIAL:
-					$this->error("Unacceptable, please use gene::summary", 406, HTML);
+				case CSV:
+					$this->error("Unacceptable", 406, HTML);
 					break;
 				case JSON:
 					$this->respond($gene, 200, JSON);
@@ -150,13 +214,12 @@ class GeneController extends Controller {
 	 * load template which is defined as gene__{keypath}.view.tpl to the corresponding keypath
 	 * @param  Gene       $gene    gene
 	 * @param  View       $view    view
-	 * @param  KeyPath|null $keypath current keypath, for recursive call
-	 * @return none		
+	 * @param  KeyPath $keypath current keypath, for recursive call
 	 */
-	protected function autoAdapters ($gene, $view, KeyPath $keypath = null) {
+	protected function autoAdapters ($gene, $view, \Kiwi\KeyPath $keypath = null) {
 		if ($keypath === null) {
 			// use __ for delimiter incase windows
-			$keypath = new KeyPath();
+			$keypath = new \Kiwi\KeyPath();
 		}
 		// get all the defined templates
 		foreach ($gene as $key => $value) {
@@ -176,7 +239,7 @@ class GeneController extends Controller {
 
 	/**
 	 * set view adapters only for gene.view
-	 * @param none $view
+	 * @param View $view
 	 */
 	private function setAdapters ($gene, $view) {
 		$view->registerAdapter("structure", function($data){
@@ -188,11 +251,11 @@ class GeneController extends Controller {
 		});
 
 		$view->registerAdapter("Expression and Regulation->Operons->each", function($each) {
-			$segment = View::loadFile("operon.view.tpl");
-			$each->button = '<a href="operon?id={{:id}}" class="button" style="float:right;">Open in new tab</a>';
+			$segment = \Kiwi\View::loadFile("operon.view.tpl");
 			$operon = Operon::withData($each);
 			$data = MetaData::sort($operon);
 			$segment->set($data);
+			$segment->set("button", '<a href="operon?id={{:id}}" class="button" style="float:right;">Open in new tab</a>');
 			return "<div class='box'>".$segment->generate(true, true)."</div>";
 		});
 
@@ -211,7 +274,19 @@ class GeneController extends Controller {
 		});
 	}
 
-	/** search function */
+	/**
+	 * API: search for gene.
+	 * API: search for gene.
+	 * URL: gene?keyword=:keyword&[mode=:searchMode]
+	 * Method: GET
+	 * URL Params: keyword=[string, longer than 2]; searchMode=[blur,locus,title,id]
+	 * Success Responses:
+	 * - code:200, acecpt:HTML, content:a html page
+	 * - code:200, acecpt:JSON, content: [{id:xxx,title:xxx,locus:xxx,function:xxx},...]
+	 * Error Responses:
+	 * - code:400
+	 * - code:404
+	 */
 	protected function search ($input, $accept) {
 		$keyword = $input["keyword"];
 		$messages = [400 => "Keyword too short", 404 => "No results found"];
@@ -219,6 +294,13 @@ class GeneController extends Controller {
 		if (strlen($keyword) < 2) {
 			$error = 400;
 		} else {
+			// change BSU00010 to BSU_00010
+			// compatible with old locus tag format
+			if (preg_match_all("/^bsu/i", $keyword)) {
+				if ($keyword[3] != "_") {
+					$keyword = "BSU_".substr($keyword, 3);
+				}
+			}
 			$mode = $this->filter($input, "mode", "has");
 			switch ($input["mode"]) {
 				case "blur":
@@ -228,7 +310,7 @@ class GeneController extends Controller {
 					$results = Gene::getAll(["locus" => "%{$keyword}%"]);
 					break;
 				case "title":
-					$results = Gene::getAll("title like ? or _synonyms like ?", [$keyword, "%{$keyword}%"]);
+					$results = Gene::getAll("title like ? or _synonyms REGEXP ?", [$keyword, "(^|,)".$keyword."(,|$)"]);
 					break;
 				case "id":
 					$results = Gene::getAll(["id" => $keyword]);
@@ -245,7 +327,7 @@ class GeneController extends Controller {
 				if (count($results) == 1) {
 					header("Location: ".$GLOBALS["WEBROOT"]."/gene?id=".$results[0]->id);
 				} else {
-					$view = View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"pageTitle" => "Search: $keyword",
 						"showFootNote" => "none"
@@ -270,7 +352,7 @@ class GeneController extends Controller {
 				if ($error) {
 					$this->respond("<p>No result</p>", 200, HTML);
 				} else {
-					$view = View::load("{{geneTable:genes}}");
+					$view = \Kiwi\View::load("{{geneTable:genes}}");
 					$view->set("genes", $results);
 					$this->respond($view, 200, HTML_PARTIAL);
 				}
@@ -279,14 +361,27 @@ class GeneController extends Controller {
 				if ($error) {
 					$this->error($messages[$error], $error, JSON);
 				} else {
-					$results = Utility::arrayColumns($results, ["id", "title", "function"]);
-					Utility::decodeLinkForView($results);
+					$results = \Kiwi\Utility::arrayColumns($results, ["id", "title", "function"]);
+					\Kiwi\Utility::decodeLinkForView($results);
 					$this->respond($results, 200, JSON);
 				}
 				break;
 		}
 	}
 
+	/**
+	 * API: get a list of genes.
+	 * API: get a list of genes.
+	 * URL: /gene?page=:pageNumber&page_size=:pageSize
+	 * Method: GET
+	 * URL Params: pageNumber=[int]; pageSize=[int]
+	 * Success Responses:
+	 * - code:200, accept:HTML, content:a html page
+	 * - code:200, accept:JSON, content: [{id:xxx,title:xxx,locus:xxx,function:xxx},...]
+	 * Error Responses:
+	 * - code:400
+	 * - code:404
+	 */
 	protected function list ($input, $accept) {
 		$page = $this->filter($input, "page", "is_numeric", ["Invalid page number", 400, $accept]);
 		$pageSize = $this->filter($input, "page_size", "is_numeric", ["Invalid page size", 400, $accept]);
@@ -295,7 +390,7 @@ class GeneController extends Controller {
 			case HTML:
 			$count = Gene::count();
 			if ($genes) {
-					$view = View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"title" => "All genes (page $page)",
 						"content" => "{{all.list.tpl}}",
@@ -312,12 +407,26 @@ class GeneController extends Controller {
 				} else $this->error("Not found", 404, HTML);
 				break;
 			case JSON:
-				if ($genes) $this->respond(Utility::arrayColumns($genes, ["id", "title", "function"]), 200, JSON);
+				if ($genes) $this->respond(\Kiwi\Utility::arrayColumns($genes, ["id", "title", "function"]), 200, JSON);
 				else $this->error("Not found", 404, JSON);
 				break;
 		}
 	}
 
+	/**
+	 * API: update data of gene.
+	 * API: update data of gene.
+	 * URL: gene?id=:geneId
+	 * Method: PUT
+	 * URL Params: geneId=[sha1 hash string]
+	 * Data Params: {id:xxx,title:xxx,locus:xxx,function:xxx,The gene:xxx, ...}
+	 * Success Responses:
+	 * - code:200, accept:JSON, content: {uri:"gene?id=:id"}
+	 * Error Responses:
+	 * - 406
+	 * - 404
+	 * - 500
+	 */
 	public function update ($input, $accept) {
 		UserController::authenticate(1, $accept);
 		if ($accept == JSON) {
@@ -325,8 +434,12 @@ class GeneController extends Controller {
 			$old = Gene::raw($id);
 			if ($old) {
 				$new = Gene::withData($input);
+				// disallow ; in gene name, this symbol is used as general delimiter
+				if (strpos($new->title, ";") !== false) {
+					$this->error("; is disallowed in gene names", 400, JSON);
+				}
+				// handle name change in gene
 				if ($new->title != $old->title) {
-					// handle name change in gene
 					if ($new->synonyms) {
 						$new->synonyms = array_map("trim", explode(",", $new->synonyms));
 						if (!in_array($old->title, $new->synonyms)) {
@@ -345,7 +458,7 @@ class GeneController extends Controller {
 						MetaData::insertKeyValuePair($new, "synonyms", $old->title);						
 					}
 				}
-				Utility::encodeLink($new);
+				\Kiwi\Utility::encodeLink($new);
 				MetaData::insertKeyValuePair($new, "lastUpdate", date("Y-m-d H:i:s"));	
 				MetaData::insertKeyValuePair($new, "lastAuthor", User::getCurrent()->name);	
 				// track the meta data change
@@ -358,16 +471,36 @@ class GeneController extends Controller {
 		} else $this->error("Unacceptable", 405, $accept);
 	}
 
+	/**
+	 * API: add a new gene.
+	 * API: add a new gene.
+	 * URL: gene
+	 * Method: POST
+	 * Data Params: {title:xxx,locus:xxx,function:xxx,The gene:xxx, ...}
+	 * Success Responses:
+	 * - code:201, accept:JSON, content: {uri:"gene?id=:id"}
+	 * Error Responses:
+	 * - 406
+	 * - 404
+	 * - 500
+	 */
 	public function create ($input, $accept) {
 		UserController::authenticate(2, $accept);
 		if ($accept == JSON) {
 			$gene = Gene::withData($input);
+			// disallow ; in gene name, this symbol is used as general delimiter
+			if (strpos($gene->title, ";") !== false) {
+				$this->error("; is disallowed in gene names", 400, JSON);
+			}
 			if ($gene->insert()) {
 				$this->respond(["uri" => "gene?id=".$gene->id], 201, JSON);
 			} else $this->error("Internal error", 500, JSON);
 		} else $this->error("Unacceptable", 405, $accept);
 	}
 
+	/**
+	 * get url for quick blast
+	 */
 	public function blast ($input, $accept, $method) {
 		if ($method == "GET") {
 			$id = $this->filter($input, "id", "/[a-f0-9]{40}/i", ["Invalid id", 400, $accept]);
@@ -386,7 +519,20 @@ class GeneController extends Controller {
 		}
 	}
 
-	// requires geneId and admin password
+	/**
+	 * API: remove a gene. Requires an admin password, set in Config.php
+	 * API: remove a gene. Requires an admin password, set in Config.php
+	 * URL: gene?id=:geneId
+	 * Method: DELETE
+	 * URL Params: geneId=[sha1 hash string]
+	 * Data Params: {id:xxx,title:xxx,locus:xxx,function:xxx,The gene:xxx, ...}
+	 * Success Responses:
+	 * - code:204, accept:JSON, content:null
+	 * Error Responses:
+	 * - 406
+	 * - 404
+	 * - 500
+	 */
 	public function delete ($input, $accept) {
 		UserController::authenticate(2, $accept);
 		if ($accept == JSON) {
@@ -401,6 +547,9 @@ class GeneController extends Controller {
 		} else $this->error("Unacceptable", 405, $accept);
 	}
 
+	/**
+	 * go to a random gene
+	 */
 	public function random ($input, $accept) {
 		$row = rand(1, Gene::count());
 		$gene = Gene::getAll("1 limit ?,1", [$row])[0];
@@ -409,13 +558,26 @@ class GeneController extends Controller {
 				header("Location: ".$GLOBALS['WEBROOT']."/gene?id=".$gene->id);
 				break;
 			case JSON:
-				$this->respond(Utility::arrayColumns($gene, ["id", "title", "function"]), 200, JSON);
+				$this->respond(\Kiwi\Utility::arrayColumns($gene, ["id", "title", "function"]), 200, JSON);
 				break;
 			case HTML_PARTIAL:
 				$this->error("Not acceptable", 406, HTML);
 		}
 	}
 
+	/**
+	 * API: get the summary of a gene.
+	 * API: get the summary of a gene.
+	 * URL: gene/summary?id=:id
+	 * Method: GET
+	 * URL Params: id=[sha1 hash string, geneID]
+	 * Success Responses:
+	 * - code:200, accept:HTML/HTML_PARTIAL, content: summary
+	 * - code:200, acecpt:JSON, content:{id:xxx,title:xxx,locus:xxx,...}
+	 * Error Responses:
+	 * - code:405
+	 * - code:404
+	 */
 	public function summary ($input, $accept, $method) {
 		$id = $this->filter($input, "id", "/^[0-9a-f]{40}$/i", ["Invalid gene id", 400, $accept]);
 		switch($method){
@@ -434,11 +596,11 @@ class GeneController extends Controller {
 				}
 			}
 			$summary = (object) $summary;
-			Utility::decodeLinkForView($summary);
+			\Kiwi\Utility::decodeLinkForView($summary);
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = View::loadFile("gene.summary.tpl");
+					$view = \Kiwi\View::loadFile("gene.summary.tpl");
 					$this->autoAdapters($summary, $view);
 					$view->set($summary);
 					$this->respond($view, 200, HTML);
@@ -450,6 +612,9 @@ class GeneController extends Controller {
 		} else $this->error("Gene not found", 404, $accept);
 	}
 
+	/**
+	 * Provides a editor page for gene
+	 */
 	public function editor ($input, $accept, $method) {
 		UserController::authenticate(1, $accept);
 		if ($method != "GET") {
@@ -462,9 +627,9 @@ class GeneController extends Controller {
 		if ($id) {
 			$gene = Gene::raw($id);
 			if ($gene) {
-				Utility::decodeLinkForEdit($gene);
+				\Kiwi\Utility::decodeLinkForEdit($gene);
 				$data = MetaData::fill($gene, "insert text here");
-				$view = View::loadFile("layout2.tpl");
+				$view = \Kiwi\View::loadFile("layout2.tpl");
 				$view->set([
 					"pageTitle" => "Edit: ".$gene->title,
 					"headerTitle" => "Edit: ".$gene->title,
@@ -480,7 +645,6 @@ class GeneController extends Controller {
 					"jsAfterContent" => [
 						"libs/monkey", 
 						"tabs", 
-						"gene.template",
 						"all.editor", 
 						"gene.editor", 
 						"operon.editor", 
@@ -501,26 +665,41 @@ class GeneController extends Controller {
 		}
 	}
 
-	public function migrate ($input) {
+	/**
+	 * migrating from v3 to v4, will be deleteds
+	 */
+	public function migrate ($input, $accept, $method) {
 		$password = $this->filter($input, "password", "/^bzhu2018__$/i", ["Not found", 404, $accept]);
 		$genes = Gene::getAll(1);
 		foreach ($genes as $gene) {
 			if ($gene->names) {
-				Utility::insertAfter($gene, "synonyms", implode(", ", $gene->names), "names");
+				$syns = array_filter($gene->names, function($name){
+					return $name !== $gene->title;
+				});
+				$gene->synonyms = implode(", ", $syns);
 				unset($gene->names);
-				$gene->replace(true);
-				Log::debug($gene->title);
+				$conn = \Kiwi\Application::$conn;
+				if ($conn->replace("Gene", $gene, ["id" => $gene->id])) {
+					\Kiwi\Log::debug("okay: ".$gene->title);
+				} else {
+					\Kiwi\Log::debug("x: ".$gene->title);
+				}
 			}
 		}
+		echo "Finished";
 	}
 
+	/**
+	 * Provide an exporter page
+	 */
 	public function exporter ($input, $accept, $method) {
 		if ($accept == HTML) {
 			if ($method == "GET") {
-				$view = View::loadFile("layout1.tpl");
+				$view = \Kiwi\View::loadFile("layout1.tpl");
 				$view->set([
+					"pageTitle" => "Gene export wizard",
 					"title" => "Gene export wizard",
-					"content" => "<div id='exporter'></div>{{jsvars:vars}}",
+					"content" => "{{gene.exporter.tpl}}{{jsvars:vars}}",
 					"vars" => [
 						"scheme" => MetaData::get("Gene")->scheme
 					],
@@ -535,13 +714,25 @@ class GeneController extends Controller {
 		} else $this->error("Unacceptable", 405, $accept);
 	}
 
-
 	/**
 	 * importer function, provides an interface for data import and handles the data import
 	 * @layout layout1.tpl
 	 * @layout gene.importer.tpl
 	 * @accept HTML
 	 * @method POST/GET
+	 */
+	/**
+	 * Multiple APIs with the importing function
+	 * API: provide an importer page
+	 * 
+	 * API: import data from file
+	 * URL: gene/importer
+	 * Method: POST
+	 * Data Params: {file: file, mode: mode, type: type}
+	 * Success Reponses:
+	 * - code:200, accept:HTML, content: a html page
+	 * Error responses:
+	 * - none, errors shown on the html page
 	 */
 	public function importer ($input, $accept, $method) {
 		if ($accept != HTML) $this->error("Unaccepted", 406, $accept);
@@ -552,7 +743,7 @@ class GeneController extends Controller {
 			$mode = $this->filter($input, "mode", "/^(replace)|(patch)$/i");
 			$type = $this->filter($input, "type", "/^(scalar)|(array)$/i");
 			// check the existence of the table
-			$conn = Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$cols = $conn->getColumnNames($tableName);
 			if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			if (!$mode) $errors[] = "Mode is required";
@@ -581,7 +772,7 @@ class GeneController extends Controller {
 									}
 									$row = array_combine($header, $row);
 									$row["lastAuthor"] = User::getCurrent()->name;
-									$row = Utility::inflate($row);
+									$row = \Kiwi\Utility::inflate($row);
 									if ($hashId) $row["id"] = sha1(json_encode($row));
 									$gene = Gene::withData($row);
 									$gene->lastAuthor = User::getCurrent()->name;
@@ -608,7 +799,7 @@ class GeneController extends Controller {
 								if (array_key_exists($gene->locus, $dict)) {
 									if ($tpye == "array") $val = explode(";", $dict[$gene->locus]);
 									else $val = $dict[$gene->locus];
-									if (Utility::setValueFromKeypath($gene, $keypath, $val)) {
+									if (\Kiwi\Utility::setValueFromKeypath($gene, $keypath, $val)) {
 										$gene->lastAuthor = User::getCurrent()->name;
 										if (!$gene->update()) $errors[] = "Update of gene with the locus {$gene->locus} is not successful.";
 									} else $errors[] = "Update of gene with the locus {$gene->locus} is not successful, merge of the data failed.";
@@ -620,7 +811,7 @@ class GeneController extends Controller {
 			}
 			if (empty($errors)) $errors[] = "Import successful";
 		}
-		$view = View::loadFile("layout1.tpl");
+		$view = \Kiwi\View::loadFile("layout1.tpl");
 		$view->set([
 			"title" => "Importer for Gene table",
 			"pageTitle" => "Importer for Gene table",

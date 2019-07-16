@@ -1,4 +1,4 @@
-<tr class='regulation' id="{{:id}}">
+<tr class="form" action="regulation" method="put">
 	<td>
 		<p>
 			<label>Type: </label><span>{{:type}}</span>
@@ -13,7 +13,13 @@
 		<textarea name='description'>{{:description}}</textarea>
 	</td>
 	<td>
-		<button class="updateBtn" target="regulation" id="{{:id}}">Update</button>
-		<button class="delBtn" target="regulation" id="{{:id}}">Delete</button>
+		<p>
+			<input type="hidden" name="id" value="{{:id}}" />
+			<button type="submit">Update</button>
+		</p>
+		<form action="regulation" method="delete" class="form-ignore" type="ajax">
+			<input type="hidden" name="id" value="{{:id}}" />
+			<button style="background: red">Delete</button>
+		</form>
 	</td>
 </tr>

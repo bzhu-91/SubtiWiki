@@ -1,7 +1,7 @@
 <?php
 require_once ("ViewAdapters.php");
 
-class OperonController extends Controller {
+class OperonController extends \Kiwi\Controller {
 	public function read ($input, $accept) {
 		if ($input) {
 			if (array_key_exists("id", $input)) {
@@ -26,7 +26,7 @@ class OperonController extends Controller {
 			case HTML_PARTIAL:
 				if ($operons) {
 					$count = Operon::count();
-					$view = View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"title" => "All operons (page $page)",
 						"content" => "{{all.list.tpl}}",
@@ -49,7 +49,7 @@ class OperonController extends Controller {
 
 				break;
 			case JSON:
-				if ($operons) $this->respond(Utility::arrayColumns($operons, ["id", "title"]), 200, JSON);
+				if ($operons) $this->respond(\Kiwi\Utility::arrayColumns($operons, ["id", "title"]), 200, JSON);
 				else $this->error("Not found", 404, JSON);
 				break;
 		}
@@ -59,13 +59,13 @@ class OperonController extends Controller {
 		$id = $this->filter($input, "id", "/^[0-9a-f]{40}$/i", ["Invalid id", 400, $accept]);
 		$operon = Operon::get($id);
 		if ($operon) {
-			Utility::decodeLinkForView($operon);
+			\Kiwi\Utility::decodeLinkForView($operon);
 			$data = MetaData::sort($operon);
 			$operon->updateCount();
 			switch ($accept) {
 				case HTML:
 				case HTML_PARTIAL:
-					$view = View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set($data);
 					$view->set([
 						"pageTitle" => "Operon",
@@ -113,7 +113,7 @@ class OperonController extends Controller {
 					} else {
 						$this->respond("Internal error, update is not successful", 500, JSON);
 					}
-				} catch (BaseException $e) {
+				} catch (\Kiwi\BaseException $e) {
 					$this->error($e->getMessage(), 500, JSON);
 				}
 		}
@@ -127,6 +127,7 @@ class OperonController extends Controller {
 				$operons = $gene->has("operons");
 				if ($operons) {
 					$data = array_column($operons, "operon");
+					\Kiwi\Utility::decodeLinkForView($data);
 					$this->respond($data, 200, JSON);
 				} else {
 					$this->error("Not found", 404, JSON);
@@ -203,27 +204,28 @@ class OperonController extends Controller {
 				}
 			} else {
 				if ($accept == HTML_PARTIAL) {
-					$view = View::loadFile("operon.editor.blank.tpl");
+					$view = \Kiwi\View::loadFile("operon.editor.blank.tpl");
 					$view->set("updateMode", "replace");
 					$this->respond($view, 200, HTML_PARTIAL);
 				} else {
-					$view = View::loadFile("layout2.tpl");
+					$view = \Kiwi\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Add Operon:",
 						"headerTitle" => "Add Operon:",
 						"content" => "{{operon.editor.blank.tpl}}",
 						"updateMode" => "redirect",
-						"jsAfterContent" => ["libs/monkey", "all.editor", "operon.editor", "regulation.editor"]
+						"jsAfterContent" => ["libs/monkey", "all.editor", "operon.editor", "regulation.editor"],
+						"styles" => ["all.editor"]
 					]);
 					$this->respond($view, 200, HTML);
 				}
 			}
 			if ($operons) {
-				Utility::decodeLinkForEdit($operons);
+				\Kiwi\Utility::decodeLinkForEdit($operons);
 				$content = "";
 				foreach ($operons as $operon) {
 					$data = MetaData::fill($operon, "insert text here");
-					$view = View::loadFile("operon.editor.tpl");
+					$view = \Kiwi\View::loadFile("operon.editor.tpl");
 					$view->restPrintingStyle = "edit";
 					$view->set($data);
 					$regulations = $operon->has("regulation");
@@ -240,7 +242,7 @@ class OperonController extends Controller {
 				if ($accept == HTML_PARTIAL) {
 					$this->respond($content, 200, HTML);
 				} else {
-					$view = View::loadFile("layout2.tpl");
+					$view = \Kiwi\View::loadFile("layout2.tpl");
 					$view->set([
 						"pageTitle" => "Edit: Operon",
 						"headerTitle" => "Edit: Operon",
@@ -248,7 +250,8 @@ class OperonController extends Controller {
 						"jsAfterContent" => ["operon.editor", "libs/monkey", "all.editor"],
 						"vars" => [
 							"showDelBtn" => User::getCurrent()->privilege > 1
-						]
+						],
+						"styles" => ["all.editor"]
 					]);
 					$this->respond($view, 200, HTML);
 				}
@@ -265,7 +268,7 @@ class OperonController extends Controller {
 	public function exporter ($input, $accept, $mehod) {
 		if ($mehod == "GET") {
 			$all = Operon::getAll();
-			Utility::decodeLinkForEdit($all);
+			\Kiwi\Utility::decodeLinkForEdit($all);
 			Statistics::increment("operonExport");
 			switch ($accept) {
 				case HTML:
@@ -278,10 +281,10 @@ class OperonController extends Controller {
 							$row->genes,
 						];
 					}	
-					$this->respond(Utility::encodeCSV($csv), 200, CSV);
+					$this->respond(\Kiwi\Utility::encodeCSV($csv), 200, CSV);
 					break;
 				case JSON:
-					$json = Utility::arrayColumns($all, ["title", "genes"]);
+					$json = \Kiwi\Utility::arrayColumns($all, ["title", "genes"]);
 					$this->respond($json, 200, JSON);
 					break;
 			}
@@ -298,7 +301,7 @@ class OperonController extends Controller {
 			// validate user input
 			$tableName = Operon::$tableName;
 			$mode = $this->filter($input, "mode", "/^(replace)|(append)$/i");
-			$conn = Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$cols = $conn->getColumnNames($tableName);
 			if (!$cols) $errors[] = "Table $tableName not found, please import the database structure please";
 			if (!$mode) $errors[] = "Mode is required";
@@ -314,7 +317,7 @@ class OperonController extends Controller {
 					$row = explode("\t", $row);
 				}
 				$header = array_shift($table);
-				$conn = Application::$conn;
+				$conn = \Kiwi\Application::$conn;
 
 				// check headers
 				$required = ["genes"];
@@ -366,7 +369,7 @@ class OperonController extends Controller {
 				$errors[] = "Import successful";
 			}
 		}
-		$view = View::loadFile("layout1.tpl");
+		$view = \Kiwi\View::loadFile("layout1.tpl");
 		$view->set([
 			"title" => "Importer for operon",
 			"pageTitle" => "Importer for operon",

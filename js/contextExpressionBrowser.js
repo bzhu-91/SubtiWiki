@@ -143,28 +143,28 @@ ContextExpressionBrowser.prototype.getExpressionDataSet = function (condition, s
     var self = this;
     var isLoadedPlus = false, isLoadedMinus = false;
     
-    ajax.get({
+    $.ajax({
         url: "expression?range=" + start + "_" + stop + "_1" + "&condition=" + condition.id + "&sampling=" + sampling,
-        headers: {Accept: "text/csv"}
-    }).done(function(status, data, error, xhr){
-        if (status == 200) {
+        headers: {Accept: "text/csv"},
+        success: function (data) {
             var dataPlus = self.processExpressionDataSet(data, condition);
             self.addExpressionData(dataPlus, false);
             isLoadedPlus = true;
-        } else {
+        },
+        error: function () {
             self.showMessage("Loading error");
         }
-    })
+    });
     
-    ajax.get({
+    $.ajax({
         url: "expression?range=" + start + "_" + stop + "_0" + "&condition=" + condition.id + "&sampling=" + sampling,
-        headers: {Accept: "text/csv"}
-    }).done(function(status, data, error, xhr){
-        if (status == 200) {
+        headers: {Accept: "text/csv"},
+        success: function(data) {
             var dataMinus = self.processExpressionDataSet(data, condition);
             self.addExpressionData(false, dataMinus);
             isLoadedMinus = true;
-        } else {
+        },
+        error: function () {
             self.showMessage("Loading error");
         }
     });

@@ -17,6 +17,9 @@ $(window).on("load", function(){
 					currentActive.content.ondisplay();
 				}
 				window.location.hash = "#" + clicked.index;
+				if (window.patch_textarea) {
+					window.patch_textarea();
+				}
 			}
 		})
 	});

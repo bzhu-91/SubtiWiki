@@ -1,17 +1,41 @@
 <?php
+namespace Kiwi;
+
+/**
+ * This class presents a controller
+ */
 abstract class Controller {
+	/**
+	 * RESTful style method, correspond to GET method in http
+	 * @param array $input input from the client side
+	 * @param string $contentType HTML/JSON/HTML_PARTIAL/CSV the format of the response
+	 */
 	abstract function read ($input, $contentType);
+	/**
+	 * RESTful style method, correspond to POST method in http
+	 * @param array $input input from the client side
+	 * @param string $contentType HTML/JSON/HTML_PARTIAL/CSV the format of the response
+	 */
 	abstract function create ($input, $contentType);
+	/**
+	 * RESTful style method, correspond to PUT method in http
+	 * @param array $input input from the client side
+	 * @param string $contentType HTML/JSON/HTML_PARTIAL/CSV the format of the response
+	 */
 	abstract function update ($input, $contentType);
+	/**
+	 * RESTful style method, correspond to DELETE method in http
+	 * @param array $input input from the client side
+	 * @param string $contentType HTML/JSON/HTML_PARTIAL/CSV the format of the response
+	 */
 	abstract function delete ($input, $contentType);
 
 	/**
 	 * create a response, application will stop after this funciton is called
 	 * @param  mixed  $body        body of the response, can be string/object/array or View instance
 	 * @param  integer $status      http status code
-	 * @param  HTML/JSON/HTML_PARTIAL  $contentType content type of the response
+	 * @param  string can be HTML/JSON/HTML_PARTIAL, $contentType content type of the response
 	 * @param  array/object  $headers     extra headers
-	 * @return none               
 	 */
 	public function respond ($body, $status = 200, $contentType = HTML, $headers = NULL) {
 		http_response_code($status);
@@ -88,13 +112,14 @@ abstract class Controller {
 	/**
 	 * filter user input, if error response is given, will call $this->error and end the application
 	 * @param  array $input         input from client
-	 * @param  string $keypath       keypath
+	 * @param  string $keypath       KeyPath
 	 * @param  string $requirement   requirement of the value, "has" / regexp
 	 * @param  array $errorResponse arguments for error response
 	 * @return none                
 	 */
 	public function filter ($input, $keypath, $requirement = null, $errorResponse = null) {
-		$val = Utility::getValueFromKeypath($input, $keypath);
+		$keypath = new KeyPath($keypath);
+		$val = $keypath->get($input);
 		if ($val !== null) {
 			if ($requirement) {
 				if ($requirement[0] == "/") { // is regexp
@@ -108,7 +133,7 @@ abstract class Controller {
 						return $val;
 					}
 				} elseif ($requirement == "is_email") {
-					if (Utility::validateEmail($val)) {
+					if (Utility::validateEmailAddress($val)) {
 						return $val;
 					}
 				}

@@ -1,4 +1,10 @@
 <?php
+namespace Kiwi;
+
+/**
+ * This class implements the virtualization mentioned in the "Document of the database structure".
+ * The static property $VirtualColumnName and $NativeJSON should be set in the Config.php
+ */
 class DocumentRecord extends ActiveRecord {
 	// name of the virtual column where data is hosted in json format
 	// mysql 5.8+ support native json data type
@@ -6,17 +12,20 @@ class DocumentRecord extends ActiveRecord {
 	public static $VirtualColumnName = "data";
 	public static $NativeJSON = false;
 	
-	// copy the static vals as default because virtual col name and data tpye can differ from table to table
+	/**
+	 * Takes the same parameters as the constructor of PDO class, details see the documents for PDO class
+	 * copy the static vals as default because virtual col name and data tpye can differ from table to table
+	 */
 	function __construct($dsn, $user, $pass){
 		parent::__construct($dsn, $user, $pass);
 		$this->virtualColumnName = self::$VirtualColumnName;
 	}
 
 	/**
-	 * de-virtualize the table column
+	 * get the real column name from the virtual column name
 	 * @param  string $table_name  name of the table
 	 * @param  string $column_name name of the virtual column
-	 * @return string              the real column name, escaped
+	 * @return string the real column name, escaped
 	 */
 	public function getTrueColumnName ($table_name, $column_name) {
 		$columns = $this->getColumnNames($table_name);
@@ -36,10 +45,15 @@ class DocumentRecord extends ActiveRecord {
 		}
 	}
 	/**
-	 * create where clause based on the input, only "like" or "=" operator are used, "and" is used to connect all clauses
-	 * @param  array/object $array      input
+	 * create where clause based on the input, only "like" or "=" operator are used, "and" is used to connect all clauses. For example 
+	 * [
+	 * 		"name" => "Chris",
+	 * 		"gender" => "M"
+	 * ] will become 
+	 * `name` like "Chris" and `gender` like "M"
+	 * @param  array/object $array input
 	 * @param  string $table_name table name
-	 * @return array             "where": the where clause, "values": the values for the ? in the where clause
+	 * @return array "where" => the where clause, "values" => the values for the ? in the where clause
 	 */
 	public function getWhereClause ($array, $table_name) {
 		$array = self::objectToArray($array);
@@ -77,9 +91,9 @@ class DocumentRecord extends ActiveRecord {
 		];
 	}
 	/**
-	 * decode all json strings in the data
-	 * @param  array/object &$data the object to be decoded
-	 * @return none        
+	 * deep decode all json strings in the data
+	 * @param array/object &$data the object to be decoded
+	 * @return null        
 	 */
 	public static function deepDecode (&$data) {
 		if (is_string($data)) {
@@ -97,10 +111,10 @@ class DocumentRecord extends ActiveRecord {
 	}
 
 	/**
-	 * process the result set for DocumentRecord model
+	 * process the result set for the virtualization
 	 * @param  array/json  &$result result set
 	 * @param  boolean $decode  do deep json decode or not
-	 * @return none           
+	 * @return null           
 	 */
 	public function processResultSet (&$result, $decode = true) {
 		if ($decode) {
@@ -130,12 +144,12 @@ class DocumentRecord extends ActiveRecord {
 		}
 	}
 	/**
-	 * select statement
-	 * @param  string $table_name   table name
+	 * execute a select statement
+	 * @param  string $table_name table name
 	 * @param  string/array $column_names column names for selection, functions or "as" are not allowed here!!
-	 * @param  string/array $where        citeria to find the table row
-	 * @param  array  $vals         values to replace ? in the where clause
-	 * @return array               
+	 * @param  string/array $where citeria to find the table row
+	 * @param  array  $vals values to replace ? in the where clause
+	 * @return array/boolean result sets or false if SQL error has happened       
 	 */
 	public function select ($table_name, $column_names = "*", $where, $vals = []) {
 		$columns = $this->getColumnNames($table_name);
@@ -170,10 +184,10 @@ class DocumentRecord extends ActiveRecord {
 		return $result;
 	}
 	/**
-	 * insert statement
+	 * execute a insert statement
 	 * @param  string $table_name table name
-	 * @param  array/object $data       data to be inserted
-	 * @return boolean /string/number            true/lastInsertedId if successful
+	 * @param  array/object $data data to be inserted
+	 * @return boolean/mixed true/false/lastInsertedId if possible
 	 */
 	public function insert ($table_name, $data) {
 		$data = self::objectToArray($data);
@@ -211,12 +225,12 @@ class DocumentRecord extends ActiveRecord {
 	}
 
 	/**
-	 * update the table row with DocumentRecord model
+	 * execute a update statement
 	 * @param  string $table_name table name
-	 * @param  array/object $data       data to be update to table row
-	 * @param  array/string $where      citeria to find the table row to be updated
-	 * @param  array  $vals       values to replace ? in the where clause if $where is string
-	 * @return boolean             if success true, else false
+	 * @param  array/object $data data to be update to table row
+	 * @param  array/string $where citeria to find the table row to be updated
+	 * @param  array  $vals values to replace ? in the where clause if $where is string
+	 * @return boolean if success true, else false
 	 */
 	public function update ($table_name, $data, $where, $vals = []) {
 		$columns = $this->getColumnNames($table_name);
@@ -276,8 +290,15 @@ class DocumentRecord extends ActiveRecord {
 		return parent::update($table_name, $data, $where, $vals);
 	}
 
-	// replace the record, no merge update
-	// $keep: the column to keep the original value instead of set to null
+	/**
+	 * execute a update statement, columns which are not in the given data will be set to null (if possible, can result SQL error)
+	 * @param  string $table_name table name
+	 * @param  array/object $data data to be update to table row
+	 * @param  array/string $where citeria to find the table row to be updated
+	 * @param  array  $vals values to replace ? in the where clause if $where is string
+	 * @param array $keep the columns which should keep the original value instead of being set to null or updated
+	 * @return boolean if success true, else false
+	 */
 	public function replace ($table_name, $data, $where, $vals = [], $keep = []) {
 		$columns = $this->getColumnNames($table_name);
 		if (!$columns) {
@@ -347,10 +368,10 @@ class DocumentRecord extends ActiveRecord {
 	}
 
 	/**
-	 * do the queries
+	 * execute a SQL statement
 	 * @param  string $sql  sql statement
 	 * @param  array $vals values to replace ? in the statement
-	 * @return array/boolean       
+	 * @return array/boolean    
 	 */
 	public function doQuery ($sql, $vals = []) {
 		foreach ($vals as &$v) {

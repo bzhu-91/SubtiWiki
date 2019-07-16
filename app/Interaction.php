@@ -1,5 +1,5 @@
 <?php
-class Interaction extends Relationship {
+class Interaction extends \Kiwi\Relationship {
 	static $tableName = "Interaction";
 	protected $_tableName = "Interaction";
 	protected $_ordered = false;
@@ -23,9 +23,9 @@ class Interaction extends Relationship {
 	}
 
 	public function insert () {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		if (strcmp($this->prot1, $this->prot2) > 0) {
-			Utility::swap($this->prot1, $this->prot2);
+			\Kiwi\Utility::swap($this->prot1, $this->prot2);
 		}
 		$conn->beginTransaction();
 		$this->id = parent::insert();
@@ -39,7 +39,7 @@ class Interaction extends Relationship {
 	}
 
 	public function update () {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (parent::update() && History::record($this, "update")) {
 			$conn->commit();
@@ -51,7 +51,7 @@ class Interaction extends Relationship {
 	}
 
 	public function delete () {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		$this->id = parent::delete();
 		if ($this->id && History::record($this, "remove")) {
@@ -64,7 +64,7 @@ class Interaction extends Relationship {
 	}
 	
 	public static function getWholeGraph () {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$sql = "select prot1 as `from`, prot2 as `to`, data from ".static::$tableName.";";
 		$result = $conn->doQuery($sql);
 		foreach ($result as &$row) {

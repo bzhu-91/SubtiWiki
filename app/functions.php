@@ -5,7 +5,7 @@ require_once 'app/ViewAdapters.php';
 
 
 function index ($input, $accpet, $method) {
-	$view = \View::loadFile("layout2.tpl");
+	$view = \Kiwi\View::loadFile("layout2.tpl");
 	\Statistics::increment("index");
 	$view->set([
 		"headerTitle" => $GLOBALS["SITE_NAME"],
@@ -17,7 +17,7 @@ function index ($input, $accpet, $method) {
 }
 
 function FAQ () {
-	$view = \View::loadFile("layout2.tpl");
+	$view = \Kiwi\View::loadFile("layout2.tpl");
 	$view->set([
 		"content" => "{{FAQ.tpl}}",
 	]);
@@ -25,11 +25,10 @@ function FAQ () {
 }
 
 function debug ($input, $accept, $method) {
-	
 }
 
 function exports () {
-	$view = \View::loadFile("layout1.tpl");
+	$view = \Kiwi\View::loadFile("layout1.tpl");
 	$view->set([
 		"pageTitle" => "Exports",
 		"title" => "Exports",
@@ -39,8 +38,8 @@ function exports () {
 			["Regulations", "<a href='regulation/exporter' download='regulations-".date("Y-m-d")."'>here</a>"],
 			["Operons", "<a href='operon/exporter' download='operons-".date("Y-m-d")."'>here</a>"],
 			["Interaction", "<a href='interaction/exporter' download='interaction-".date("Y-m-d")."'>here</a>"],
-			["Categories", "<a href='category/exporter' download='categories-".date("Y-m-d")."'>here</a>"],
-			["Gene categories", "<a href='category/assignmentExporter' download='geneCategories-".date("Y-m-d").".csv'>here</a>"],
+			["Categories", "<a href='category/exporter?__accept=CSV' download='categories-".date("Y-m-d")."'>here</a>"],
+			["Gene categories", "<a href='category/assignmentExporter?__accept=CSV' download='geneCategories-".date("Y-m-d").".csv'>here</a>"],
 			["Genes", "<a href='gene/exporter'>here</a>"]
 		],
 		"showFootNote" => "none"
@@ -49,7 +48,7 @@ function exports () {
 }
 
 function statistics () {
-	$view = \View::loadFile("layout1.tpl");
+	$view = \Kiwi\View::loadFile("layout1.tpl");
 	\Statistics::increment("statistics");
 	$view->set([
 		"title" => "Statistics",
@@ -82,17 +81,6 @@ function statistics () {
 		"statistics" => \Statistics::get("statistics")
 	]);
 	echo $view->generate(1,1);
-}
-
-function people () {
-	$view = \View::loadFile("layout1.tpl");
-	$view->set([
-		"pageTitle" => "People behind ".$GLOBALS["SITE_NAME"],
-		"title" => "People behind <i>Listi</i>Wiki",
-		"content" => "{{people.tpl}}",
-		"showFootNote" => "none"
-	]);
-	echo $view->generate(1,1);	
 }
 
 ?>

@@ -1,9 +1,18 @@
 <?php
-class Gene extends Model {
-	use ReferenceCache;
+/**
+ * Class for Gene (as abstraction for DNA, transribed RNA and translated Protein)
+ */
+class Gene extends \Kiwi\Model {
+	/**
+	 * use ReferenceCache trait to create a in-memory cache of table
+	 */
+	use \Kiwi\ReferenceCache;
 
 	static $tableName = "Gene";
 
+	/**
+	 * relationships of the entity Gene
+	 */
 	static $relationships = [
 		"categories" => [
 			"tableName" => "GeneCategory",
@@ -48,6 +57,11 @@ class Gene extends Model {
 		],
 	];
 
+	/**
+	 * get the gene instance by id, the attribute "The protein" will be instantialized with the Protein class
+	 * @param string $id the id of the gene
+	 * @return Gene the instance or null
+	 */
 	public static function get ($id) {
 		$ins = parent::get($id);
 		if ($ins) {
@@ -62,9 +76,12 @@ class Gene extends Model {
 		return $ins;
 	}
 
+	/**
+	 * get the sequences (DNA, amino acids)
+	 */
 	public function fetchSequences () {
 		if ($this->id) {
-			$con = Application::$conn;
+			$con = \Kiwi\Application::$conn;
 			$result = $con->select("Sequence",["dna", "aminos"], "gene like ?", [$this->id]);
 			if ($result) {
 				$this->DNA = $result[0]["dna"];
@@ -73,34 +90,45 @@ class Gene extends Model {
 		}
 	}
 
+	/**
+	 * patch the {{this}} reference in the data
+	 */
 	public function patch () {
-		$results = Utility::deepSearch($this, "[[this]]");
+		$results = \Kiwi\Utility::deepSearch($this, "[[this]]");
 		foreach ($results as $keypath) {
+			$keypath = new \Kiwi\KeyPath($keypath);
 			$data = null;
-			if ($keypath == "categories") {
+			if ((string) $keypath == "categories") {
 				$data = "{{this}}";
 			}
-			if ($keypath == "Expression and Regulation->Operons") {
+			if ((string) $keypath == "Expression and Regulation->Operons") {
 				$data = $this->fetchOperons();
 			}
-			if ($keypath == "Expression and Regulation->Other regulations") {
+			if ((string) $keypath == "Expression and Regulation->Other regulations") {
 				$data = $this->fetchOtherRegulations();
 			}
-			if ($keypath == "regulons") {
+			if ((string) $keypath == "Gene->Coordinates") {
+				$data = $this->fetchCoordinates();
+			}
+			if ((string) $keypath == "regulons") {
 				$data = "{{this}}";
 			}
-			if ($keypath == "genomicContext") {
+			if ((string) $keypath == "genomicContext") {
 				$data = "{{this}}";
 			}
 			if ($data == null) {
-				Utility::unsetValueFromKeyPath($this, $keypath);
+				$keypath->unset($this);
 			} else {
-				Utility::setValueFromKeyPath($this, $keypath, $data);
+				$keypath->set($this, $data);
 			}
 		}
-		Utility::clean($this); 
+		\Kiwi\Utility::clean($this); 
 	}
 
+	/**
+	 * get the operons.
+	 * @return array array of Relationship objects
+	 */
 	public function fetchOperons () {
 		if ($this->id) {
 			$relationships = $this->has("operons");
@@ -113,6 +141,21 @@ class Gene extends Model {
 		}
 	}
 
+	/**
+	 * get the coordinates on the genome.
+	 * @return string the position in the format of start_stop_strand, where strand can be 1 (for forward) or 0 (for reverse)
+	 */
+	public function fetchCoordinates() {
+		$pos = Genome::getAll(["object" => (string) $this]);
+		if ($pos) {
+			return $pos[0]->start." - ".$pos[0]->stop." (".($pos[0]->strand == 1? "+" :"-").")";
+		}
+	}
+
+	/**
+	 * get the non-transcriptional regulations
+	 * @return [string] the regulations in string representation
+	 */
 	public function fetchOtherRegulations () {
 		if ($this->id) {
 			$relationships = $this->has("otherRegulations");
@@ -131,12 +174,15 @@ class Gene extends Model {
 		}
 	}
 
+	/**
+	 * override the initLookupTable from ReferenceCache trait, include "locus" and "function" as extra columns
+	 */
 	public static function initLookupTable () {
 		// if use self::lookupTable, this will be shared between all classes 	which use this trait
 		// if use get_called_class()::lookupTable, each class will has its 		own copy
 		$primaryKeyName = static::$primaryKeyName;
 		if (!static::$lookupTable) {
-			$con = Application::$conn;
+			$con = \Kiwi\Application::$conn;
 			if ($con && static::$tableName) {
 				$result = $con->select(static::$tableName, ["id", "title", "locus", "function"], "1");
 				$keys = array_column($result, $primaryKeyName);
@@ -152,12 +198,12 @@ class Gene extends Model {
 	}
 
 	/**
-	 * @override
+	 * override the initValidateTable from ReferenceCache trait, include "locus" and "function" as extra columns
 	 */
 	public static function initValidateTable() {
 		$className = get_called_class();
 		if (!$className::$validateTable) {
-			$con = Application::$conn;
+			$con = \Kiwi\Application::$conn;
 			$className = get_called_class();
 			if ($con && static::$tableName) {
 				$result = $con->select(static::$tableName, "*", "1");
@@ -174,13 +220,17 @@ class Gene extends Model {
 				}
 				$table1 = array_combine($keys, $result);
 				$table2 = array_combine($locus, $result);
-				$className::$validateTable = Utility::arrayMerge($table1, $table2);
+				$className::$validateTable = \Kiwi\Utility::arrayMerge($table1, $table2);
 			} else throw new Exception("Should set the connection and table_name for Entity");
 		}
 	}
 
+	/**
+	 * override the update function in Model class, include versioning
+	 * @return boolean whether the update is successful or not
+	 */
 	public function update () {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (History::record($this, "update") && parent::update()) {
 			$conn->commit();
@@ -191,11 +241,15 @@ class Gene extends Model {
 		}
 	}
 
+	/**
+	 * override the insert function in Model class, include versioning
+	 * @return boolean whether the update is successful or not
+	 */
 	public function insert () {
 		if (!$this->id) {
 			$this->id = sha1(json_encode($this));
 		}
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (History::record($this, "add") && parent::insert($this) && MetaData::track($this)) {
 			$conn->commit();
@@ -206,9 +260,12 @@ class Gene extends Model {
 		}
 	}
 
-	// only the replace function need to trace the meta scheme
+	/**
+	 * override the replace function in Model class, including versioning and schema tracking
+	 * @return boolean whether the update is successsful or not
+	 */
 	public function replace () {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (History::record($this, "update") && parent::replace(["count", "id"]) && MetaData::track($this)) {
 			$conn->commit();
@@ -219,8 +276,12 @@ class Gene extends Model {
 		}
 	}
 
+	/**
+	 * override the delete function in Model class, including versioning
+	 * @return boolean whether the deletion is successful or not
+	 */
 	public function delete () {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 		if (History::record($this, "remove") && parent::delete()) {
 			$conn->commit();

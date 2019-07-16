@@ -1,4 +1,5 @@
 <?php
+namespace Kiwi;
 /**
  * to extend the Model class
  */

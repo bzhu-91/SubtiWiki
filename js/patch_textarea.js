@@ -17,5 +17,8 @@ $(window).on("load",function(){
 	}
 	setTimeout(patch_textarea, 5);
 
+	$(window).on("resize", function(){
+		window.patch_textarea();
+	});
 	$(document).on('click', 'textarea', resize);
 });

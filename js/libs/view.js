@@ -464,10 +464,42 @@ View.prototype.setState = function (state) {
 	self.__setState(state);
 }
 
-View.prototype.getSate = function () {
+View.prototype.getState = function () {
 	return this._state;
 }
 
 View.prototype.attr = function (obj){
+	if (obj instanceof Object) {
+		for(var key in obj) {
+			this[key] = obj[key];
+		}
+	}
 	return Util.attrNS(this.view, obj);
+}
+
+View.prototype.removeLink = function (partner) {
+	var self = this;
+	if (partner) {
+		self._links.forEach(function(link){
+			if (link.from == self && link.to == partner || (link.from == partner && link.to == self)) {
+				link.remove();
+				link.removed = true;
+			}
+		});
+		self._links = self._links.filter(function(link){
+			return !link.removed;
+		});
+	} else {
+		self._links.forEach(function(link){
+			link.remove();
+		});
+		self._links = [];
+	}
+}
+
+View.prototype.linkVisible = function (visible) {
+	this._links.forEach(function(link){
+		if (visible) link.show();
+		else link.hide();
+	});
 }

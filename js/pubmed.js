@@ -15,15 +15,15 @@ $(window).on("load", function(){
 		div = div ? div : each.parentNode;
 		$(div).html("");
 		DOIs.forEach(function(doi){
-			ajax.get({
+			$.ajax({
 				url: "https://crosscite.org/format?doi="+doi+"&style=cell&lang=en-US",
-			}).done(function(status, data, error, xhr){
-				if (status == 200) {
+				success: function (data) {
 					var box = $("<div></div>").html(data).addClass("pubmed").on("click", function(){
 						window.open("https://doi.org/" + doi);
 					});
 					$(div).append(box);
-				} else {
+				},
+				error: function () {
 					var box = $("<div></div>").html(data).addClass("pubmed")
 					$(div).append(box);
 				}

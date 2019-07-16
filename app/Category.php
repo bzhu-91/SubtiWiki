@@ -1,6 +1,9 @@
 <?php
-class Category extends Model {
-	use ReferenceCache;
+/**
+ * For functional categories in SubtiWiki
+ */
+class Category extends \Kiwi\Model {
+	use \Kiwi\ReferenceCache;
 
 	static $tableName = "Category";
 	static $relationships = [
@@ -14,6 +17,9 @@ class Category extends Model {
 		]
 	];
 
+	/**
+	 * get the parents, children, and siblings
+	 */
 	public function patch () {
 		if ($this->id) {
 			$this->fetchParentCategories();
@@ -24,7 +30,7 @@ class Category extends Model {
 
 	/**
 	 * get the parent categories of a category
-	 * @return none 
+	 * set the property $this->_parent, $this->parents
 	 */
 	public function fetchParentCategories(){
 		if (!property_exists($this, "parents")) {
@@ -44,13 +50,17 @@ class Category extends Model {
 		}
 	}
 
+	/**
+	 * calculate the id of the parent category
+	 * @return string the id of the parent
+	 */
 	private function getParentId($id) {
 		return rtrim(rtrim($id, "1234567890"), ".");
 	}
 
 	/**
 	 * get the child categories of a category
-	 * @return none 
+	 * set the property $this->children
 	 */
 	public function fetchChildCategories() {
 		if (!property_exists($this, "children")) {
@@ -70,7 +80,7 @@ class Category extends Model {
 
 	/**
 	 * get the sibling categories of a category
-	 * @return none 
+	 * set the property $this->siblings
 	 */
 	public function fetchSiblingCategories() {
 		if (!property_exists($this, "siblings")) {
@@ -95,7 +105,7 @@ class Category extends Model {
 
 	/**
 	 * get the genes related to this category
-	 * @return an array of relationship instances
+	 * @return array relationship instances
 	 * */
 	public function getGenes () {
 		$genes = $this->has("genes");
@@ -123,7 +133,7 @@ class Category extends Model {
 	 */
 	public function countGenesAll() {
 		if($this->id){
-			$conn = Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$sql = "select count(gene) as count from ".static::$relationships["genes"]["tableName"]." where category like ?";
 			$result = $conn->doQuery($sql, [$this->id."%"]);
 			if ($result) {
@@ -136,7 +146,7 @@ class Category extends Model {
 	 * compare function
 	 * @param  Category $a category 1
 	 * @param  Category $b category 2
-	 * @return -1/0/1      result of the comparison, -1 if category 1 < category 2, 0 if category 1 == category 2, 1 if category1 > category2
+	 * @return number -1/0/1, result of the comparison, -1 if category 1 < category 2, 0 if category 1 == category 2, 1 if category1 > category2
 	 */
 	public static function compare (Category $a, Category $b) {
 		$a = $a; $b = $b;
@@ -173,7 +183,7 @@ class Category extends Model {
 	}
 
 	/**
-	 * @override
+	 * @param boolean $includeID whether include id or not in the presentation
 	 * @return string link markup for the category
 	 */
 	public function toLinkMarkup ($includeID = true) {
@@ -187,16 +197,15 @@ class Category extends Model {
 	 * add a child category to this category,
 	 * @param Category $child the child category to be added
 	 * @return boolean true if success, false if not
-	 * @throws ConstraintViolatedException title is duplicated
-	 * 
+	 * @throws ConstraintViolatedException when title is duplicated
 	 */
 	public function addChildCategory (Category $child) {
 		if ($this->id && $child->title) {
-			if (Category::getRefWithTitle($child->title)) {
-				throw new ConstraintViolatedException("category with title ".$child->title." already exists", 1);
+			if (Category::simpleValidate($child->title)) {
+				throw new \Kiwi\ConstraintViolatedException("category with title ".$child->title." already exists", 1);
 			} else {
 				if ($this->has("genes")) {
-					throw new ConstraintViolatedException("Category ".$this->title." has genes assigned to it.", 1);
+					throw new \Kiwi\ConstraintViolatedException("Category ".$this->title." has genes assigned to it.", 1);
 				} else {
 					$this->fetchChildCategories();
 					if ($this->children) {
@@ -224,7 +233,7 @@ class Category extends Model {
 	/**
 	 * remove a child category, this will cause the category tree to change and ids
 	 * @param  Category $child the child to be removed
-	 * @return boolean          true if deletion/renaming is successful, false when not
+	 * @return boolean true if deletion/renaming is successful, false when not
 	 */
 	public function removeChildCategory (Category $child) {
 		if ($this->id && $child->id) {
@@ -237,7 +246,7 @@ class Category extends Model {
 					$changeList = array_slice($oldIds, $index+1);
 
 					// use transactions to keep everything in order
-					$conn = Application::$conn;
+					$conn = \Kiwi\Application::$conn;
 					$conn->beginTransaction();
 					History::record($child, "remove");
 					// try remove child
@@ -279,17 +288,17 @@ class Category extends Model {
 	/**
 	 * update the category, include history functions and duplication check
 	 * @return boolean true if success, false if not
-	 * @throws ConstraintViolatedException when title already exists
+	 * @throws ConstraintViolatedException when title conflicts
 	 */
 	public function update () {
 		if ($this->id) {
 			$old = Category::get($this->id);
 			// check name changes
 			// title has no unique key
-			if ($old->title !== $this->title && Category::getRefWithTitle($this->title)) {
+			if ($old->title !== $this->title && Category::simpleValidate($this->title)) {
 				throw new ConstraintViolatedException("Category with name ".$this->title." already exists.", 1);
 			}
-			$conn = Application::$conn;
+			$conn = \Kiwi\Application::$conn;
 			$conn->beginTransaction();
 
 			// update the duplicated categories
@@ -320,12 +329,16 @@ class Category extends Model {
 		return false;
 	}
 
-	/** update without considering the duplication */
+	/** update without considering the duplication. */
 	private function simpleUpdate() {
 		return parent::replace(["id", "lastUpdate", "equalTo"]);
 	}
 
-	/** add gene without considering duplicated category */
+	/** add gene without considering duplicated category. No transaction is used.
+	 * @param Gene $gene the gene
+	 * @param object/array $data extra data related to this relationship
+	 * @return boolean
+	*/
 	private function simpleAddGene($gene, $data) {
 		$r = $this->hasPrototype("genes");
 		$r->category = $this;
@@ -337,13 +350,13 @@ class Category extends Model {
 	}
 
 	/**
-	 * assign gene to the category
-	 * @param Gene   $gene gene to be added
+	 * assign gene to the category.
+	 * @param Gene $gene gene to be added
 	 * @param array/object $data the extra data
 	 * @return  boolean true if successful, false if failed
 	 */
 	public function addGene (Gene $gene, $data) {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 
 		$result = $this->simpleAddGene($gene, $data);
@@ -361,7 +374,10 @@ class Category extends Model {
 		}
 	}
 
-	/** remove a gene without checking the duplicated category */
+	/** remove a gene without checking the duplicated category.
+	 * @param Gene $gene the gene
+	 * @return boolean the result of operation
+	*/
 	private function simpleRemoveGene (Gene $gene) {
 		$genes = $this->getGenes();
 		// find the relationship
@@ -378,11 +394,11 @@ class Category extends Model {
 
 	/**
 	 * remove gene, duplicated gene considered
-	 * @param  Gene   $gene gene to be removed
-	 * @return boolean       true if succesful, false if otherwise
+	 * @param  Gene $gene gene to be removed
+	 * @return boolean true if succesful, false if otherwise
 	 */
 	public function removeGene (Gene $gene) {
-		$conn = Application::$conn;
+		$conn = \Kiwi\Application::$conn;
 		$conn->beginTransaction();
 
 		$result = $this->simpleRemoveGene($gene);

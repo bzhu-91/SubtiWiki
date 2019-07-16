@@ -1,11 +1,11 @@
 <?php
 require_once("ViewAdapters.php");
 
-class ReactionController extends Controller {
+class ReactionController extends \Kiwi\Controller {
 	
     public function read ($input, $accept) {
         if ($input) {
-			if (array_key_exists("id", $input)) {
+			if ((array_key_exists("ids", $input)) || (array_key_exists("id", $input))) {
 				$this->view($input, $accept);
 			} elseif (array_key_exists("keyword", $input)) {
 				$this->search($input, $accept);
@@ -26,26 +26,62 @@ class ReactionController extends Controller {
 
 	protected function view ($input, $accept) {
 		if ($accept == JSON) {
-			$id = $this->filter($input, "id", "is_numeric", ["reaction id is required", 400, $accept]);
-			$reaction = Reaction::get($id);
-			if ($reaction) {
-				$reaction->reactants = array_column($reaction->hasReactants(), "metabolite");
-				$reaction->products = array_column($reaction->hasProducts(), "metabolite");
-				$reaction->catalysts = array_column($reaction->has("catalyst"), "catalyst");
-				foreach($reaction->catalysts as &$catalyst) {
-					if (get_class($catalyst) == "Complex") {
-						$catalyst->members = array_column($catalyst->has("member"), "member");
-						foreach($catalyst->members as &$member) {
-							$member->type = lcfirst(get_class($member));
-						}
-						$catalyst->type="complex";
-					} else {
-						$catalyst->type="protein";
+			$id = $this->filter($input, "id", "is_numeric");
+			$ids = $this->filter($input, "ids", "/^(\d+,?)+$/i");
+			if ($id) {
+				$reaction = Reaction::get($id);
+				if ($reaction) {
+					$reaction = $this->prepareReactionData($reaction);
+					$this->respond($reaction, 200, JSON);
+				} else $this->error("Reaction not found", 404, JSON);
+			} elseif ($ids) {
+				$ids = explode(",", $ids);
+				array_walk($ids, "trim");
+				$result = [];
+				foreach($ids as $id) {
+					$reaction = Reaction::get($id);
+					if ($reaction) {
+						$reaction = $this->prepareReactionData($reaction);
 					}
+					$result[$id] = $reaction;
 				}
-				$this->respond($reaction, 200, JSON);
-			} else $this->error("Reaction not found", 404, JSON);
+				$this->respond($result, 200, JSON);
+			} else $this->error("Id or ids are required", 400, JSON);
 		} else $this->error("Unaccepted", 400, $accept);
+	}
+
+	private function prepareReactionData ($reaction) {
+		$reaction->reactants = $reaction->hasReactants();
+		$reaction->products = $reaction->hasProducts();
+		$reaction->catalysts = $reaction->has("catalyst");
+		foreach(["reactants", "products", "catalysts"] as $k) {
+			foreach($reaction->{$k} as &$r){
+				$r->reaction = [
+					"id" => $reaction->id
+				];
+			}
+		}
+		$kps = \Kiwi\Utility::deepWalk($reaction, function ($kp, &$val){
+			if (!$val->type) {
+				switch(get_class($val)){
+					case "Complex":
+						$val->members = $val->has("member");
+						foreach($val->members as &$hasMember){
+							$hasMember->complex = [
+								"id" => $val->id
+							];
+						}
+					case "Protein":
+					case "Gene":
+					case "Metabolite":
+					case "BiologicalObject":
+						$val->type = lcfirst(get_class($val));
+						break;
+						
+				}
+			}
+		});
+		return Reaction::withData(json_decode(json_encode($reaction)));
 	}
 
 	protected function list ($input, $accept) {
@@ -54,12 +90,17 @@ class ReactionController extends Controller {
 		if ($pageSize == "max") {
 			$input["page_size"] = $pageSize = Reaction::count();
 		}
-		$reactions = Reaction::getAll("1 order by id limit ?,?", [$pageSize*($page-1), $pageSize]);
+		$catalyst = $input["catalyst"];
+		if ($catalyst) {
+			$reactions = Reaction::searchByCatalyst($catalyst, $page, $pageSize);
+		} else {
+			$reactions = Reaction::getAll("1 order by id limit ?,?", [$pageSize*($page-1), $pageSize]);
+		}
 		switch ($accept) {
 			case HTML:
 				if ($reactions) {
 					$count = Reaction::count();
-					$view = View::loadFile("layout1.tpl");
+					$view = \Kiwi\View::loadFile("layout1.tpl");
 					$view->set([
 						"title" => "All reactions (page $page)",
 						"pageTitle" => "All reactions (page $page)",
@@ -77,7 +118,7 @@ class ReactionController extends Controller {
 				} else $this->error("Not found", 404, HTML);
 				break;
 			case JSON:
-				if ($reactions) $this->respond(Utility::arrayColumns($reactions, ["id", "equation"]), 200, JSON);
+				if ($reactions) $this->respond(\Kiwi\Utility::arrayColumns($reactions, ["id", "equation"]), 200, JSON);
 				else $this->error("Not found", 404, JSON);
 				break;
 		}
@@ -111,7 +152,7 @@ class ReactionController extends Controller {
 			$input["novel"] = $input["novel"] == "on" ? 1 : 0;
 			$reaction = Reaction::withData($input);
 			if ($reaction->insert()) {
-				$this->respond(["uri" => "reaction/editor?id=".$reaction->id], 200, JSON);
+				$this->respond(["uri" => "reaction/editor?id=".$reaction->id], 201, JSON);
 			} else {
 				$this->error("An internal error has happened, please contact admin.", 500, JSON);
 			}
@@ -141,11 +182,9 @@ class ReactionController extends Controller {
 		}
 		if($accept == HTML && $method == "GET") {
 			if ($reaction) {
-				$hasReactancts = $reaction->hasReactants();
-				$hasProducts = $reaction->hasProducts();
-				$hasCatalyst = $reaction->has("catalyst"); 
+				$reaction = $this->prepareReactionData($reaction);
 			}
-			$view = View::loadFile("layout2.tpl");
+			$view = \Kiwi\View::loadFile("layout2.tpl");
 			$view->set($reaction);
 			$view->set([
 				"pageTitle" => "Edit reaction:",
@@ -156,14 +195,13 @@ class ReactionController extends Controller {
 				"reactantsEditor" => $reaction ? "{{reaction.reactants.tpl}}" : "",	
 				"productsEditor" => $reaction ? "{{reaction.products.tpl}}" : "",
 				"catalystsEditor" => $reaction ? "{{reaction.catalysts.tpl}}" : "",
-				"reactants" => $hasReactancts,
-				"products" => $hasProducts,
-				"catalysts" => $hasCatalyst,
-				"jsAfterContent" => ["all.editor"],
+				"reactants" => $reaction->reactants,
+				"products" => $reaction->products,
+				"catalysts" => $reaction->catalysts,
+				"jsAfterContent" => ["reaction.editor","all.editor"],
 				"styles" => ["all.editor"],
 				"checkReversible" => ($reaction && $reaction->reversible) ? "checked" : "",
-				"checkNovel" => ($reaction && $reaction->novel) ? "checked" : ""
-				
+				"checkNovel" => ($reaction && $reaction->novel) ? "checked" : "",
 			]);
 			if (!$reaction) {
 				$view->set([
@@ -191,45 +229,75 @@ class ReactionController extends Controller {
 		if(is_null($reaction)) $this->error("Reaction not found", 404, JSON);
 		switch($method) {
 			case 'POST':
-				$metaboliteTitle = $this->filter($input, "metabolite", "has", ["Metabolite is required", 400, JSON]);
+				$identifier = $this->filter($input, "metabolite", "has", ["Metabolite is required", 400, JSON]);
+				$type = $this->filter($input, "type", "has", ["Metabolite type is required", 400, JSON]);
 				$side = $this->filter($input, "side", "/^L|R$/i", ["Metabolite type (product or reactanct) is required", 400, JSON]);
-				$metabolite = Metabolite::getAll(["title" => $metaboliteTitle]);
-				if ($metabolite) {
-					$metabolite = $metabolite[0];
-				} else {
-					$metabolite = new Metabolite;
-					$metabolite->title = $metaboliteTitle;
-					$metabolite->insert();
-					if (!$metabolite->id) {
-						$this->error("An internal error has happened, please contact admin.", 500, JSON);
-					}
+				switch($type) {
+					case "DNA":
+					case "RNA":
+						$metabolite = $type::get($identifier);
+						if ($metabolite === null) $this->error("Gene or operon not found", 404, JSON);
+						break;
+					case "protein":
+						$protein = Protein::get($identifier);
+						if ($protein === null) $this->error("Protein is not found", 404, JSON);
+						$metabolite = $protein;
+						break;
+					case "complex":
+						if ($input["metabolite_validated"]) {
+							$complex = Complex::get($identifier);
+							if ($complex == null) $this->error("Complex not found", 404, JSON);
+						} else {
+							$complex = new Complex;
+							$complex->title = $identifier;
+							$complex->insert();
+							if (!$complex->id) {
+								$this->error("An internal error has happened, please contact admin.", 500, JSON);
+							}
+						}
+						$metabolite = $complex;
+						break;
+					case "metabolite":
+						if ($input["metabolite_validated"]) {
+							$metabolite = Metabolite::get($identifier);
+							if ($metabolite == null) $this->error("Metabolite not found", 404, JSON);
+						} else {
+							$metabolite = Metabolite::getAll("title like ? or synonym regexp ?", [$identifier, $identifier."(,|$)"]);
+							if ($metabolite) {
+								$metabolite = $metabolite[0];
+							} else {
+								$metabolite = new Metabolite;
+								$metabolite->title = $identifier;
+								$metabolite->insert();
+								if (!$metabolite->id) {
+									$this->error("An internal error has happened, please contact admin.", 500, JSON);
+								}
+							}
+						}
+						break;
 				}
-				if ($reaction->addMetabolite($metabolite, $side, $input["coefficient"] ? $input["coefficient"]: 1)){
+				if ($reaction->addMetabolite($metabolite, $side, $input["coefficient"] ? $input["coefficient"]: 1, $input["modification"])){
 					$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 201, JSON);
 				} else {
 					$this->error("An internal error has happened, please contact admin", 500, JSON);
 				}
 				break;
 			case 'PUT':
-				$metabolite = $this->filter($input, "metabolite", "is_numeric", ["Metabolite is required", 400, JSON]);
+				$hasMetabolite = $this->filter($input, "hasMetabolite", "is_numeric", ["Metabolite is required", 400, JSON]);
 				$coefficient = $this->filter($input, "coefficient", "is_numeric", ["Coefficient is required", 400, JSON]);
-				$reaction = Reaction::get($reaction);
-				$metabolite = Metabolite::get($metabolite);
-				if ($metabolite) {
-					if ($reaction->updateMetabolite($metabolite, $coefficient)) {
-						$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 200, JSON);
-					} else $this->error("Internal error", 500, JSON);
-				} else $this->error("Metabolite not found", 404, JSON);
+				if ($reaction->updateMetabolite($hasMetabolite, $coefficient, $input["modification"])) {
+					$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 200, JSON);
+				} else {
+					$this->error("Metabolite not found", 404, JSON);
+				}
 				break;
 			case 'DELETE':
-				// delete metabolite here
-				$metabolite = $this->filter($input, "metabolite", "is_numeric", ["Metabolite is required", 400, JSON]);
-				$metabolite = Metabolite::get($metabolite);
-				if ($metabolite) {
-					if ($reaction->removeMetabolite($metabolite, $coefficient)) {
-						$this->respond(["uri" => "reaction/editor?id=$reaction->id"], 200, JSON);
-					} else $this->error("Internal error", 500, JSON);
-				} else $this->error("Metabolite not found", 404, JSON);
+				$hasMetabolite = $this->filter($input, "hasMetabolite", "is_numeric", ["Metabolite is required", 400, JSON]);
+				if ($reaction->removeMetabolite($hasMetabolite, $coefficient)) {
+					$this->respond(null, 204, JSON);
+				} else {
+					$this->error("Metabolite not found", 404, JSON);
+				}
 				break;
 		}
 	}
@@ -247,12 +315,14 @@ class ReactionController extends Controller {
 				// add metabolite here
 				$type = $this->filter($input, "type", "/(protein)|(complex|object)/i", ["Type of the catalyst is required", 400, JSON]);
 				$title = $this->filter($input, "title", "has", ["Name of the catalyst is required", 400, JSON]);
+				$novel = $this->filter($input, "novel", "has", ["Novel is required", 400, JSON]);
+				$novel = $novel == "on" ? 1:0;
 				switch($type) {
 					case "protein":
 						$protein = Protein::getAll(["title" => $title]);
 						if ($protein) {
 							$protein = $protein[0];
-							if ($reaction->addCatalyst($protein)){
+							if ($reaction->addCatalyst($protein, $novel, $input["modification"])){
 								$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
 							} else {
 								$this->error("An internal error has happened, please contact admin", 500, JSON);
@@ -271,15 +341,15 @@ class ReactionController extends Controller {
 								$this->error("An internal error has happened, please contact admin", 500, JSON);
 							}
 						}
-						if ($reaction->addCatalyst($complex)){
+						if ($reaction->addCatalyst($complex, $novel)){
 							$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
 						} else {
 							$this->error("An internal error has happened, please contact admin", 500, JSON);
 						}
 						break;
 					case "object":
-						$object = new Object($title);
-						if ($reaction->addCatalyst($object)){
+						$object = new BiologicalObject($title);
+						if ($reaction->addCatalyst($object, $novel)){
 							$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 201, JSON);
 						} else {
 							$this->error("An internal error has happened, please contact admin", 500, JSON);
@@ -288,17 +358,12 @@ class ReactionController extends Controller {
 				}
 				break;
 			case 'DELETE':
-				// delete metabolite here
-				$catalyst = $this->filter($input, "catalyst", "/\{(protein)|(complex)\|[^\{\}\|]+?\}/i", ["Catalyst is required", 400, JSON]);
-				$catalyst = Model::parse($catalyst);
-				if ($catalyst){
-					if ($reaction->removeCatalyst($catalyst)) {
-						$this->respond(["uri" => "reaction/editor?id={$reaction->id}"], 200, JSON);
-					} else {
-						$this->error("An internal error has happened, please contact admin", 500, JSON);
-					}
+				// delete catalyst here
+				$hasCatalyst = $this->filter($input, "hasCatalyst", "/^\d+$/i", ["Catalyst is required", 400, JSON]);
+				if ($reaction->removeCatalyst($hasCatalyst)) {
+					$this->respond(null, 204, JSON);
 				} else {
-					$this->error("The given catalyst is not found", 404, JSON);
+					$this->error("An internal error has happened, please contact admin", 500, JSON);
 				}
 				break;
 		}

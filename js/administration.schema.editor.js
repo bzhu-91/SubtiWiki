@@ -119,17 +119,14 @@ $(document).on("click", "#toggle-editor", function(){
 });
 
 $(document).on("click", "#cal-template", function(){
-    ajax.get({
+    $.ajax({
         url: "administration/repair?tableName=" + encodeURIComponent(window.tableName),
-        headers: {Accept: "application/json"}
-    }).done(function(status, data, error, xhr){
-        if (status == 200) {
+        dataType:"json",
+        success: function (data) {
             SomeLightBox.alert("Success", "Scheme has been recalculated");
             setTimeout(function(){
-                // window.location.reload();
+                window.location.reload();
             }, 400);
-        } else {
-            SomeLightBox.error(data.message);
         }
     })
 });

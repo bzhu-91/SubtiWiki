@@ -1,7 +1,16 @@
 <?php
+namespace Kiwi;
+/**
+ * Tools
+ */
 class Utility {
 	use UtilityExtra;
 	
+	/**
+	 * try to cast the value to types
+	 * @param mixed $val
+	 * @return mixed casted value
+	 */
 	public static function autocast($val) {
 		if (is_bool($val)) {
 			return (bool) $val;
@@ -27,6 +36,10 @@ class Utility {
 		return $val;
 	}
 
+	/**
+	 * replace [[gene|6740108089F13116F200C15F35C2E7561E990FEB]] with [gene|6740108089F13116F200C15F35C2E7561E990FEB|test]
+	 * @param mixed $object the input
+	 */
 	public static function decodeLinkForView (&$object) {
 		$patterns = [];$callbacks = [];
 		/*
@@ -71,6 +84,10 @@ class Utility {
 		}
 	}
 
+	/**
+	 * replace [[gene|6740108089F13116F200C15F35C2E7561E990FEB]] with [[gene|dnaA]]
+	 * @param mixed $object the input
+	 */
 	public static function decodeLinkForEdit (&$object) {
 		$patterns = [];$callbacks = [];
 		/*
@@ -126,7 +143,10 @@ class Utility {
 		}
 	}
 
-	// from title to id
+	/**
+	 * replace [[gene|6740108089F13116F200C15F35C2E7561E990FEB]] with [[gene|6740108089F13116F200C15F35C2E7561E990FEB]]
+	 * @param mixed $object the input
+	 */
 	public static function encodeLink (&$object) {
 		$patterns = [];$callbacks = [];
 		/*
@@ -141,7 +161,7 @@ class Utility {
 			if (class_exists($class_name)) {
 				$model = new $class_name();
 				if ($model) {
-					$object = $model->getRefWithTitle($title);
+					$object = $model->simpleValidate($title);
 					if ($object) {
 						return "[[$type|{$object->id}|{$alias}]]";
 					}
@@ -160,7 +180,7 @@ class Utility {
 			if (class_exists($class_name)) {
 				$model = new $class_name();
 				if ($model) {
-					$object = $model->getRefWithTitle($title);
+					$object = $model->simpleValidate($title);
 					if ($object) {
 						return "[[$type|{$object->id}]]";
 					}
@@ -179,79 +199,12 @@ class Utility {
 		}
 	}
 	
-	public static function getValueFromKeypath ($object, $keypath) {
-		if (is_string($keypath)) $keypath = new KeyPath($keypath);
-		$value = (array) $object;
-		foreach ($keypath as $key) {
-			if (array_key_exists($key, $value)) {
-				$value = $value[$key];
-				// cast if is object
-				if (is_object($value)) {
-					$value = (array) $value;
-				}
-			} else {
-				return null;
-			}
-		}
-		return $value;
-	}
-
-	public static function hasKeypath ($object, $keypath) {
-		if (is_string($keypath)) $keypath = new KeyPath($keypath);
-		$value = (array) $object;
-		foreach ($keypath as $key) {
-			if (array_key_exists($key, $value)) {
-				$value = $value[$key];
-				// cast if is object
-				if (is_object($value)) {
-					$value = (array) $value;
-				}
-			} else {
-				return false;
-			}
-		}
-		return true;
-	}
-	public static function setValueFromKeypath (&$object, $keypath, $val) {
-		if (!$keypath) return false;
-		$segments = is_array($keypath) ? $keypath : explode('->', $keypath);
-		$last = array_pop($segments);
-		$cur =& $object;
-		foreach ($segments as $segment) {
-			if (is_object($cur)) {
-				if (!isset($cur->{$segment})) $cur->{$segment} = [];
-				$cur =& $cur->{$segment};
-			} else if (is_array($cur)) {
-				if (!isset($cur[$segment])) $cur[$segment] = [];
-				$cur =& $cur[$segment];
-			}
-		}
-		if (is_object($cur)) {
-			$cur->{$last} = $val;
-		} else if (is_array($cur)) {
-			$cur[$last] = $val;
-		}
-	}
-	public static function unsetValueFromKeypath(&$object, $keypath) {
-		if (!$keypath) return false;
-		$segments = is_array($keypath) ? $keypath : explode('->', $keypath);
-		$last = array_pop($segments);
-		$cur =& $object;
-		foreach ($segments as $segment) {
-			if (is_object($cur)) {
-				if (!isset($cur->{$segment})) return;
-				$cur =& $cur->{$segment};
-			} else if (is_array($cur)) {
-				if (!isset($cur[$segment])) return;
-				$cur =& $cur[$segment];
-			}
-		}
-		if (is_object($cur)) {
-			unset($cur->{$last});
-		} else if (is_array($cur)) {
-			unset($cur[$last]);
-		}
-	}
+	/**
+	 * return the array of objects where each object in the array with given keys
+	 * @param array $arr the array of objects
+	 * @param array $keys the keys
+	 * @return array the array of object only with the given keys
+	 */
 	public static function arrayColumns ($arr, $keys) {
 		return array_map(function($each) use ($keys) {
 			$row = [];
@@ -261,8 +214,12 @@ class Utility {
 			return $row;
 		}, $arr);
 	}
-	// always return []
-	// array_merge can return null if one of the args is null
+
+	/**
+	 * patch of array_merge, because array_merge can return null if one of the args is null
+	 * @param array/null $arrs...
+	 * @return array the merged array
+	 */
 	public static function arrayMerge () {
 		$arrs = func_get_args();
 		if (count($arrs)) {
@@ -277,6 +234,22 @@ class Utility {
 		return [];
 	}
 
+	/**
+	 * create a tree presentation of the object.
+	 * Example:
+	 * [
+	 * 		0 => [
+	 * 			"name" => "Chris",
+	 * 			"gender" => "M"
+	 * 		]
+	 * ] will become
+	 * 		
+	 * [
+	 * 		"0->name" => "Chris",
+	 * 		"0->gender" => "M"
+	 * ]
+	 * 
+	 */
 	public static function deflate ($object, $keypath = []) {
 		$arr = [];
 		foreach ($object as $key => $value) {
@@ -292,6 +265,25 @@ class Utility {
 	}
 
 	// if strict mode, then numberic key and string key are not allowed to be in the same associti
+	/**
+	 * inflate an object from a tree presentation
+	 * Example:
+	 * 		
+	 * [
+	 * 		"0->name" => "Chris",
+	 * 		"0->gender" => "M"
+	 * ] will become
+	 * [
+	 * 		0 => [
+	 * 			"name" => "Chris",
+	 * 			"gender" => "M"
+	 * 		]
+	 * ] will become
+	 * 
+	 * @param array $intree the tree presentation of an object
+	 * @param boolean $strict whether use strict mode or not
+	 * @param string $errorMode error mode, default ignore
+	 */
 	public static function inflate ($intree, $strict = false, $errorMode = "ignore") {
 		$object = [];
 		foreach ($intree as $keypath => $val) {
@@ -302,7 +294,7 @@ class Utility {
 				$cur = &$cur[$key];
 			}
 			if ($strict) {
-				if (!$cur || (self::isAssoc($cur) && !is_numeric($lastKey))) {
+				if (!$cur || (self::isAssociateArray($cur) && !is_numeric($lastKey))) {
 					$cur[$lastKey] = $val;
 				} else if ($errorMode == "exception") {
 					throw new BaseException("Type conflict in the input");
@@ -314,11 +306,14 @@ class Utility {
 		return $object;
 	}
 
-	// unset keys of
-	// 1. empty array
-	// 2. empty object
-	// 3. empty string
-	// 4. null
+	/**
+	* unset keys of
+	*	1. empty array
+	*	2. empty object
+	*	3. empty string
+	*	4. null	
+	* @param object/array $object the object to be cleaned
+	*/
 	public static function clean (&$object = null) {
 		$intree = self::deflate($object);
 		$diff = array_filter($intree, function($val){
@@ -327,18 +322,26 @@ class Utility {
 		// clean null values or empty string
 		if ($diff) {
 			foreach ($diff as $keypath => $value) {
-				self::unsetValueFromKeypath($object, $keypath);
+				$keypath = new \Kiwi\KeyPath($keypath);
+				$keypath->unset($object);
 			}
 		}
 		// clean empty arr and obj
 		$result = self::findEmpty($object);
 		if ($result) {
 			foreach ($result as $keypath) {
-				self::unsetValueFromKeypath($object, $keypath);
+				$keypath = new \Kiwi\KeyPath($keypath);
+				$keypath->unset($object);
 			}
 		}
 	}
 
+	/**
+	 * find the empty object or array
+	 * @param object/array $object the object to be searched with
+	 * @param array $keypath
+	 * @return array array of \Kiwi\KeyPaths
+	 */
 	public static function findEmpty ($object, $keypath = []) {
 		$all = [];
 		foreach ($object as $key => $value) {
@@ -356,19 +359,13 @@ class Utility {
 		return $all;
 	}
 
-	public static function LCS ($s1, $s2) {
-		$l = min(strlen($s1),strlen($s2));
-		$s = "";
-		for ($i=0; $i < $l; $i++) { 
-			if ($s1[$i] == $s2[$i]) {
-				$s .= $s1[$i];
-			} else {
-				return $s;
-			}
-		}
-	}
-
-	// search for scalar value
+	/**
+	 * deep search of a certain value
+	 * @param object/array $object the object to search with
+	 * @param mixed $val the value to search
+	 * @param array $keypath used for recursion
+	 * @return array array of \Kiwi\KeyPaths
+	 */
 	public static function deepSearch ($object, $val, $keypath = array()) {
 		$all = [];
 		foreach ($object as $key => $value) {
@@ -386,17 +383,89 @@ class Utility {
 		return $all;
 	}
 
+	/**
+	 * deep filter of the object
+	 * @param object/array $object the object to search with
+	 * @param function $func comparison function, takes $keypath:array and $value:mixed as parameter
+	 * @param array $keypath used for recursion
+	 * @return array array of \Kiwi\KeyPaths
+	 */
+	public static function deepFilter ($object, $func, $keypath = array()) {
+		$all = [];
+		foreach ($object as $key => $value) {
+			$keypath[] = $key;
+			if ($func($keypath, $value)) {
+				// end case
+				$keypath_string =  implode("->", $keypath);
+				$all[] = $keypath_string;
+			} else if (is_array($value) || is_object($value)) {
+				// recursion
+				$all = array_merge($all, self::deepFilter($value, $val, $keypath));
+			}
+			array_pop($keypath);
+		}
+		return $all;
+	}
+
+	/**
+	 * deep walk of the object
+	 * @param object/array $object the object to search with
+	 * @param function $func function applied to each \Kiwi\KeyPath, takes $keypath:array and $value:mixed as parameter
+	 * @param array $keypath used for recursion
+	 */
+	public static function deepWalk (&$object, $func, $keypath = array()) {
+		$all = [];
+		foreach ($object as $key => &$value) {
+			$keypath[] = $key;
+			$func($keypath, $value);
+			if (is_array($value) || is_object($value)) {
+				// recursion
+				self::deepWalk($value, $func, $keypath);
+			}
+			array_pop($keypath);
+		}
+	}
+
+	/** 
+	 * slimiar to String.startsWith in javascript 
+	 * @param string $haystack
+	 * @param string $needle the prefix
+	 * @return boolean
+	 * */
 	public static function startsWith($haystack, $needle) {
 	     $length = strlen($needle);
 	     return (substr($haystack, 0, $length) === $needle);
 	}
 
+	/** 
+	 * slimiar to String.endsWith in javascript 
+	 * @param string $haystack
+	 * @param string $needle the suffix
+	 * @return boolean
+	 * */
 	public static function endsWith($haystack, $needle) {
 	    $length = strlen($needle);
 	    return $length === 0 || 
 	    (substr($haystack, -$length) === $needle);
 	}
 
+	/**
+	 * take all key-value pairs in an object where all keys starts with the prefix. The prefix is removed in the result.
+	 * Example:
+	 * [
+	 * 		"user_name" => "Chris",
+	 * 		"user_gender" => "M",
+	 * 		"company_name" => "COM",
+	 * 		"company_id" => 42
+	 * ] spliced with prefix "user_" will result
+	 * [
+	 * 		"name" => "Chris",
+	 * 		"gender" => "M"
+	 * ]
+	 * @param object/array $object the input object
+	 * @param string $prefix the prefix of the keys
+	 * @return array/object type dependent on the input obj, the spliced key-value pairs, and prefix is removed
+	 */
 	public static function arraySpliceByPrefix (&$obj, $prefix) {
 		$is_object = is_object($obj);
 		$cp = (array) $obj;
@@ -415,6 +484,13 @@ class Utility {
 		}
 	}
 
+	/**
+	 * insert after a key, no recursion
+	 * @param array/object $var the object/array
+	 * @param string/number $key the key
+	 * @param mixed $value the value to be inserted
+	 * @param string/number $after after this key the given key will be inserted
+	 */
 	private static function insertAfterSimple (&$var, $key, $value, $after){
 		$found = false;
 		if (is_object($var)) {
@@ -454,21 +530,20 @@ class Utility {
 		}
 
 		if (!$found) {
-			throw new BaseException("The keypath $after is not found");
+			throw new BaseException("The \Kiwi\KeyPath $after is not found");
 		}
 	}
 
 	/**
-	 * insert the key-value pair after a certain keypath
-	 * @param $var {object/array} the object where the key-value pair inserts into
-	 * @param $key {string} the key
-	 * @param $value {mixed} the value
-	 * @param $after {string/array/KeyPath} the keypath after which the key-value pair is inserted
+	 * insert after a \Kiwi\KeyPath, recursion used
+	 * @param array/object $var the object/array
+	 * @param string/number $key the \Kiwi\KeyPath
+	 * @param mixed $value the value to be inserted
+	 * @param string/number $after after this key the given key will be inserted
 	 */
-
 	public static function insertAfter(&$var, $key, $value, $after){
 		$kp = null;
-		if (is_object($after) && $after instanceof KeyPath) {
+		if (is_object($after) && $after instanceof \Kiwi\KeyPath) {
 			if ($after->length() == 1) {
 				self::insertAfterSimple($var, $key, $value, $after->first());
 			} else $kp = $after;
@@ -479,10 +554,10 @@ class Utility {
 			if (strpos($after, "->") === false) {
 				self::insertAfterSimple($var, $key, $value, $after);
 			} else {
-				$kp = new KeyPath($after);
+				$kp = new \Kiwi\KeyPath($after);
 			}
 		} elseif (is_array($after)) {
-			$kp = new KeyPath($after);
+			$kp = new \Kiwi\KeyPath($after);
 		} elseif (is_numeric($after)) {
 			self::insertAfterSimple($var, $keypath, $value, $after);
 		}
@@ -493,14 +568,21 @@ class Utility {
 			$object = $poped->get($var);
 			if (is_array($object) || is_object($object)) {
 				self::insertAfterSimple($object, $key, $value, $last);
-				self::setValueFromKeypath($var, $poped, $object);
+				self::setValueFromKeyPath($var, $poped, $object);
 			} else {
-				throw new BaseException("keypath $poped does not refer to an object nor an array", 1);
+				throw new BaseException("\Kiwi\KeyPath $poped does not refer to an object nor an array", 1);
 			}
 		}
 		
 	}
 
+	/**
+	 * insert before a key, no recursion
+	 * @param array/object $var the object/array
+	 * @param string/number $key the key
+	 * @param mixed $value the value to be inserted
+	 * @param string/number $after before this key the given key will be inserted
+	 */
 	private static function insertBeforeSimple (&$var, $key, $value, $after){
 		$found = false;
 		if (is_object($var)) {
@@ -540,10 +622,17 @@ class Utility {
 		}
 
 		if (!$found) {
-			throw new BaseException("The keypath $after is not found");
+			throw new BaseException("The \Kiwi\KeyPath $after is not found");
 		}
 	}
 
+	/**
+	 * insert before a \Kiwi\KeyPath, recursion used
+	 * @param array/object $var the object/array
+	 * @param string/number $key the \Kiwi\KeyPath
+	 * @param mixed $value the value to be inserted
+	 * @param string/number $after before this key the given key will be inserted
+	 */
 	public static function insertBefore(&$var, $key, $value, $after){
 		$kp = null;
 		if (is_string($after)) {
@@ -551,10 +640,10 @@ class Utility {
 			if (strpos($after, "->") === false) {
 				self::insertBeforeSimple($var, $key, $value, $after);
 			} else {
-				$kp = new KeyPath($after);
+				$kp = new \Kiwi\KeyPath($after);
 			}
 		} elseif (is_array($after)) {
-			$kp = new KeyPath($after);
+			$kp = new \Kiwi\KeyPath($after);
 		} elseif (is_numeric($after)) {
 			self::insertBeforeSimple($var, $keypath, $value, $after);
 		}
@@ -565,13 +654,19 @@ class Utility {
 			$object = $poped->get($var);
 			if (is_array($object) || is_object($object)) {
 				self::insertBeforeSimple($object, $key, $value, $last);
-				self::setValueFromKeypath($var, $poped, $object);
+				self::setValueFromKeyPath($var, $poped, $object);
 			} else {
-				throw new BaseException("keypath $poped does not refer to an object nor an array", 1);
+				throw new BaseException("\Kiwi\KeyPath $poped does not refer to an object nor an array", 1);
 			}
 		}
 	}
 
+	/**
+	 * insert a \Kiwi\KeyPath-value pair at the beginning of the object/array
+	 * @param array/object $var the object/array
+	 * @param string/number $key the \Kiwi\KeyPath
+	 * @param mixed $value the value to be inserted
+	 */
 	public static function unshift (&$var, $key, $value) {
 		$first = null;
 		foreach ($var as $k => $v) {
@@ -581,41 +676,36 @@ class Utility {
 		self::insertBefore($var, $key, $value, $first);
 	}
 
+	/**
+	 * swap two variables
+	 * @param mixed $a the variable
+	 * @param mixed $b the variable
+	 */
 	public static function swap (&$a, &$b) {
 		$tmp = $a;
 		$a = $b;
 		$b = $tmp;
 	}
 	
-	public static function validateEmail($email)
-	{
-	    // SET INITIAL RETURN VARIABLES
-
-	        $emailIsValid = FALSE;
-
-	    // MAKE SURE AN EMPTY STRING WASN'T PASSED
-
-	        if (!empty($email))
-	        {
-	            // GET EMAIL PARTS
-
-	                $domain = ltrim(stristr($email, '@'), '@') . '.';
-	                $user   = stristr($email, '@', TRUE);
-
-	            // VALIDATE EMAIL ADDRESS
-
-	                if
-	                (
-	                    !empty($user) &&
-	                    !empty($domain) &&
-	                    checkdnsrr($domain)
-	                )
-	                {$emailIsValid = TRUE;}
-	        }
-
-	    // RETURN RESULT
-
-	        return $emailIsValid;
+	/**
+	 * determine if a given string a valid email address or not
+	 * @param string $email the email address to be tested
+	 * @return boolean
+	 */
+	public static function validateEmailAddress($email){
+		$emailIsValid = FALSE;
+		if (!empty($email)) {
+			$domain = ltrim(stristr($email, '@'), '@') . '.';
+			$user   = stristr($email, '@', TRUE);
+			if (
+				!empty($user) &&
+				!empty($domain) &&
+				checkdnsrr($domain)
+				) {
+					$emailIsValid = TRUE;
+				}
+		}
+		return $emailIsValid;
 	}
 }
 ?>

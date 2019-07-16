@@ -1,10 +1,9 @@
 <?php
-
 /**
  * general
  */
 
-View::registerAdapter("css", function($data){
+\Kiwi\View::registerAdapter("css", function($data){
 	$str = "";
 	if ($data) {
 		foreach ($data as $css) {
@@ -14,7 +13,7 @@ View::registerAdapter("css", function($data){
 	return $str;
 });
 
-View::registerAdapter("js", function($data){
+\Kiwi\View::registerAdapter("js", function($data){
 	$str = "";
 	if ($data) foreach ($data as $js) {
 		$str .= "<script type='text/javascript' src='js/{$js}.js'></script>";
@@ -22,13 +21,13 @@ View::registerAdapter("js", function($data){
 	return $str;
 });
 
-View::registerAdapter("jsvar", function($data){
+\Kiwi\View::registerAdapter("jsvar", function($data){
 	$str = json_encode($data);
 	$str = str_replace("'", "\'", $str);
 	return $str;
 });
 
-View::registerAdapter("jsvars", function($data){
+\Kiwi\View::registerAdapter("jsvars", function($data){
 	$str = '<script type="text/javascript">';
 	foreach ($data as $key => $value) {
 		$value = str_replace("\\", "\\\\", json_encode($value));
@@ -39,7 +38,7 @@ View::registerAdapter("jsvars", function($data){
 	return $str;
 });
 
-View::registerAdapter("ul", function($data){
+\Kiwi\View::registerAdapter("ul", function($data){
 	$str = "<ul>";
 	if($data) foreach ($data as $row) {
 		$str .= "<li>$row</li>";
@@ -48,7 +47,7 @@ View::registerAdapter("ul", function($data){
 	return $str;
 });
 
-View::registerAdapter("list", function($data) {
+\Kiwi\View::registerAdapter("list", function($data) {
 	$str = "";
 	if($data) foreach ($data as $row) {
 		$str .= "<p>$row</p>";
@@ -56,7 +55,7 @@ View::registerAdapter("list", function($data) {
 	return $str;
 });
 
-View::registerAdapter("objectList", function ($data){
+\Kiwi\View::registerAdapter("objectList", function ($data){
 	$str = "";
 	if($data) foreach ($data as $row) {
 		$str .= "<p>".$row->toLinkMarkup()."</p>";
@@ -64,7 +63,7 @@ View::registerAdapter("objectList", function ($data){
 	return $str;
 });
 
-View::registerAdapter("objectGrid", function ($data){
+\Kiwi\View::registerAdapter("objectGrid", function ($data){
 	$str = "";
 	if ($data) {
 		$c = count($data);
@@ -87,7 +86,7 @@ View::registerAdapter("objectGrid", function ($data){
 	}
 });
 
-View::registerAdapter("floatButton", function($data){
+\Kiwi\View::registerAdapter("floatButton", function($data){
 	$str = "";
 	if ($data) foreach ($data as $button) {
 		$button = (object) $button;
@@ -99,7 +98,7 @@ View::registerAdapter("floatButton", function($data){
 /**
  * layout1
  */
-View::registerAdapter("navlink", function($data){
+\Kiwi\View::registerAdapter("navlink", function($data){
 	if ($data == null) {
 		$data = [];
 	}
@@ -136,11 +135,11 @@ View::registerAdapter("navlink", function($data){
  * gene related
  */
 
-View::registerAdapter("geneTable", function($data) {
+\Kiwi\View::registerAdapter("geneTable", function($data) {
 	if ($data) {
 		$str .= "<table class='m_table' cellspacing='0'><tr><td>Name</td><td>Function</td></tr>";
 		foreach ($data as $gene) {
-			Utility::decodeLinkForView($gene->function);
+			\Kiwi\Utility::decodeLinkForView($gene->function);
 			$str .= "<tr id='{$gene->id}'><td><i>".$gene->toLinkMarkup()."</i></td><td>{$gene->function}</td></tr>";
 		}
 		$str .= "</table>";
@@ -148,13 +147,13 @@ View::registerAdapter("geneTable", function($data) {
 	return $str;
 });
 
-View::registerAdapter("relationGeneTable", function($data){
+\Kiwi\View::registerAdapter("relationGeneTable", function($data){
 	$str = "";
 	if ($data) {
 		$str .= "<table class='m_table' cellspacing='0' rewrite=true><tr><td>Name</td><td>Function</td></tr>";
 		foreach ($data as $row) {
 			$gene = $row->gene;
-			Utility::decodeLinkForView($gene->function);
+			\Kiwi\Utility::decodeLinkForView($gene->function);
 			$str .= "<tr id='{$row->id}'><td><i>".$gene->toLinkMarkup()."</i></td><td>{$gene->function}</td></tr>";
 		}
 		$str .= "</table>";
@@ -162,7 +161,7 @@ View::registerAdapter("relationGeneTable", function($data){
 	return $str;
 });
 
-View::registerAdapter("relationGeneTableEdit", function ($data) {
+\Kiwi\View::registerAdapter("relationGeneTableEdit", function ($data) {
 	$str = "";
 	if ($data) {
 		$str .= "<table class='m_table' cellspacing='0'><tr><td>Name</td><td>Function</td><td>Operation</td></tr>";
@@ -170,7 +169,7 @@ View::registerAdapter("relationGeneTableEdit", function ($data) {
 
 		foreach ($data as $row) {
 			$gene = $row->gene;
-			Utility::decodeLinkForView($gene->function);
+			\Kiwi\Utility::decodeLinkForView($gene->function);
 			$str .= "<tr id='{$row->id}'><td><i>".$gene->toLinkMarkup()."</i></td><td>{$gene->function}</td><td><button class='button delBtn' target='gene' id='{$gene->id}'>Delete</button></td></tr>";
 		}
 		$str .= "</table>";
@@ -178,7 +177,7 @@ View::registerAdapter("relationGeneTableEdit", function ($data) {
 	return $str;
 });
 
-View::registerAdapter("structure", function($data){
+\Kiwi\View::registerAdapter("structure", function($data){
 	Log::debug($data);
 	return "<h3>Structure</h3>
 	<p><a href='http://www.rcsb.org/structure/{$data}' target='_blank'>
@@ -190,7 +189,7 @@ View::registerAdapter("structure", function($data){
  * category related
  */
 
-View::registerAdapter("categoryTree", function($data){
+\Kiwi\View::registerAdapter("categoryTree", function($data){
 	$str = "";
 	if ($data) {
 		foreach ($data as $category) {
@@ -201,7 +200,7 @@ View::registerAdapter("categoryTree", function($data){
 	return $str;
 });
 
-View::registerAdapter("categoryList", function($data){
+\Kiwi\View::registerAdapter("categoryList", function($data){
 	$str = "";
 	if ($data) {
 		foreach ($data as $category) {
@@ -215,7 +214,7 @@ View::registerAdapter("categoryList", function($data){
  * user related
  */
 
-View::registerAdapter("userTable", function($data){
+\Kiwi\View::registerAdapter("userTable", function($data){
 	$str = "";
 	if ($data) {
 		$str .= "<table class='m_table' cellspacing='0'><tr><td>Name</td><td>Edit</td></tr>";
@@ -227,7 +226,7 @@ View::registerAdapter("userTable", function($data){
 	return $str;
 });
 
-View::registerAdapter("userGroup", function($data){
+\Kiwi\View::registerAdapter("userGroup", function($data){
 	$str = "";
 	if ($data) {
 		$str .= "<table class='m_table' cellspacing='0'><tr><td>Name</td><td>Group</td><td>Operation</td></tr>";
@@ -259,12 +258,12 @@ View::registerAdapter("userGroup", function($data){
  * operon related
  */
 
-View::registerAdapter("operonTable", function($data) {
+\Kiwi\View::registerAdapter("operonTable", function($data) {
 	$str = "";
 	if ($data) {
 		$str .= "<table class='m_table' cellspacing='0' rewrite=true><tr><td>Operon</td><td>Operation</td></tr>";
 		foreach ($data as $operon) {
-			Utility::decodeLinkForView($operon->title);
+			\Kiwi\Utility::decodeLinkForView($operon->title);
 			$str .= "<tr><td>$operon->title</td><td><a href='operon?id={$operon->id}' class='button'>View</a></td></tr>";
 		}
 		$str .= "</table>";
@@ -275,14 +274,14 @@ View::registerAdapter("operonTable", function($data) {
  * regulation edit table
  */
 
-View::registerAdapter("regulationTableEdit", function($data) {
+\Kiwi\View::registerAdapter("regulationTableEdit", function($data) {
 	$str = "";
 	if ($data !== null) {
 		$str .= "<table class='m_table' cellspacing='0'>";
 		$str .= "<tr><th>Regulator</th><th>Mode</th><th>Description</th><th>Operation</th>\n\t{{regulation.blank.tpl}}";
 		if ($data) {
 			foreach ($data as $regulation) {
-				$row = View::loadFile("regulation.editor.tpl");
+				$row = \Kiwi\View::loadFile("regulation.editor.tpl");
 				$row->set($regulation);
 				$row->set([
 					"type" => lcfirst(get_class($regulation->regulator)),
@@ -296,7 +295,7 @@ View::registerAdapter("regulationTableEdit", function($data) {
 	return $str;
 });
 
-View::registerAdapter("history", function ($data){
+\Kiwi\View::registerAdapter("history", function ($data){
 	if ($data) {
 		$size = count($data);
 		$table = "<table class='m_table'>";
@@ -325,7 +324,7 @@ View::registerAdapter("history", function ($data){
 	} else return "No records";
 });
 
-View::registerAdapter("table", function($data){
+\Kiwi\View::registerAdapter("table", function($data){
 	$str = "";
 	if ($data) {
 		$str .= "<table class='m_table' rewrite=true>";
@@ -341,11 +340,11 @@ View::registerAdapter("table", function($data){
 	return $str;
 });
 
-View::registerAdapter("metaboliteEditor", function($data){
+\Kiwi\View::registerAdapter("metaboliteEditor", function($data){
 	$str = "";
 	if ($data) {
 		foreach ($data as $metabolite) {
-			$view = View::loadFile("metabolite.editor.each.tpl");
+			$view = \Kiwi\View::loadFile("metabolite.editor.each.tpl");
 			$view->set($metabolite);
 			$str .= $view->generate(1,1);
 		}
@@ -353,7 +352,7 @@ View::registerAdapter("metaboliteEditor", function($data){
 	return $str;
 });
 
-View::registerAdapter("metaboliteTable", function($data){
+\Kiwi\View::registerAdapter("metaboliteTable", function($data){
 	$str = "";
 	if ($data) {
 		$str = "<table class='m_table'><tr><th>Id</th><th>Name</th><th>Synonym</th><th>PubChem</th><th>Operation</th></tr>";
@@ -372,7 +371,7 @@ View::registerAdapter("metaboliteTable", function($data){
 	return $str;
 });
 
-View::registerAdapter("reactionTable",function($data){
+\Kiwi\View::registerAdapter("reactionTable",function($data){
 	$str = "";
 	if($data){
 		$str .= "<table class='m_table'><tr><th>Id</th><th>Equation</th><th>KEGG</th><th>Operation</th></tr>";
@@ -389,54 +388,42 @@ View::registerAdapter("reactionTable",function($data){
 	}
 });
 
-View::registerAdapter("reactionMetabolites",function($data){
+\Kiwi\View::registerAdapter("reactionMetabolites",function($data){
 	$str = "";
 	if($data) {
 		foreach($data as $hasMetabolite) {
-			$str .= "<form action='reaction/metabolite' method='put' type='ajax' style='display:inline-block'>";
-			$str .= "<input type='hidden' name='reaction' value='{$hasMetabolite->reaction->id}'/>";
-			$str .= "<input type='hidden' name='metabolite' value='{$hasMetabolite->metabolite->id}'/>";
-			$str .= "<input type='hidden' name='side' value='{$hasMetabolite->side}'>";
-			$str .= "<p><label>Coefficient: </label><input type='number' name='coefficient' value='{$hasMetabolite->coefficient}'/>";
-			$str .= " <label>Metabolite: </label><input type='text' value='{$hasMetabolite->metabolite->title}' title='{$hasMetabolite->metabolite->title}' style='width:300px;border:none' readonly/>";
-			$str .= " <input type='submit' />";
-			$str .= "</form>";
-			$str .= "<form action='reaction/metabolite' method='delete' type='ajax' style='display:inline-block'>";
-			$str .= "<input type='hidden' name='reaction' value='{$hasMetabolite->reaction->id}' />";
-			$str .= "<input type='hidden' name='metabolite' value='{$hasMetabolite->metabolite->id}' />";
-			$str .= "<input type='submit' value='Delete' style='background:red' />";
-			$str .= "</form>";
+			$view = \Kiwi\View::loadFile("reaction.metabolite.editor.tpl");
+			$view->set($hasMetabolite);
+			if ($hasMetabolite->metabolite->type == "complex") {
+				$view->set("complexEditBtn", "<a href='complex/editor?id=".$hasMetabolite->metabolite->id."' class='button'>Edit complex</a>");
+			}
+			$str .= $view->generate(1,1);
 		}
 	}
 	return $str;
 });
 
-View::registerAdapter("reactionCatalysts",function($data){
+\Kiwi\View::registerAdapter("reactionCatalysts",function($data){
 	$str = "";
 	if($data) {
-		foreach($data as $hasCatalyst){
-			$type = get_class($hasCatalyst->catalyst);
-			$catalyst = (string) $hasCatalyst->catalyst;
-			$str .= "<form action='reaction/catalyst' method='delete' type='ajax' style='display:inline-block'>";
-			$str .= "<p><label>Catalyst type: </label><input style='width:200px; display:inline-block' value='$type' readonly/>";
-			$str .= " <label>Catalyst: </label><input value='{$hasCatalyst->catalyst->title}' title='{$hasCatalyst->catalyst->title}' style='width:300px' readonly/>";
-			$str .= "<input type='hidden' value='{$catalyst}' name='catalyst'/>";
-			$str .= "<input type='hidden' value='{$hasCatalyst->reaction->id}' name='reaction'/>";
-			$str .= " <input type='submit' value='delete' style='background:red'/></p>";
-			$str .= "</form>";
-			if ($type == "Complex") {
-				$str .= "<a href='complex/editor?id={$hasCatalyst->catalyst->id}' class='button'>Edit complex</a>";
+		foreach($data as $hasCatalyst){ 
+			$view = \Kiwi\View::loadFile("reaction.catalyst.editor.tpl");
+			$view->set($hasCatalyst);
+			$view->set("isNovel", $hasCatalyst->novel ? "yes" : "no");
+			if ($hasCatalyst->catalyst->type == "complex") {
+				$view->set("complexEditBtn", "<a href='complex/editor?id=".$hasCatalyst->catalyst->id."' class='button'>Edit complex</a>");
 			}
+			$str .= $view->generate(1,1);
 		}
 		return $str;
 	}
 });
 
-View::registerAdapter("complexMember", function($data){
+\Kiwi\View::registerAdapter("complexMember", function($data){
 	$str = "";
 	if ($data) {
 		foreach($data as $hasMember) {
-			$view = View::loadFile("complexMember.editor.tpl");
+			$view = \Kiwi\View::loadFile("complexMember.editor.tpl");
 			$view->set($hasMember);
 			$view->set("memberMarkup", (string) $hasMember->member);
 			$str .= $view->generate(1,1);
@@ -445,7 +432,7 @@ View::registerAdapter("complexMember", function($data){
 	return $str;
 });
 
-View::registerAdapter("relationCategoryEdit", function($data){
+\Kiwi\View::registerAdapter("relationCategoryEdit", function($data){
 	$str = "<table class='m_table'>";
 	$str .= "<tr><th>Category</th><th>Operation</th></tr>";
 	if ($data) {
@@ -465,7 +452,7 @@ View::registerAdapter("relationCategoryEdit", function($data){
 	return $str;
 });
 
-View::registerAdapter("wikiList", function($data){
+\Kiwi\View::registerAdapter("wikiList", function($data){
 	$str = "";
 	if ($data) {
 		$str = "<table class='m_table'><tr><th>Title</th><th>Last edit</th><th>Last author</th>";
@@ -482,7 +469,7 @@ View::registerAdapter("wikiList", function($data){
 });
 
 
-View::registerAdapter("dataSetTable", function($data) {
+\Kiwi\View::registerAdapter("dataSetTable", function($data) {
 	$str = "";
 	if ($data) {
 		$str = "<table class='m_table'><tr><th>Id</th><th>Title</th><th>Type</th><th>Category</th><th>Citation</th><th>Operation</th>";
@@ -503,7 +490,7 @@ View::registerAdapter("dataSetTable", function($data) {
 	return $str;
 });
 
-View::registerAdapter("memberList", function($data) {
+\Kiwi\View::registerAdapter("memberList", function($data) {
 	$str = "";
 	if ($data) {
 		$str .= "<h2>Members</h2>";
@@ -521,7 +508,7 @@ View::registerAdapter("memberList", function($data) {
 	return $str;
 });
 
-View::registerAdapter("interactionTable", function($data) {
+\Kiwi\View::registerAdapter("interactionTable", function($data) {
 	$str = "";
 	if ($data) {
 		$str = "<table class='m_table'>";
@@ -537,7 +524,7 @@ View::registerAdapter("interactionTable", function($data) {
 	return $str;
 });
 
-View::registerAdapter("regulationTable", function($data) {
+\Kiwi\View::registerAdapter("regulationTable", function($data) {
 	$str = "";
 	if ($data) {
 		$str = "<table class='m_table'>";

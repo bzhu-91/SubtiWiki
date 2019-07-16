@@ -19,12 +19,11 @@ user.login = function(){
 
 user.logout = function (){
 	SomeLightBox.alert("Log out", "Do you want to log out?", function(){
-		ajax.get({
+		$.ajax({
 			url: "user/logout",
-			headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr){
-			if (status == 200) {
-				SomeLightBox.alert("Log out", "Log out successfull", null, null)
+			dataType:"json",
+			success: function (data) {
+				SomeLightBox.alert("Log out", "Log out successfull", null, null);
 				setTimeout(function(){
 					location.reload();
 				}, 600)
@@ -39,19 +38,18 @@ $(document).on("submit", "#login", function(ev){
 	var data = {};
 	data.name = form['name'].value.trim();
 	data.password = md5(form['password'].value);
-	ajax.post({
+	$.ajax({
+		type:"post",
 		url: "user/login",
-		headers: {Accept: "application/json"},
-		data: ajax.serialize(data)
-	}).done(function(status, data, error, xhr) {
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (status == 200) {
+		dataType:"json",
+		data: data,
+		success: function (data) {
 			SomeLightBox.alert("Log in", "Log in successfull");
 			setTimeout(function(){
 				location.reload();
 			}, 600)
-		} else if (data) {
+		},
+		error: function (data) {
 			SomeLightBox.error(data.message);
 		}
 	});

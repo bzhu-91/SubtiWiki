@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans');
 
 :root {
-	--primary-color: #2e7d32; --secondary-color: #4caf50; --accent-color: gray;
+	--primary-color: #1976d2; --secondary-color: #2196F3; --accent-color: gray; 
 }
 
 html {
@@ -57,6 +57,10 @@ ul{
 	list-style-type:none;
 }
 
+.note-editing-area ul {
+	list-style-type: disc;
+}
+
 label {
 	font-weight: bold; color: var(--secondary-color); margin-right: 10px;
 }
@@ -86,7 +90,7 @@ button:active, .button:active, input[type=submit]:active {
 }
 
 textarea {
-	font-family: monospace; line-height: 1.5em; font-size: 10pt;
+	font-family: monospace; line-height: 1.5em; font-size: 10pt;resize: vertical;width: 100%;
 }
 
 body {
@@ -126,7 +130,7 @@ input {
 }
 
 #middle {
-	flex: 1; margin:50px 60px 50px 50px; width: 95%; position: relative;
+	flex: 1; margin:50px auto; width: 95%; position: relative;max-width: 1600px;
 }
 
 .inline {

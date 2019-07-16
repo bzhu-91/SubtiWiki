@@ -1,6 +1,3 @@
-var monkey_user_defs = monkey_user_defs || {
-}
-
 var monkey = monkey || {
 	clear: function(src){
 

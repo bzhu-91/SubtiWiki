@@ -1,5 +1,5 @@
 <?php
-class WikiController extends Controller {
+class WikiController extends \Kiwi\Controller {
     public function read ($input, $accept) {
         if ($input) {
             if (array_key_exists("id", $input) || array_key_exists("title", $input)) {
@@ -25,7 +25,7 @@ class WikiController extends Controller {
 		switch ($accept) {
 			case HTML:
 			$count = Wiki::count();
-            $view = View::loadFile("layout1.tpl");
+            $view = \Kiwi\View::loadFile("layout1.tpl");
             $view->set([
                 "title" => "All articles (page $page)",
                 "content" => "{{wiki.list.tpl}}",
@@ -49,7 +49,7 @@ class WikiController extends Controller {
             $this->respond($view, 200, HTML);
             break;
 			case JSON:
-				if ($articles) $this->respond(Utility::arrayColumns($articles, ["id", "title", "function"]), 200, JSON);
+				if ($articles) $this->respond(\Kiwi\Utility::arrayColumns($articles, ["id", "title", "function"]), 200, JSON);
 				else $this->error("Not found", 404, JSON);
 				break;
 		}
@@ -70,7 +70,7 @@ class WikiController extends Controller {
 
         switch ($accept) {
             case HTML:  
-                $view = View::loadFile("layout1.tpl");
+                $view = \Kiwi\View::loadFile("layout1.tpl");
                 $view->set([
                     "title" => "Search for: $keyword",
                     "content" => "{{wiki.search.tpl}}",
@@ -82,13 +82,13 @@ class WikiController extends Controller {
                 break;
             case HTML_PARTIAL:
                 if ($articles) {
-                    $view = View::load("{{wikiList:data}}");
+                    $view = \Kiwi\View::load("{{wikiList:data}}");
                     $view->set("data", $articles);
                     $this->respond($view, 200, HTML);
                 } else $this->error("No result", 404, HTML);
             case JSON:
                 if ($articles) {
-                    $data = Utility::arrayColumns($articles, ["id", "title"]);
+                    $data = \Kiwi\Utility::arrayColumns($articles, ["id", "title"]);
                     $this->respond($data, 200, JSON);
                 } else {
                     $this->error("Article not found", 404, JSON);
@@ -112,20 +112,17 @@ class WikiController extends Controller {
             }
             if ($article) {
                 $article->updateCount();
+                \Kiwi\Utility::decodeLinkForView($article->article);
                 switch ($accept) {
                     case HTML:
-                        $view = View::loadFile("layout1.tpl");
+                        $view = \Kiwi\View::loadFile("layout1.tpl");
                         $view->set($article);
                         $view->set([
                             "pageTitle" => "{{:title}}",
                             "content" => "{{wiki.view.tpl}}",
-                            "jsAfterContent" => ["libs/quill.min", "wiki.view"],
-                            "styles" => ["quill.snow"],
-                            "vars" => [
-                                "article" => $article->article
-                            ],
+                            "jsAfterContent" => ["wiki.view"],
                             "floatButtons" => [
-                                ["href" => "wiki/editor?id=$id", "icon" => "edit.svg"]
+                                ["href" => "wiki/editor?id={$article->id}", "icon" => "edit.svg"]
                             ]
                         ]);
                         $this->respond($view, 200, HTML);
@@ -136,11 +133,13 @@ class WikiController extends Controller {
                         break;
                 }
             } elseif ($title) {
-                $view = View::loadFile("layout1.tpl");
+                $view = \Kiwi\View::loadFile("layout1.tpl");
                 $view->set($input);
                 $view->set([
-                    "content" => "This page does not exist. Would you like to <a href='wiki/editor?title={{:title}}'>create a page with the title: {{:title}}</a>?",
-                    "showFootNote" => "none"
+                    "content" => "This page does not exist. Would you like to <a href='wiki/editor?title={{:title}}'>create a page with the title: {{:title}}</a>? <p><button id='import'>Import from old SubtiWiki</button></p>",
+                    "showFootNote" => "none",
+                    "jsAfterContent" => ["wiki.import"],
+                    "jsvars" => "var pageTitle = '{{:title}}';"
                 ]);
                 $this->respond($view, 200, HTML);
             } else {
@@ -161,6 +160,7 @@ class WikiController extends Controller {
                 $article->title = $title;
                 $article->article = $input["article"];
                 $article->lastAuthor = User::getCurrent()->name;
+                \Kiwi\Utility::encodeLink($article->article);
                 if ($article->update()){
                     $this->respond(["uri" => "wiki?id=$id"], 200, JSON);
                 } else {
@@ -187,6 +187,18 @@ class WikiController extends Controller {
         }
     }
 
+    /**
+     * API: create a wiki page.
+     * URL: /wiki
+     * Method: post
+     * URL Param: none
+     * Data Param: {title: xxxx, article: xxxxx}
+     * Success Response:
+     * - code:201, accept:JSON, content: {"uri":"wiki?id=xxx"}
+     * Error Response:
+     * - code:500, accept:JSON, content: {"message": "The arti ..."}
+     * - code:406, accept:!JSON, content: {"message": "Unaccepted"}
+     */
     public function create ($input, $accept) {
         UserController::authenticate(1, $accept);
         if ($accept == JSON) {
@@ -197,20 +209,21 @@ class WikiController extends Controller {
             $wiki->title = $title;
             $wiki->article = $article;
             $wiki->lastAuthor = User::getCurrent()->name;
+            \Kiwi\Utility::encodeLink($article->article);
 
             if ($wiki->insert()){
                 $this->respond(["uri" => "wiki?id=".$wiki->id], 201, JSON);
             } else {
                 $this->error("The article with same title already exists", 500, JSON);
             }
-        } else $this->error("Unaccepted", 405, $accept);
+        } else $this->error("Unaccepted", 406, $accept);
     }
 
     public function editor ($input, $accept, $method) {
         UserController::authenticate(1, $accept);
         if ($accept == HTML && $method == "GET") {
             $id = $this->filter($input, "id", "is_numeric");
-            $view = View::loadFile("layout2.tpl");
+            $view = \Kiwi\View::loadFile("layout2.tpl");
             if (!array_key_exists("id", $input)) {
                 $method = "post";
                 $pageTitle = "Create article";
@@ -219,6 +232,7 @@ class WikiController extends Controller {
                 if ($article) {
                     $method = "put";
                     $pageTitle = "Edit article";
+                    \Kiwi\Utility::decodeLinkForEdit($article->article);
                     $view->set($article);
                 } else {
                     $this->error("Article not found", 404, HTML);
@@ -232,7 +246,7 @@ class WikiController extends Controller {
                 "headerTitle" => $pageTitle,
                 "content" => "{{wiki.editor.tpl}}",
                 "method" => $method,
-                "jsAfterContent" => ["libs/quill.min", "wiki.editor", "all.editor"],
+                "jsAfterContent" => ["wiki.editor", "all.editor"],
                 "styles" => ["quill.snow"],
             ]);
             

@@ -1,13 +1,15 @@
 <div>
 	<div id="side-bar">
 		<a href="javascript:void(0);" class="tab is-active">Gene</a>
+		<a href="javascript:void(0);" class="tab">Genomic context</a>
 		<a href="javascript:void(0);" class="tab">Category</a>
 		<a href="javascript:void(0);" class="tab">Paralogues protein(s)</a>
 		<a href="javascript:void(0);" class="tab">Interactions</a>
 		<a href="javascript:void(0);" class="tab">Translational Regulations</a>
 		<a href="javascript:void(0);" class="tab">Operons</a>
-		<!-- <a href="javascript:void(0);" class="tab">Protein Complexes</a> -->
-		<a href="javascript:void(0);" class="tab">Additional information on regulon</a>
+		<a href="javascript:void(0);" class="tab">Regulon</a>
+		<a href="javascript:void(0);" class="tab">Complex</a>
+		<a href="javascript:void(0);" class="tab">Reactions</a>
 	</div>
 	<div id="main">
 		<div class="tab-content is-active">
@@ -31,6 +33,9 @@
 				<p><b>Time of last update: </b>{{:lastUpdate}}</p>
 				<p><b>Author of last update: </b>{{:lastAuthor}}</p>
 			</div>
+		</div>
+		<div class="tab-content" id="content-genomic-context">
+
 		</div>
 		<div class="tab-content">
 			<div class="content" id="content-category"></div>
@@ -57,6 +62,15 @@
 			<div class="content" id="content-regulon">
 				This protein is not a regulator
 			</div>
+		</div>
+		<div class="tab-content">
+			<!-- complex -->
+			<div class="content" id="content-complex">This protein is not in any complexes</div>
+		</div>
+		<div class="tab-content">
+			<!-- reactions -->
+			<div class="content" id="content-reaction">This protein is not invovled in any reactions</div>
+			<p><a href="pathway/editor" class="button">Open pathway editor</a></p>
 		</div>
 	</div>
 </div>

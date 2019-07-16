@@ -92,11 +92,17 @@ $(document).ready(function(){
 		} else {
 			$("#display-block, #loading, #control-block").hide();
 		}
-		lightbox = new SomeLightBox({
+		lightBoxSettings = new SomeLightBox({
 			width: "400px",
 			height: "auto",
 			animation: false
 		});
+		lightBoxConfig = new SomeLightBox({
+			maxWidth: "80%",
+			height: "auto",
+			animation: false
+		});
+		lightBoxConfig.loadById("config");
 	});
 });
 
@@ -117,19 +123,17 @@ $(document).on("submit", "#search", function(ev){
 	var geneName = this.geneName.value.trim();
 
 	if (geneName.length >= 2) {
-		ajax.get({
+		$.ajax({
 			url:"gene?keyword="+geneName+"&mode=title",
-			headers: {Accept: "application/json"}
-		}).done(function(state, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost");
-			} else if (state == 200) {
+			dataType:"json",
+			success: function (data) {
 				if (data.length > 1) {
 					SomeLightBox.error("Gene name " + geneName + " is ambigious");
 				} else {
 					window.location = $("base").attr("href") + "regulation?gene=" + data[0].id;
 				}
-			} else {
+			},
+			error: function() {
 				SomeLightBox.error("Gene " + geneName + " not found");
 			}
 		})
@@ -150,7 +154,7 @@ $(document).on("click", "#decrease-radius", function () {
 });
 
 $(document).on("click", "#increase-spacing", function () {
-	if (browser.spacing < 29) {
+	if (browser.spacing < 50) {
 		browser.setSpacing(browser.spacing + 1);
 	}
 });
@@ -161,6 +165,10 @@ $(document).on("click", "#decrease-spacing", function () {
 	}
 });
 
+$(document).on("click", "#save-cache", function(){
+	browser.saveCache();
+})
+
 $(document).on("submit", "#highlight", function(ev){
 	ev.stopPropagation();
 	ev.preventDefault();
@@ -168,19 +176,17 @@ $(document).on("submit", "#highlight", function(ev){
 	var geneName = this.geneName.value.trim();
 
 	if (geneName.length >= 2) {
-		ajax.get({
+		$.ajax({
 			url:"gene?keyword="+geneName+"&mode=title",
-			headers: {Accept: "application/json"}
-		}).done(function(state, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost");
-			} else if (state == 200) {
+			dataType:"json",
+			success: function (data) {
 				if (data.length > 1) {
 					SomeLightBox.error("Gene name " + geneName + " is ambigious");
 				} else {
 					browser.addHighlight(data[0]);
 				}
-			} else {
+			},
+			error: function () {
 				SomeLightBox.error("Gene " + geneName + " not found");
 			}
 		})
@@ -201,9 +207,13 @@ $(document).on("change", "#sigA-Regulon", function(){
 
 $(document).on("click", "#open-settings", function () {
 	if ($("#settings").length) {
-		lightbox.loadById("settings");
+		lightBoxSettings.loadById("settings");
 	}
-	lightbox.show();
+	lightBoxSettings.show();
+});
+
+$(document).on("click", "#open-config", function () {
+	lightBoxConfig.show();
 });
 
 $(document).on("change", "#node-color", function () {
@@ -372,8 +382,8 @@ RegulationBrowser.prototype.load = function () {
 }
 
 RegulationBrowser.prototype.createData = function () {
-	// create network according to the radius
 	var self = this;
+	// create network according to the radius
 	var rNodes = {}; var rEdges = [];
 	for (var id in self.rawData.distances) {
 		var distance = self.rawData.distances[id];
@@ -411,58 +421,100 @@ RegulationBrowser.prototype.createData = function () {
 		}
 	}
 
-	self.data.nodes.clear();
-	self.data.nodes.update(nodes);
-	self.data.edges.clear();
-	self.data.edges.update(edges);
+	nodes.sort(function(n,m){
+		return n.id.localeCompare(n.id);
+	})
+	
 
-	self.createNetwork();
-
-	$("#radius-display").html(self.radius);
-	$("#coverage-display").html((self.data.nodes.length / 6012 * 100 + "").substr(0,4) + "%");
-
-	$("#gene-display").html(self.data.nodes.get(self.target).label);
+	// get the cache according to the radius
+	$.ajax({
+		url: "regulation/cache",
+		dataType: "json",
+		data: {
+			target: self.target,
+			radius: self.radius
+		},
+		success: function (cache) {
+			var toUpdate = [];
+			var c = 0;
+			nodes.forEach(function(n){
+				if (n.id in cache) {
+					n.x = cache[n.id].x;
+					n.y = cache[n.id].y;
+				} else {
+					c++
+				}
+			});
+			console.log(c + " nodes are newly added");
+			self.hasCache = true;
+			self.data.nodes.clear();
+			self.data.nodes.update(nodes);
+			self.data.edges.clear();
+			self.data.edges.update(edges);
+			self.createNetwork();
+		},
+		error: function () {
+			self.hasCache = false;
+			self.data.nodes.clear();
+			self.data.edges.clear();
+			self.createInitLayout(nodes);
+			self.data.nodes.update(nodes);
+			self.data.edges.update(edges);
+			self.createNetwork();
+		}
+	})
 }
 
 RegulationBrowser.prototype.createNetwork = function () {
 	var self = this;
+	self.coverage = self.data.nodes.length / 6012;
+	// show metadata
+	$("#radius-display").html(self.radius);
+	$("#coverage-display").html((self.coverage * 100 + "").substr(0,4) + "%");
+	$("#gene-display").html(self.data.nodes.get(self.target).label);
+
 	var options = {
 		nodes: {
 			shape: 'dot',
 			color: self.nodeColor,
-			size: 22,
+			size: 22 * Math.pow(3, self.data.nodes.length / 1000),
 			font: {
-				size: 22,
-				color: "gray"
+				size: 22 * Math.pow(3, self.data.nodes.length / 1000),
+				color: "black"
 			},
 		},
 		edges: {
 			smooth: true,
-			width: 2,
+			width: 1.5,
 			arrows: {
 				to:true
 			}
 		},
 		physics: {
 			enabled: true,
+			maxVelocity: 50,
 			stabilization: false,
 			barnesHut: {
-				springLength: 200,
-				gravitationalConstant: Math.pow(2, self.spacing) * - 2750 * self.data.nodes.length / 10,
+				damping: .3,
+				gravitationalConstant: self.calcG(),
+				springLength: 200
 			}
 		},
 		layout: {
 			improvedLayout: false,
 			randomSeed:55
-		}
+		},
 	};
 	$("#loading").hide();
 
 	if (self.network && self.network instanceof vis.Network) {
 		self.network.setOptions(options);
+		self.setSpacing(self.spacing);
+		self.network.fit();
 	} else {
 		self.network = new vis.Network(self.container, self.data, options);
-		self.network.moveTo({scale:0.7});
+		self.setSpacing(self.spacing);
+		self.network.fit();
 
 		self.network.on("click", function (ev) {
 			$("#popup").hide();
@@ -516,10 +568,12 @@ RegulationBrowser.prototype.fade = function () {
 			color: "lightgray"
 		}
 	});
+	var toUpdate = [];
 	self.data.edges.forEach(function(edge){
 		edge.color = null;
-		self.data.edges.update(edge);
+		toUpdate.push(edge);
 	});
+	self.data.edges.update(toUpdate);
 }
 
 RegulationBrowser.prototype.restore = function () {
@@ -536,6 +590,7 @@ RegulationBrowser.prototype.restore = function () {
 			color: "blue"
 		}
 	});
+	var toUpdate = [];
 	self.data.edges.forEach(function(edge){
 		switch(sort(edge.mode)){
 			case "activative":
@@ -548,8 +603,9 @@ RegulationBrowser.prototype.restore = function () {
 				edge.color = self.edgeColorR;
 				break;
 		}
-		self.data.edges.update(edge);
+		toUpdate.push(edge);
 	});
+	self.data.edges.update(toUpdate);
 }
 
 RegulationBrowser.prototype.setRadius = function (radius) {
@@ -559,13 +615,30 @@ RegulationBrowser.prototype.setRadius = function (radius) {
 	self.createData();
 }
 
+RegulationBrowser.prototype.calcG = function () {
+	var self = this;
+	return Math.pow(2,self.spacing) * -375 * self.data.nodes.length * (self.data.edges.length / self.data.nodes.length)
+}
+
+RegulationBrowser.prototype.createInitLayout = function (nodes) {
+	var self = this;
+	var nodeSize = 22 * Math.pow(3, self.data.nodes.length / 1000) * 2;
+	var cir = nodeSize * nodes.length;
+	var dir = cir / 2 / Math.PI;
+	var deg = 2 * Math.PI / nodes.length;
+	nodes.forEach(function(n,i){
+		n.x = dir * Math.cos(deg * i);
+		n.y = dir * Math.sin(deg * i);
+	});
+}
+
 RegulationBrowser.prototype.setSpacing = function (spacing) {
 	var self = this;
 	self.spacing = spacing;
 	self.network.setOptions({
 		physics: {
 			barnesHut: {
-				gravitationalConstant: Math.pow(2, self.spacing) * - 2750 * self.data.nodes.length / 10,
+				gravitationalConstant: self.calcG(),
 			}
 		}
 	})
@@ -620,16 +693,16 @@ RegulationBrowser.prototype.addHighlight = function (gene) {
 
 RegulationBrowser.prototype.clearHighlight = function () {	
 	var self = this;
-	var update = [];
+	var toUpdate = [];
 	self.highlights = [];
 	self.data.nodes.forEach(function(node){
 		if (node.state == "highlight") {
 			node.color = null;
 			node.state = null;
-			update.push(node);
+			toUpdate.push(node);
 		}
 	});
-	self.data.nodes.update(update);
+	self.data.nodes.update(toUpdate);
 	self.restore();
 }
 
@@ -645,32 +718,38 @@ RegulationBrowser.prototype.setNodeColor = function (color) {
 
 RegulationBrowser.prototype.setEdgeColorR = function (color) {
 	var self = this;
+	var toUpdate = [];
 	self.data.edges.forEach(function (edge) {
 		if("repressive" == sort(edge.mode)) {
 			edge.color = color;
-			self.data.edges.update(edge);
+			toUpdate.push(edge);
 		}
 	})
+	self.data.edges.update(toUpdate);
 }
 
 RegulationBrowser.prototype.setEdgeColorO = function (color) {
 	var self = this;
+	var toUpdate = [];
 	self.data.edges.forEach(function (edge) {
 		if("other" == sort(edge.mode)) {
 			edge.color = color;
-			self.data.edges.update(edge);
+			toUpdate.push(edge);
 		}
 	})
+	self.data.edges.update(toUpdate);
 }
 
 RegulationBrowser.prototype.setEdgeColorA = function (color) {
 	var self = this;
+	var toUpdate = [];
 	self.data.edges.forEach(function (edge) {
 		if("activative" == sort(edge.mode)) {
 			edge.color = color;
-			self.data.edges.update(edge);
+			toUpdate.push(edge);
 		}
 	})
+	self.data.edges.update(toUpdate);
 }
 
 RegulationBrowser.prototype.getOmicsData = function (conditionId) {
@@ -684,37 +763,43 @@ RegulationBrowser.prototype.getOmicsData = function (conditionId) {
 			geneIds.push(id);
 		});
 		url = "expression?condition=" + conditionId;
-		data = ajax.serialize({
+		data = {
 			genes: geneIds.join(",")
-		});
+		};
 	}
-	ajax.bigGet({
-		url: url,
+	$.ajax({
+		type: "post",
+		url: url + "&__method=GET",
+		dataType: "json",
 		data: data,
-		headers: {Accept: "application/json"}
-	}).done(function(state, data, error, xhr){
-		self.omicsData = data;
-		self.showOmicsData(conditionId);
+		success:function(data){
+			self.omicsData = data;
+			self.showOmicsData(conditionId);
+		},
+		error: function (data) {
+			SomeLightBox.error(data.message);
+		}
 	})
 }
 
 RegulationBrowser.prototype.showOmicsData = function (conditionId) {
 	var self = this;
+
+	self.network.storePositions();
 	var update = [];
-	
 	var con = self.conditions[conditionId];
 	var spectrum = new ColorSpectrum(con.title, con.min, con.max, con.type == "protein level (copies per cell)" ? "log": "");
 	
 	for (var id in self.omicsData) {
-		if (self.data.nodes.get(id)) {
+		var node = self.data.nodes.get(id);
+		if (node) {
 			var color = spectrum.getColor(self.omicsData[id]);
-			update.push({
-				id: id,
-				color: {
-					background: color
-				},
-				state: "omics"
-			})
+			node.color = {
+				background: color
+			}
+			node.state = "omics";
+			update.push(node);
+			console.log(node)
 		}
 	}
 	self.data.nodes.update(update);
@@ -763,15 +848,13 @@ RegulationBrowser.prototype.cluster = function (id) {
 } 
 
 RegulationBrowser.prototype.showPoppup = function (geneId) {
-	ajax.get({
+	$.ajax({
 		url: "gene/summary?id=" + geneId,
-	}).done(function(state, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost.");
-		} else if (state == 200) {
+		success: function (data) {
 			$("#info-box").html(parseMarkup(data));
 			$("#popup").show();
-		} else {
+		},
+		error: function () {
 			SomeLightBox.error("Gene not found");
 		}
 	})
@@ -847,7 +930,7 @@ RegulationBrowser.prototype.getNetwork = function () {
 				stabilization: false,
 				barnesHut: {
 					damping: .3,
-					gravitationalConstant: Math.pow(2,self.spacing) * -3750 * data.nodes.length / 10,
+					gravitationalConstant: self.calcG(),
 					springLength: 200
 				}
 			},
@@ -857,4 +940,46 @@ RegulationBrowser.prototype.getNetwork = function () {
 		}
 	}
 	return nvis;
+}
+
+RegulationBrowser.prototype.saveCache = function () {
+	var self = this;
+	self.network.storePositions();
+	var cache = [];
+	var c = 0;
+	self.data.nodes.forEach(function(n){
+		var chunkNr = c / 200 | 0;
+		if (!(chunkNr in cache)) {
+			cache[chunkNr] = {};
+		}
+		cache[chunkNr][n.id] = {
+			x: n.x,
+			y: n.y
+		}
+		c++;
+	});
+	cache.forEach(function(chunk,i){
+		$.ajax({
+			url: "regulation/cache",
+			data: {
+				target: self.target,
+				radius: self.radius,
+				content: chunk,
+				chunkNr:i
+			},
+			type: "post",
+			dataType: "json",
+			success: function () {
+				console.log("chunk " + i + " okay");
+			},
+			error: function () {
+				console.log("chunk " + i + " not okay");
+			}
+		})
+	});
+	var l = SomeLightBox.alert("Success", "Regulation network succcessfully cached");
+	setTimeout(function(){
+		l.dismiss();
+	}, 800)
+	
 }

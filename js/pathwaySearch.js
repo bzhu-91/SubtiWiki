@@ -1,11 +1,8 @@
 function pathwaySearch(id) {
-	ajax.get({
+	$.ajax({
 		url: "pathway?protein="+id,
-		headers: {Accept: "application/json"}
-	}).done(function(status, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if(status == 200) {
+		dataType:"json",
+		success: function (data) {
 			var result = $("<div></div>");
 			result.css({
 				"padding": "10px",
@@ -23,6 +20,9 @@ function pathwaySearch(id) {
 			});
 			l.load(result[0]);
 			l.show();
-		} else SomeLightBox.alert("Not found", "No pathways found");
+		},
+		error: function () {
+			SomeLightBox.alert("Not found", "No pathways found");
+		}
 	})
 }

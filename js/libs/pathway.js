@@ -117,7 +117,9 @@ Pathway.Protein.prototype.fromSVGElement = function (dom) {
         self._extra_text = dom.querySelector("text._protein_extra_text");
         
         self.id = dom.getAttribute("id") || "";
-        self.title = dom.getAttribute("tilte") || "";
+        self.title = dom.getAttribute("title") || "";
+        self.label = dom.getAttribute("label") || ""
+        self.extra = dom.getAttribute("extra") || null;
 
         var vector = Util.getTransformMatrix(dom);
         self.x = vector[4]; self.y = vector[5];
@@ -139,8 +141,16 @@ Pathway.Protein.prototype.__createView = function () {
     Util.attrNS(self._group, {
         class: self._isNested ? "protein nested" : "protein",
         id: self.id || "",
-        title: self.title || self.label || ""
+        title: self.title,
+        label: self.label
     });
+
+    if (self.extra) {
+        Util.attrNS(self._group, {
+            extra: self.extra
+        });
+    }
+
     Util.attrNS(self._rect, {
         class: "_protein_rect"
     });
@@ -157,19 +167,30 @@ Pathway.Protein.prototype.__createView = function () {
     });
     Util.attrNS(self._extra_text, {
         class: "_protein_extra_text",
-        "pointer-events": "none"
+        "pointer-events": "none",
     });
 
-    if (self._isPlural) {
-        self._group.appendChild(self._rect_duplicate);
+    if (!self._isPlural) {
+        Util.attrNS(self._rect_duplicate, {
+            visibility: "hidden"
+        });
     }
-    Util.appendAll(self._group, [self._rect, self._text]);
+
+    Util.appendAll(self._group, [self._rect_duplicate, self._rect, self._text]);
 
     self._text.textContent = self.label || self.name || self.title;
 
     if (self.extra) {
-        Util.appendAll(self._group, [self._extra, self._extra_text]);
+        self._extra_text.textContent = self.extra;
+    } else {
+        Util.attrNS(self._extra_text, {
+            visibility: "hidden"
+        });
+        Util.attrNS(self._extra, {
+            visibility: "hidden"
+        });
     }
+    Util.appendAll(self._group, [self._extra, self._extra_text]);
 
     return self._group;
 }
@@ -203,8 +224,8 @@ Pathway.Protein.prototype.__layout = function () {
     });
 
     if (self.extra) {
-        var vpadding_extra = 20;
-        var hpadding_extra = 10;
+        var vpadding_extra = 5;
+        var hpadding_extra = 5;
 
         var etBox = Util.getBBox(self._extra_text);
         var etw = etBox.width; var eth = etBox.height;
@@ -216,7 +237,6 @@ Pathway.Protein.prototype.__layout = function () {
             rx: ew/2,
             ry: eh/2
         });
-
         Util.attrNS(self._extra_text, {
             x: rw/2-etw/2,
             y: eth/2
@@ -233,6 +253,55 @@ Pathway.Protein.prototype.__setState = function (state) {
         case "normal":
         self._rect.style["stroke-width"] = 1;
         break;
+    }
+}
+
+Pathway.Protein.prototype.update = function (data) {
+    var self = this;
+    if (data.id != self.id) {
+        return false;
+    } else {
+        // update label
+        if (data.label && data.label != self.label) {
+            self.label = data.label;
+            self._text.textContent = self.label;
+            // update xml
+            Util.attrNS(self._group, {
+                label: self.label
+            });
+        }
+        if (data.title && data.title != self.title) {
+            self.title = data.title;
+            Util.attrNS({
+                title: self.title
+            });
+        }
+        // update extra
+        if ("extra" in data) {
+            // update xml
+            Util.attrNS(self._group, {
+                extra: data.extra
+            });
+            if (data.extra != null) {
+                self.extra = data.extra;
+                self._extra_text.textContent = data.extra;
+                Util.attrNS(self._extra, {
+                    visibility: "show"
+                });
+                Util.attrNS(self._extra_text, {
+                    visibility: "show"
+                });
+            } else {
+                // delete the extra
+                Util.attrNS(self._extra, {
+                    visibility: "hidden"
+                });
+                Util.attrNS(self._extra_text, {
+                    visibility: "hidden"
+                });
+            }
+        }
+        self.layout();
     }
 }
 
@@ -270,7 +339,8 @@ Pathway.ProteinClass.prototype.fromSVGElement = function(dom){
 		self.x = vector[4]; self.y = vector[5];
 		self.view.wrapper = self;
         self.uuid = self.view.getAttribute("uuid");
-        
+        self.title = dom.getAttribute("title");
+        self.label = dom.getAttribute("label");
 	} else {
 		throw new Error("dom element is not a protein (type does not match)");
 	}
@@ -287,7 +357,6 @@ Pathway.ProteinClass.prototype.__createView = function(){
 	});
 	return this._group;
 }
-
 
 /**
  * Pathway.Complex class
@@ -330,7 +399,7 @@ Pathway.Complex.prototype.fromSVGElement = function (dom) {
             throw new Error("Complex text not found", dom);
         }
 
-        var memberDoms = dom.querySelectorAll("g.protein, g.metabolite");
+        var memberDoms = dom.querySelectorAll("g.protein, g.metabolite, g.DNA, g.RNA");
         memberDoms.forEach(function(each){
             if (each.getAttribute("class") && each.getAttribute("class").indexOf("protein") > -1){
                 var protein = new Pathway.Protein(each);
@@ -340,6 +409,14 @@ Pathway.Complex.prototype.fromSVGElement = function (dom) {
                 var metabolite = new Pathway.Metabolite(each);
                 self._components.push(metabolite);
                 metabolite.parent = self;
+            } else if (each.getAttribute("class") && each.getAttribute("class").indexOf("DNA") > -1) {
+                var DNA = new Pathway.DNA(each);
+                self._components.push(DNA);
+                DNA.parent = self;
+            } else if (each.getAttribute("class") && each.getAttribute("class").indexOf("RNA") > -1) {
+                var RNA = new Pathway.RNA(each);
+                self._components.push(RNA);
+                RNA.parent = self;
             } else {
                 console.error("Unknown type, ignored", each);
             }
@@ -347,6 +424,8 @@ Pathway.Complex.prototype.fromSVGElement = function (dom) {
 
         self.uuid = dom.getAttribute("uuid");
         self.id = dom.getAttribute("id");
+        self.label = dom.getAttribute("label");
+        self.title = dom.getAttribute("title");
         self.view.wrapper = self;
         var vector = Util.getTransformMatrix(self._group);
         self.x = vector[4]; self.y = vector[5];
@@ -364,16 +443,26 @@ Pathway.Complex.prototype.__createView = function () {
 
     if (self.members) {
         self.members.forEach(function(each){
-            if (each.type == "protein") {
-                var protein = new Pathway.Protein(each);
-                protein._isNested = true;
-                self._components.push(protein);
-            } else if (each.type = "metabolite") {
-                var metabolite = new Pathway.Metabolite(each);
-                metabolite._isNested = true;
-                self._components.push(metabolite);
+            var el;
+            switch (each.type) {
+                case "protein":
+                    el = new Pathway.Protein(each);
+                    break;
+                case "metabolite":
+                    el = new Pathway.Metabolite(each);
+                    break;
+                case "DNA":
+                    el = new Pathway.DNA(each);
+                    break;
+                case "RNA":
+                    el = new Pathway.RNA(each);
+                    break;
+            }
+            if (el) {
+                el.__isNested = true;
+                self._components.push(el);
             } else {
-                console.log("unknown complex member");
+                console.log("unknown type of complex member");
             }
         });
     }
@@ -381,7 +470,9 @@ Pathway.Complex.prototype.__createView = function () {
     Util.attrNS(self._group, {
         class: "complex",
         id: self.id || "",
-        uuid: self.uuid
+        uuid: self.uuid,
+        label: self.label,
+        title: self.title
     });
 
     Util.attrNS(self._rect, {
@@ -393,7 +484,7 @@ Pathway.Complex.prototype.__createView = function () {
         "pointer-events": "none"
     });
 
-    self._text.textContent = self.label || self.title || "Complex";
+    Pathway.Metabolite.prototype.createText.apply(this, [self._text, self.label || self.title || "Complex"])
     return self._group;
 }
 
@@ -454,6 +545,69 @@ Pathway.Complex.prototype.__setState = function (state) {
 	}
 }
 
+Pathway.Complex.prototype.update = function (data) {
+    var self = this;
+    // hmmmmm, this is a bit more complicated than others
+    
+    // update the label
+    if (data.label && data.label != self.label) {
+        self.label = data.label;
+        Pathway.Metabolite.prototype.createText.apply(this, [self._text, data.label]);
+        // update the xml
+        Util.attrNS(self._group, {
+            label: self.label
+        });
+    }
+
+    if (data.label && data.label != self.label) {
+        self.label = data.label;
+        Util.attrNS(self._group, {
+            label: self.label
+        });
+    }
+
+    // update the members
+    if (data.members) {
+        var index = {};
+        self._components.forEach(function(component){
+            var className = component.view.getAttribute("class").replace("nested", "").replace(" ", "");
+            index[className + "-" + component.id] = component;
+        });
+        // check each new member
+        data.members.forEach(function(each){
+            if ((each.type + "-" + each.id) in index) {
+                var component = index[each.type + "-" + each.id];
+                component.update(each);
+                component.marked = true;
+            } else {
+                // new members;
+                if (each.type == "protein") {
+                    var view = new Pathway.Protein(each);
+                } else if (each.type = "metabolite") {
+                    var view = new Pathway.Metabolite(each);
+                } else {
+                    console.log("unknown complex member");
+                    return;
+                }
+                view._isNested = true;
+                view.marked = true;
+                view.appendTo(self);
+                self._components.push(view);
+            }
+        });
+        // remove the deleted ones
+        for(var i = 0; i < self._components.length; i++){
+            if (!self._components[i].marked) self._components[i].remove();
+        }
+        self._components = self._components.filter(function(component){
+            return component.marked;
+        });
+        for(var i = 0; i < self._components.length; i++){
+            delete self._components[i].marked;
+        }
+        self.layout();
+    }
+}
 /**
  * Pathway.Metabolite class
  */
@@ -509,15 +663,17 @@ Pathway.Metabolite.prototype.fromSVGElement = function (dom) {
         self.id = dom.getAttribute("id");
         self.uuid = dom.getAttribute("uuid");
         self.side = dom.getAttribute("side");
+        self.title = dom.getAttribute("title");
+        self.label = dom.getAttribute("label");
         self.view.wrapper = self;
     } else throw new Error("dom element is not a metabolite (type does not match)");
 }
 
 /* handle supscripts and superscripts, those should not overlap */
-Pathway.Metabolite.prototype.createText = function () {
+Pathway.Metabolite.prototype.createText = function (view, text) {
     var self = this;
-    var view = Util.elNS("text");
-    var text = self.label || self.name || self.title;
+    // remove all the childs of view
+    while (view.firstChild) view.firstChild.remove();
     var split = function (txt) {
         var regexp1 = /<sup>(.+?)<\/sup>/gi;
 		var m1 = regexp1.exec(txt);
@@ -567,7 +723,6 @@ Pathway.Metabolite.prototype.createText = function () {
     } else {
         view.textContent = text;
     }
-    return view;
 }
 
 Pathway.Metabolite.prototype.__createView = function () {
@@ -576,11 +731,16 @@ Pathway.Metabolite.prototype.__createView = function () {
     self._group = Util.elNS("g");
     self._ellipse = Util.elNS("ellipse");
     self._ellipse_duplicate = Util.elNS("ellipse");
-    self._text = self.createText();
+    self._text = Util.elNS("text");
+    self.createText(self._text, self.label || self.title || "Metabolite");
 
-    if (self._isPlural) {
-        self._group.appendChild(self._ellipse_duplicate);
+    if (!self._isPlural) {
+        Util.attrNS(self._ellipse_duplicate, {
+            visibility: "hidden"
+        });
     }
+
+    self._group.appendChild(self._ellipse_duplicate);
 
     Util.appendAll(self._group, [self._ellipse, self._text]);
 
@@ -589,7 +749,8 @@ Pathway.Metabolite.prototype.__createView = function () {
         id: self.id || "",
         uuid: self.uuid,
         side: self.side,
-        title: self.title
+        title: self.title,
+        label: self.label
     });
 
     Util.attrNS(self._ellipse, {
@@ -645,6 +806,307 @@ Pathway.Metabolite.prototype.__setState = function(state) {
 			break;
 	}
 }
+
+Pathway.Metabolite.prototype.update = function (data) {
+    var self = this;
+    if (self.id != data.id) {
+        return false;
+    } else {
+        // update the label
+        if (data.label != self.label) {
+            self.label = data.label;
+            // update xml
+            Util.attrNS(self._group, {
+                label: data.label
+            });
+            self.createText(self._text, data.label);
+        }
+        if (data.title && data.title != self.title) {
+            self.title = data.title;
+            Util.attrNS(self._group, {
+                title: self.title
+            });
+        }
+        self.layout();
+    }
+}
+
+/**
+ * Pathway.DNA class
+ */
+
+ Pathway.DNA = Pathway.DNA || function (input) {
+    View.call(this);
+
+    // views
+    this._group;
+    this._rect;
+    this._text;
+
+    if (input instanceof Element) {
+        // instantiate from SVG element
+        this.fromSVGElement (input);
+    } else {
+        for (var i in input) {
+            if (input.hasOwnProperty(i)) {
+                if (!(i in this)) this[i] = input[i];
+                else console.error("conflict of keys ignored in object", input);
+            }
+        }
+    }
+ }
+
+ Pathway.DNA.prototype = Object.create(View.prototype);
+
+ Pathway.DNA.constructor = Pathway.DNA;
+
+ Pathway.DNA.prototype.fromSVGElement = function (dom) {
+    var self = this;
+    if (dom.tagName == "g" && dom.getAttribute("class") && dom.getAttribute("class").indexOf("DNA") > -1) {
+        self.view = self._group = dom;
+        self._rect = dom.querySelector("rect._DNA_rect");
+        if (!self._rect) {
+            throw new Error("DNA rect not found", dom);
+        }
+        self._text = dom.querySelector("text._DNA_text");
+        if (!self._text) {
+            throw new Error("DNA text not found", dom);
+        }
+        if (dom.getAttribute("class").indexOf("nested") > -1) {
+            self._isNested = true;
+        }
+        self.id = dom.getAttribute("id") || "";
+        self.title = dom.getAttribute("title") || "";
+
+        var vector = Util.getTransformMatrix(dom);
+        self.x = vector[4]; self.y = vector[5];
+        self.view.wrapper = self;
+        self.uuid = self.view.getAttribute("uuid");
+        self.label = self.view.getAttribute("label");
+        self.title = self.view.getAttribute("title");
+    } else throw new Error("dom element is not a protein (type does not match)", dom);
+ }
+
+ Pathway.DNA.prototype.__createView = function () {
+     var self = this;
+     self._group = Util.elNS("g", {
+         class: self._isNested ? "DNA nested": "DNA",
+         id: self.id,
+         subclass: self.subclass,
+         title: self.title,
+         label: self.label,
+         uuid: self.uuid
+     });
+     self._rect = Util.elNS("rect", {
+         class: "_DNA_rect"
+     });
+     self._text = Util.elNS("text", {
+         class: "_DNA_text",
+         "alignment-baseline": "middle"
+     });
+     self._text.textContent = self.label;
+     Util.appendAll(self._group, [self._rect, self._text]);
+     return self._group;
+ }
+
+ Pathway.DNA.prototype.__setState = function (state) {
+    var self = this;
+	switch(state){
+		case "normal":
+			self._rect.style["stroke-width"] = 1;
+			break;
+		case "selected":
+            self._rect.style["stroke-width"] = 2;
+            break;
+	}
+ }
+
+ Pathway.DNA.prototype.__layout = function () {
+    var self = this;
+    var hpadding = 20;
+    var vpadding = 10;
+
+    var txtBBox = Util.getBBox(self._text);
+    var th = txtBBox.height; var tw = txtBBox.width;
+    var rh = vpadding*2 + th; var rw = hpadding * 2 + tw;
+
+    Util.attrNS(self._rect, {
+        x: -rw/2,
+        y: -rh/2,
+        width: rw + 0.5,
+        height: rh + 0.5
+    });
+
+    Util.attrNS(self._text, {
+        x: -tw/2,
+        y: 0
+    });
+ }
+
+ Pathway.DNA.prototype.update = function (data) {
+    var self = this;
+    if (self.id != data.id) {
+        return false;
+    } else {
+        // update the label
+        if (data.label != self.label) {
+            self.label = data.label;
+            // update xml
+            Util.attrNS(self._group, {
+                label: data.label
+            });
+            self._text.textContent = data.label;
+        }
+        if (data.title && data.title != self.title) {
+            self.title = data.title;
+            Util.attrNS(self._group, {
+                title: self.title
+            });
+        }
+        self.layout();
+    }
+ }
+
+ Pathway.RNA = Pathway.RNA || function (input) {
+    View.call(this);
+
+    // views
+    this._group;
+    this._polygon;
+    this._text;
+
+    if (input instanceof Element) {
+        // instantiate from SVG element
+        this.fromSVGElement (input);
+    } else {
+        for (var i in input) {
+            if (input.hasOwnProperty(i)) {
+                if (!(i in this)) this[i] = input[i];
+                else console.error("conflict of keys ignored in object", input);
+            }
+        }
+    }
+ }
+
+ Pathway.RNA.prototype = Object.create(View.prototype);
+
+ Pathway.RNA.constructor = Pathway.RNA;
+
+ Pathway.RNA.prototype.fromSVGElement = function (dom) {
+    var self = this;
+    if (dom.tagName == "g" && dom.getAttribute("class") && dom.getAttribute("class").indexOf("RNA") > -1) {
+        self.view = self._group = dom;
+        self._polygon = dom.querySelector("polygon._RNA_polygon");
+        if (!self._polygon) {
+            throw new Error("RNA polygon not found", dom);
+        }
+        self._text = dom.querySelector("text._RNA_text");
+        if (!self._text) {
+            throw new Error("RNA text not found", dom);
+        }
+        if (dom.getAttribute("class").indexOf("nested") > -1) {
+            self._isNested = true;
+        }
+        self.id = dom.getAttribute("id") || "";
+        self.title = dom.getAttribute("title") || "";
+
+        var vector = Util.getTransformMatrix(dom);
+        self.x = vector[4]; self.y = vector[5];
+        self.view.wrapper = self;
+        self.uuid = self.view.getAttribute("uuid");
+        self.title = self.view.getAttribute("title");
+        self.label = self.view.getAttribute("label");
+    } else throw new Error("dom element is not a protein (type does not match)", dom);
+ }
+
+ Pathway.RNA.prototype.__createView = function () {
+     var self = this;
+     self._group = Util.elNS("g", {
+         class: self._isNested ? "RNA nested": "RNA",
+         id: self.id,
+         subclass: self.subclass,
+         title: self.title,
+         label: self.label,
+         uuid: self.uuid
+     });
+     self._polygon = Util.elNS("polygon", {
+         class: "_RNA_polygon"
+     });
+     self._text = Util.elNS("text", {
+         class: "_RNA_text",
+         "alignment-baseline": "middle"
+     });
+     self._text.textContent = self.label;
+     Util.appendAll(self._group, [self._polygon, self._text]);
+     return self._group;
+ }
+
+ Pathway.RNA.prototype.__setState = function (state) {
+    var self = this;
+	switch(state){
+		case "normal":
+			self._polygon.style["stroke-width"] = 1;
+			break;
+		case "selected":
+            self._polygon.style["stroke-width"] = 2;
+            break;
+	}
+ }
+
+ Pathway.RNA.prototype.__layout = function () {
+    var self = this;
+    var hpadding = 20;
+    var vpadding = 10;
+
+    var txtBBox = Util.getBBox(self._text);
+    var th = txtBBox.height; var tw = txtBBox.width;
+    var rh = vpadding*2 + th; var rw = hpadding * 2 + tw;
+
+    var points = [
+        [-(rw/2), -rh/2],
+        [rw/2+5, -rh/2],
+        [rw/2-5,rh/2],
+        [-(rw/2+5), rh/2],
+    ]
+    for(var i = 0; i < points.length; i++) {
+        points[i] = points[i].join(",");
+    }
+
+    Util.attrNS(self._polygon, {
+        points: points.join(" ")
+    });
+
+    Util.attrNS(self._text, {
+        x: -tw/2,
+        y: 0
+    });
+ }
+
+ Pathway.RNA.prototype.update = function (data) {
+    var self = this;
+    if (self.id != data.id) {
+        return false;
+    } else {
+        // update the label
+        if (data.label != self.label) {
+            self.label = data.label;
+            // update xml
+            Util.attrNS(self._group, {
+                label: data.label
+            });
+            self._text.textContent = data.label;
+        }
+        if (data.title && data.title != self.title) {
+            self.title = data.title;
+            Util.attrNS(self._group, {
+                title: self.title
+            });
+        }
+        self.layout();
+    }
+ }
+
+ // TODO
 
 /**
  * Pathway.JoinPoint class
@@ -815,12 +1277,6 @@ Pathway.Link.prototype.__createView = function () {
         "pointer-events": "none"
     });
 
-    if (self.dashed) {
-        Util.attrNS(self._path, {
-            "stroke-dasharray": "10 5"
-        });
-    }
-
     Util.appendAll(self._group, [self._path, self._arrow]);
 
     self.from.addLink(self);
@@ -853,6 +1309,12 @@ Pathway.Link.prototype.__layout = function () {
         ctrlx: self.controlPoint.x,
         ctrly: self.controlPoint.y
     });
+
+    if (self.isDashed) {
+        Util.attrNS(self._path, {
+            "stroke-dasharray": "10 5"
+        });
+    }
 
     if (self.isCurved) {
         pdata1 += "Q " + self.controlPoint.x + " " + self.controlPoint.y + ",";
@@ -918,7 +1380,7 @@ Pathway.Link.prototype.__layout = function () {
         }
         Util.attrNS(self._arrow, {
             d: pdata2
-        })
+        });
     }
 }
 
@@ -936,12 +1398,30 @@ Pathway.Link.prototype.appendTo = function (parent) {
 	self.layout();
 }
 
+Pathway.Link.prototype.update = function (data) {
+    var self = this;
+    // update reversible, novel
+    if ("isDashed" in data) self.isDashed = data.isDashed;
+    if ("isCurved" in data) self.isCurved = data.isCurved;
+    if ("hasArrow" in data) self.hasArrow = data.hasArrow;
+    // update the xml
+    Util.attrNS(self._group, {
+        iscurved: self.isCurved || false,
+        hasarrow: self.hasArrow || false,
+        isdashed: self.isDashed || false,
+    });
+    self.layout();
+}
+
+/**
+ * Pathway.Reaction class
+ */
 Pathway.Reaction = Pathway.Reaction || function (input) {
     View.call(this);
 
     // views
     this._group;
-    this._underlayer;
+    this._underLayer;
     this._rect;
     this._title;
 
@@ -998,49 +1478,51 @@ Pathway.Reaction.prototype.fromSVGElement = function (dom) {
         }
 
         // get all proteins
-        var doms = dom.querySelectorAll("g.protein");
-        doms.forEach(function(each){
-            if (each.getAttribute("class").indexOf("nested") == -1) {
-                // exclude nested protein dom in the complex
-                var protein = new Pathway.Protein(each);
-                protein.parent = self;
-                self._catalysts.push(protein);
-            }
+        var doms = dom.querySelectorAll("g.protein:not(.nested)");
+        if (doms) doms.forEach(function(each){
+            // exclude nested protein dom in the complex
+            var protein = new Pathway.Protein(each);
+            protein.parent = self;
         });
 
         // get all protein class
-        var doms = dom.querySelectorAll("g.proteinClass");
-        doms.forEach(function(each){
-            if (each.getAttribute("class").indexOf("nested") == -1){
-                var proteinClass = new Pathway.ProteinClass(each);
-                proteinClass.parent = self;
-                self._catalysts.push(proteinClass);
-            }
+        var doms = dom.querySelectorAll("g.proteinClass:not(.nested)");
+        if (doms) doms.forEach(function(each){
+            var proteinClass = new Pathway.ProteinClass(each);
+            proteinClass.parent = self;
         })
 
         // get all complexes
-        var doms = dom.querySelectorAll("g.complex");
-        doms.forEach(function(each){
+        var doms = dom.querySelectorAll("g.complex:not(.nested)");
+        if (doms) doms.forEach(function(each){
             var complex = new Pathway.Complex(each);
             complex.parent = self;
-            self._catalysts.push(complex);
         });
 
         // get all metabolites
-        var doms = dom.querySelectorAll("g.metabolite");
-        doms.forEach(function(each){
+        var doms = dom.querySelectorAll("g.metabolite:not(.nested)");
+        if (doms) doms.forEach(function(each){
             var metabolite = new Pathway.Metabolite(each);
             metabolite.parent = self;
-            if (metabolite.side == "L") {
-                self._lhs.push(metabolite);
-            } else {
-                self._rhs.push(metabolite);
-            }
         });
+
+        // get all DNA
+        var doms = dom.querySelectorAll("g.DNA:not(.nested)");
+        if (doms) doms.forEach(function(each){
+            var DNA = new Pathway.DNA(each);
+            DNA.parent = self;
+        });
+
+         // get all RNA
+         var doms = dom.querySelectorAll("g.RNA:not(.nested)");
+         if (doms) doms.forEach(function(each){
+             var RNA = new Pathway.RNA(each);
+             RNA.parent = self;
+         });
 
         // get all join points
         var doms = dom.querySelectorAll("ellipse.joinPoint");
-        doms.forEach(function(each){
+        if (doms) doms.forEach(function(each){
             var joinPoint = new Pathway.JoinPoint(each);
             joinPoint.parent = self;
             switch(joinPoint.type) {
@@ -1061,7 +1543,7 @@ Pathway.Reaction.prototype.fromSVGElement = function (dom) {
 
         // get all links
         var doms = dom.querySelectorAll("g.linkGroup");
-        doms.forEach(function(each){
+        if (doms) doms.forEach(function(each){
             var link = new Pathway.Link(each, self);
             self._internalLinks.push(link);
             if (link.from instanceof Pathway.JoinPoint) {
@@ -1071,15 +1553,33 @@ Pathway.Reaction.prototype.fromSVGElement = function (dom) {
             }
         });
 
+        // get by rolls
+        var doms = dom.querySelectorAll("g[role=reactant]");
+        if (doms) doms.forEach(function(each){
+            self._lhs.push(each.wrapper);
+        });
+
+        var doms = dom.querySelectorAll("g[role=product]");
+        if (doms) doms.forEach(function(each){
+            self._rhs.push(each.wrapper);
+        });
+
+        var doms = dom.querySelectorAll("g[role=catalyst]");
+        if (doms) doms.forEach(function(each){
+            self._catalysts.push(each.wrapper);
+        });
+
+        self._title = dom.querySelector("title");
+
         self.view = self._group = dom;
         self.view.wrapper = self;
-        self._underlayer = dom.querySelector("g.underlayer");
+        self._underLayer = dom.querySelector("g.underLayer");
         self._rect = dom.querySelector("rect.background");
         
         var vector = Util.getTransformMatrix(dom);
 		self.x = vector[4];
         self.y = vector[5];
-        
+        self.equation = dom.getAttribute("equation");
         self.updateMoveFunction();
     }
 }
@@ -1122,6 +1622,9 @@ Pathway.Reaction.prototype.updateMoveFunction = function () {
         var midx = (self._jpLhs.x + self._jpRhs.x) / 2;
         var midy = (self._jpLhs.y + self._jpRhs.y) / 2;
         self._center.position(midx, midy);
+        if (self._catalysts.length == 1) {
+            self._jpCatalysts.position(midx, midy); 
+        }
 
         // background rect changes with the movement of the 
         Util.attrNS(self._rect, {
@@ -1146,7 +1649,7 @@ Pathway.Reaction.prototype.__createView = function () {
     var self = this;
 
     self._group = Util.elNS("g");
-    self._underlayer = Util.elNS("g");
+    self._underLayer = Util.elNS("g");
     self._rect = Util.elNS("rect");
     self._title = Util.elNS("title");
 
@@ -1156,7 +1659,7 @@ Pathway.Reaction.prototype.__createView = function () {
 
     self._title.textContent = "R" + self.id + ": " + self.equation;
 
-    Util.appendAll(self._group, [self._title, self._rect, self._underlayer]);
+    Util.appendAll(self._group, [self._title, self._rect, self._underLayer]);
 
     Util.attrNS(self._group, {
 		class: "reaction",
@@ -1164,16 +1667,27 @@ Pathway.Reaction.prototype.__createView = function () {
 		layoutdirection: self.layoutDirection,
 		layoutreversed: self.layoutReversed || false,
 		width: self.width,
-		height: self.height,
+        height: self.height,
+        equation: self.equation
     });
     
-	Util.attrNS(self._underlayer, {
+	Util.attrNS(self._underLayer, {
 		class: "underLayer"
     });
     
     self._center = new Pathway.JoinPoint();
     self._jpLhs = new Pathway.JoinPoint();
     self._jpRhs = new Pathway.JoinPoint();
+    self._jpCatalysts = new Pathway.JoinPoint();
+
+    var link = new Pathway.Link({
+        from: self._center,
+        to: self._jpCatalysts,
+        isCurved: false,
+        isDashed: self.novel,
+        hasArrow: false
+    });
+    self._internalLinks.push(link);
 
     self.updateMoveFunction();
 
@@ -1189,7 +1703,23 @@ Pathway.Reaction.prototype.__createView = function () {
     
     self.reactants.forEach(function(m){
         m.side = "L";
-        var metabolite = new Pathway.Metabolite(m);
+        var metabolite;
+        switch (m.type) {
+            case "DNA":
+                metabolite = new Pathway.DNA(m);
+                break;
+            case "RNA":
+                metabolite = new Pathway.RNA(m);
+                break;
+            case "protein":
+                metabolite = new Pathway.Protein(m);
+                break;
+            case "complex":
+                metabolite = new Pathway.Complex(m);
+                break;
+            default:
+                metabolite = new Pathway.Metabolite(m);
+        }
         if (m.coefficient && m.coefficient > 1) {
             metabolite._isPlural = true;
         }
@@ -1199,14 +1729,30 @@ Pathway.Reaction.prototype.__createView = function () {
             to: self._jpLhs,
             isCurved: true,
             hasArrow: !self.reversible,
-            isDashed: self.novel
+            isDashed: self.novel,
         });
         self._internalLinks.push(link);
     });
 
     self.products.forEach(function(m){
         m.side = "R";
-        var metabolite = new Pathway.Metabolite(m);
+        var metabolite;
+        switch (m.type) {
+            case "DNA":
+                metabolite = new Pathway.DNA(m);
+                break;
+            case "RNA":
+                metabolite = new Pathway.RNA(m);
+                break;
+            case "protein":
+                metabolite = new Pathway.Protein(m);
+                break;
+            case "complex":
+                metabolite = new Pathway.Complex(m);
+                break;
+            default:
+                metabolite = new Pathway.Metabolite(m);
+        }
         if (m.coefficient && m.coefficient > 1) {
             metabolite._isPlural = true;
         }
@@ -1222,21 +1768,6 @@ Pathway.Reaction.prototype.__createView = function () {
     });
 
     if (self.catalysts && self.catalysts.length) {
-        var joinpoint;
-        if (self.catalysts.length == 1) {
-            joinpoint = self._center;
-        } else {
-            self._jpCatalysts = new Pathway.JoinPoint();
-            var link = new Pathway.Link({
-                from: self._center,
-                to: self._jpCatalysts,
-                isCurved: false,
-                isDashed: self.novel,
-                hasArrow: false
-            });
-            self._internalLinks.push(link);
-            joinpoint = self._jpCatalysts; 
-        }
         self.catalysts.forEach(function(c){
             var view;
             switch(c.type) {
@@ -1247,6 +1778,7 @@ Pathway.Reaction.prototype.__createView = function () {
                     view = new Pathway.Complex(c);
                     break;
                 case "class":
+                case "object":
                     view = new Pathway.ProteinClass(c);
                     break;
                 default:
@@ -1256,9 +1788,9 @@ Pathway.Reaction.prototype.__createView = function () {
                 self._catalysts.push(view);
                 var link = new Pathway.Link({
                     from: view,
-                    to: joinpoint,
+                    to: self._jpCatalysts,
                     isCurved: false,
-                    isDashed: self.novel,
+                    isDashed: c.novel,
                     hasArrow: false
                 });
                 self._internalLinks.push(link);
@@ -1273,6 +1805,7 @@ Pathway.Reaction.prototype.__assemble = function () {
     self._center.appendTo(self);
     self._jpLhs.appendTo(self);
     self._jpRhs.appendTo(self);
+    self._jpCatalysts.appendTo(self);
     
     self._center.attr({
         type: "center",
@@ -1287,11 +1820,14 @@ Pathway.Reaction.prototype.__assemble = function () {
         type: "rhs"
     });
 
-    if (self._catalysts && self._catalysts.length > 1) {
-        self._jpCatalysts.appendTo(self);
-        self._jpCatalysts.attr({
-            type: "catalyst"
-        });
+    self._jpCatalysts.attr({
+        type: "catalyst"
+    });
+
+    if (self.catalysts && self.catalysts.length == 1) {
+        // hide the catalyst join point and the link
+        self._jpCatalysts.linkVisible(false);
+        self._jpCatalysts.hide();
     }
 
     [self._rhs, self._lhs, self._catalysts, self._internalLinks].forEach(function(elements){
@@ -1302,7 +1838,7 @@ Pathway.Reaction.prototype.__assemble = function () {
 }
 
 Pathway.Reaction.prototype.getUnderLayer = function () {
-    return this._underlayer;
+    return this._underLayer;
 }
 
 // it is complicated
@@ -1467,6 +2003,25 @@ Pathway.Reaction.prototype.__layout = function () {
         width: Math.abs(self._jpLhs.x - self._jpRhs.x) + 40,
         height: Math.abs(self._jpLhs.y - self._jpRhs.y) + 40
     });
+
+    // write the rolls to the xml
+    self._lhs.forEach(function(each){
+        each.attr({
+            role: "reactant"
+        });
+    });
+    
+    self._rhs.forEach(function(each){
+        each.attr({
+            role: "product"
+        });
+    });
+
+    self._catalysts.forEach(function(each){
+        each.attr({
+            role: "catalyst"
+        });
+    });
 }
 
 Pathway.Reaction.prototype.__setState = function (state) {
@@ -1484,6 +2039,7 @@ Pathway.Reaction.prototype.__setState = function (state) {
             width: bbox.width + 20,
             height: bbox.height + 20
         });
+        self._rect.style.fill = null;
         break;
         case 'normal':
         Util.attrNS(self._rect, {
@@ -1492,6 +2048,318 @@ Pathway.Reaction.prototype.__setState = function (state) {
             width: Math.abs(self._jpLhs.x - self._jpRhs.x) + 40,
             height: Math.abs(self._jpLhs.y - self._jpRhs.y) + 40
         });
+        self._rect.style.fill = null;
+        break;
+        case 'error':
+        Util.attrNS(self._rect, {
+            x: Math.min(self._jpLhs.x, self._jpRhs.x) - 20,
+            y: Math.min(self._jpLhs.y, self._jpRhs.y) - 20,
+            width: Math.abs(self._jpLhs.x - self._jpRhs.x) + 40,
+            height: Math.abs(self._jpLhs.y - self._jpRhs.y) + 40
+        });
+        self._rect.style.fill = "red";
+        break;
+        case 'warning':
+        Util.attrNS(self._rect, {
+            x: Math.min(self._jpLhs.x, self._jpRhs.x) - 20,
+            y: Math.min(self._jpLhs.y, self._jpRhs.y) - 20,
+            width: Math.abs(self._jpLhs.x - self._jpRhs.x) + 40,
+            height: Math.abs(self._jpLhs.y - self._jpRhs.y) + 40
+        });
+        self._rect.style.fill = "orange";
+    }
+}
+
+Pathway.Reaction.prototype.unlink = function (view1, view2) {
+    var self = this;
+    self._internalLinks.forEach(function(l){
+        if (l.from == view1 && l.to == view2 || (l.from == view2 && l.to == view1)) {
+            l.remove();
+            console.log("removed")
+            l.deleted = true;
+        }
+    });
+    self._internalLinks = self._internalLinks.filter(function(l){
+        return !l.deleted;
+    })
+}
+
+Pathway.Reaction.prototype.link = function (from, to, options) {
+    var self = this;
+    self.unlink(from, to);
+    options = options || {}
+    options.from = from; options.to = to;
+    var defaultOptions = {
+        isCurved: true,
+        hasArrow: !self.reversible,
+        isDashed: self.novel,
+    };
+    for(var key in defaultOptions) {
+        if (!(key in options)) {
+            options[key] = defaultOptions[key];
+        }
+    }
+    var l = new Pathway.Link(options)
+    self._internalLinks.push(l);
+    l.appendTo(self);
+}
+
+Pathway.Reaction.prototype.update = function (data) {
+    var self = this;
+    if (self.id != data.id) {
+        return false;
+    } else {
+        // update equation
+        if (data.equation && data.equation != self.equation) {
+            self.equation = data.equation;
+            Util.attrNS(self._group, {
+                equation: self.equation
+            });
+            self._title.textContent = "R" + self.id + ": " + self.equation;
+        }
+        // update links
+        if ("novel" in data) {
+            self._internalLinks.forEach(function(link) {
+                link.update({
+                    isDashed: data.novel
+                });
+            });
+            self.isDashed = data.novel;
+            Util.attrNS(self._group, {
+                novel: self.novel
+            });
+        }
+        if ("reversible" in data) {
+            self._internalLinks.forEach(function(link){
+                if (link.from.attr("role") == "reactant" || link.to.attr("role") == "product") {
+                    link.update({
+                        hasArrow: !data.reversible
+                    });
+                }
+            });
+            self.hasArrow = data.reversible;
+            Util.attrNS(self._group, {
+                reversible: self.reversible
+            });
+        }
+        // update the metabolites
+        // check if auto update is possible 
+        var canAutoUpdate = true;
+        if (data.reactants) {
+            var dict = {};
+            data["reactants"].forEach(function(each){
+                dict[each.type + "-" + each.id] = each;
+            });
+            for(var i = 0; i < self["_lhs"].length; i++){
+                var each = self["_lhs"][i];
+                var type = each.view.getAttribute("class").replace("nested", "").replace(" ", "");
+                var compositId = type + "-" + each.id;
+                console.log(compositId in dict);
+                if (!(compositId in dict) && self.isInLockGroup(each)) {
+                    canAutoUpdate = false;
+                    break;
+                }
+            }
+        }
+        if (data.products) {
+            var dict = {};
+            data["products"].forEach(function(each){
+                dict[each.type + "-" + each.id] = each;
+            });
+            for(var i = 0; i < self["_rhs"].length; i++){
+                var each = self["_rhs"][i];
+                var type = each.view.getAttribute("class").replace("nested", "").replace(" ", "");
+                var compositId = type + "-" + each.id;
+                if (!(compositId in dict) && self.isInLockGroup(each)) {
+                    canAutoUpdate = false;
+                    break;
+                }
+            }
+        }
+        // do the auto update
+        if (canAutoUpdate) {
+            var warning;
+            var sides = ["L", "R"];
+            for(var k = 0; k < sides.length; k++) {
+                var a = sides[k] == "L" ? "reactants" : "products";
+                var b = sides[k] == "L" ? "_lhs" : "_rhs";
+                if (data[a]) {
+                    var dict = {}, oldPositions = [], link;
+                    data[a].forEach(function(each){
+                        dict[each.type + "-" + each.id] = each;
+                    });
+                    for(var i = 0; i < self[b].length; i++){
+                        var each = self[b][i];
+                        var type = each.view.getAttribute("class").replace("nested", "").replace(" ", "");
+                        var compositId = type + "-" + each.id;
+                        if (compositId in dict) {
+                            each.update(dict[compositId]);
+                            delete dict[compositId];
+                        } else {
+                            each.mark = true;
+                        }
+                    }
+                    self[b] = self[b].filter(function(each){
+                        if (each.mark) {
+                            // remove metabolites
+                            // remove the links connected to the metabolite
+                            each.removeLink();
+                            each.remove();
+                        }
+                        return !each.mark;
+                    });
+                    for(var compositId in dict) {
+                        var metabolite, position = sides[k] == "L" ? {x:-50,y:-50} : {x:50,y:50}, each = dict[compositId];
+                        if (oldPositions.length) position = oldPositions.shift();
+                        else warning = "Manual layout is necessary";
+
+                        // create wrapper
+                        switch (each.type) {
+                            case "DNA":
+                                metabolite = new Pathway.DNA(each);
+                                break;
+                            case "RNA":
+                                metabolite = new Pathway.RNA(each);
+                                break;
+                            case "protein":
+                                metabolite = new Pathway.Protein(each);
+                                break;
+                            case "complex":
+                                metabolite = new Pathway.Complex(each);
+                                break;
+                            default:
+                                metabolite = new Pathway.Metabolite(each);
+                        }
+                        self[b].push(metabolite);
+                        metabolite.appendTo(self);
+                        metabolite.attr({
+                            "role": a.replace("s", ""),
+                            "side": b == "_lhs" ? "L" : "R"
+                        });
+                        metabolite.position(position.x, position.y);
+                        // link
+                        if (sides[k] == "L") {
+                            link = new Pathway.Link({
+                                from: metabolite,
+                                to: self._jpLhs,
+                                isDashed: self.novel,
+                                isCurved: true,
+                                hasArrow: !self.reversible
+                            });
+                            link.appendTo(self);
+                            link.setControlPoint(self._ctrlLhs);
+                        } else {
+                            link = new Pathway.Link({
+                                from: self._jpRhs,
+                                to: metabolite,
+                                isDashed: self.novel,
+                                isCurved: true,
+                                hasArrow: !self.reversible
+                            });
+                            link.appendTo(self);
+                            link.setControlPoint(self._ctrlRhs);
+                        }
+                        
+                        self._internalLinks.push(link);
+                    }
+                }
+            }
+            if (warning) {
+                self.errorMessage = "Auto update is successful. However, manual layout is necessary";
+                self.setState("warning");
+            }
+        } else {
+            self.errorMessage = "Auto update is not possible.";
+            self.setState("error");
+            return false;
+        }
+        // -- end update metabolites --
+
+        // update catalysts
+        // Not working, TODO
+        if (data.catalysts) {
+            var showJPCatalysts = self._catalysts.length <= 1 && data.catalysts.length > 1;
+            var catalystDictData = {}
+            var catalystDictSelf = {}
+            data.catalysts.forEach(function(cat){
+                catalystDictData[cat.type + "-" + cat.id] = cat;
+            });
+            self._catalysts.forEach(function(catView){
+                var type = catView.view.getAttribute("class").replace(/nested/g, "").replace(/\s+/, "");
+                catalystDictSelf[type + "-" + catView.id] = catView;
+            });
+            // compare new data and current data
+            var toAdd = {}
+            var toDelete = {}
+            var toUpdate = {}
+            for(var compId in catalystDictData) {
+                if (!(compId in catalystDictSelf)) toAdd[compId] = catalystDictData[compId];
+                else toUpdate[compId] = catalystDictSelf[compId];
+            }
+            for(var compId in catalystDictSelf) {
+                if (!(compId in catalystDictData)) toDelete[compId] = catalystDictSelf[compId];
+                else toUpdate[compId] = catalystDictSelf[compId];
+            }
+
+            // remove the new catalysts
+            for(var compId in toDelete) {
+                toDelete[compId].remove();
+                self.unlink(toDelete[compId], self._jpCatalysts);
+                toDelete.deleted = true;    
+            }
+
+            self._catalysts = self._catalysts.filter(function(catalystView){
+                return !catalystView.deleted;
+            });
+
+            // update the current catalyst
+            for(var compId in toUpdate) {
+                toUpdate[compId].update(catalystDictData[compId]);
+                self.link(toUpdate[compId], self._jpCatalysts, {
+                    hasArrow: false, isCurved: false, isDashed: catalystDictData[compId].novel
+                })
+            }
+
+            // add the new catalysts
+            for(var compId in toAdd) {
+                var view;
+                switch (toAdd[compId].type) {
+                    case "protein":
+                        view = new Pathway.Protein(toAdd[compId]);
+                        break;
+                    case "proteinClass":
+                        view = new Pathway.ProteinClass(toAdd[compId]);
+                        break;
+                    case "complex":
+                        view = new Pathway.Complex(toAdd[compId]);
+                        break;
+                    default:
+                        console.error("Unknow type: ", toAdd[compId]);
+                }
+                if (view) {
+                    view.appendTo(self);
+                    view.role = "catalyst";
+                    view.attr({
+                        role: "catalyst",
+                        novel: toAdd[compId].novel
+                    });
+                    self.link(self._jpCatalysts, view, {
+                        hasArrow: false, isCurved: false, isDashed: view.novel
+                    });
+                    self._catalysts.push(view);
+                }
+            }
+
+            if (showJPCatalysts) {
+                self._jpCatalysts.show();
+                self._jpCatalysts.position(self._center.x + 20, self._center.y + 20);
+            }
+
+            if (JSON.stringify(toAdd) != "{}") {
+                self.setState("warning");
+                self.errorMessage = "Auto update is successful. However, manual layout is necessary";
+            }
+        }
     }
 }
 

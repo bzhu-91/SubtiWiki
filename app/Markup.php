@@ -1,5 +1,5 @@
 <?php
-
+namespace Kiwi;
 trait Markup {
 	public function toLinkMarkup () {
 		return "[".lcfirst(get_called_class())."|".$this->id."|".$this->title."]";
@@ -24,8 +24,16 @@ trait Markup {
 		preg_match_all("/\{(\w+?)\|([^\[\]\|]+?)\}/i", $str, $matches);
 		if (!empty($matches)) {
 			$className = ucfirst($matches[1][0]);
-			if (class_exists($className) && is_subclass_of($className, "Model")) {
-				return $className::simpleGet($matches[2][0]);
+			try {
+				if (class_exists($className) && is_subclass_of($className, "\Kiwi\Model")) {
+					return $className::simpleGet($matches[2][0]);
+				}
+			} catch (Exception $e) {
+				$object = new BiologicalObject();
+				$object->title = $matches[2][0];
+				$object->id = $matches[2][0];
+				$object->type = $matches[1][0];
+				return $object;
 			}
 		}
 	}

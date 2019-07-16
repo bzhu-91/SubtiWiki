@@ -22,6 +22,24 @@ svg text::selection {
 	fill: #F0F4C3;
 }
 
+._DNA_rect {
+	fill: yellow;
+	stroke: black;
+	stroke-width: 1px;
+	shape-rendering:geometricPrecision;
+}
+
+._RNA_polygon {
+	fill: greenyellow;
+	stroke: black;
+	stroke-width: 1px;
+	shape-rendering: geometricPrecision;
+}
+
+._protein_extra_text {
+	font-size: xx-small;
+}
+
 ellipse {
 	fill: white;
 	stroke: black;

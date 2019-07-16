@@ -32,18 +32,18 @@ $(document).on("submit", "#search", function(ev){
 	ev.stopPropagation();
 	var geneName = this.geneName.value.trim();
 	if (geneName.length > 1) {
-		ajax.get({
+		$.ajax({
 			url: "gene?keyword=" + encodeURIComponent(geneName) + "&mode=title",
-			headers: {Accept: "application/json"}
-		}).done(function(status, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost.");
-			} else if (status == 200) {
+			dataType:"json",
+			success: function (data) {
 				if (data.length == 1) {
 					window.location = $("base").attr("href") + "expression?gene=" + data[0].id;
 				} else {
 					SomeLightBox.error("Gene " + geneName + " is ambigious");
 				}
+			},
+			error: function () {
+				SomeLightBox.error("Connection to server lost.");
 			}
 		})
 	}
@@ -55,20 +55,18 @@ $(document).on("submit", ".control", function(ev) {
 	ev.stopPropagation();
 	var geneName = this.geneName.value.trim();
 	if (geneName.length > 1) {
-		ajax.get({
+		$.ajax({
 			url:"gene?keyword=" + encodeURIComponent(geneName),
-			headers: {Accept: "application/json"}
-		}).done(function (status, data, error, xhr){
-			if (error) {
-				SomeLightBox.error("Connection to server lost.");
-			} else if (status == 200) {
+			dataType:"json",
+			success: function (data) {
 				if (data.length == 1) {
 					var gene = data[0];
 					browser.addGene(gene);
 				} else {
 					SomeLightBox.error("Gene " + geneName + " is ambigious");
 				}
-			} else {
+			},
+			error: function () {
 				SomeLightBox.error("Gene " + geneName + " is not found.");
 			}
 		});
@@ -227,25 +225,35 @@ var ExpressionBrowser = ExpressionBrowser || function (geneId) {
 
 	
 	var self = this;
+	// for subtiwiki, no context browser
+	// self.loadConditions(function() {
+	// 	self.contextBrowser = new ContextExpressionBrowser($("#omics-position-browser"), self.conditions["tilling array"]);
+	// 	self.contextBrowser.showMessage("loading...");
+	// 	self.loadGene(geneId, function() {
+	// 		$("#data").show();
+	// 		self.loadData(geneId, function() {
+	// 			self.draw();
+	// 		});
+	// 		self.loadContext(geneId);
+	// 	});
+	// });
 	self.loadConditions(function() {
-		self.contextBrowser = new ContextExpressionBrowser($("#omics-position-browser"), self.conditions["tilling array"]);
-		self.contextBrowser.showMessage("loading...");
 		self.loadGene(geneId, function() {
 			$("#data").show();
+			$("#section").show();
+			self.adjustImageSize();
 			self.loadData(geneId, function() {
 				self.draw();
 			});
-			self.loadContext(geneId);
 		});
 	});
 }
 
 ExpressionBrowser.prototype.loadGene = function (geneId, callback) {
 	var self = this;
-	ajax.get({
+	$.ajax({
 		url: "gene/summary?id=" + geneId,
-	}).done(function(status, data, error, xhr){
-		if (!error && status == 200) {
+		success:function(data) {
 			$("#gene-summary").html(parseMarkup(data));
 			self.genes[geneId] = $("#gene-summary h2 a").html();
 			callback();
@@ -255,13 +263,10 @@ ExpressionBrowser.prototype.loadGene = function (geneId, callback) {
 
 ExpressionBrowser.prototype.loadData = function (geneId, callback) {
 	var self = this;
-	ajax.get({
+	$.ajax({
 		url: "expression?gene=" + geneId,
-		headers: {Accept: "application/json"}
-	}).done(function(status,data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost.");
-		} else if (status == 200) {
+		dataType:"json",
+		success: function (data) {
 			var filtered, hasValue;
 			for(var type in self.conditions) {
 				filtered = {};
@@ -288,7 +293,8 @@ ExpressionBrowser.prototype.loadData = function (geneId, callback) {
 				}
 			}
 			if (callback) callback.apply(self);
-		} else {
+		},
+		error: function () {
 			SomeLightBox.error("No data available");
 		}
 	});
@@ -296,13 +302,10 @@ ExpressionBrowser.prototype.loadData = function (geneId, callback) {
 
 ExpressionBrowser.prototype.loadConditions = function (callback) {
 	var self = this;
-	ajax.get({
+	$.ajax({
 		url: "expression/condition",
-		headers: {Accept: "application/json"}
-	}).done(function(status, data, error, xhr){
-		if (error) {
-			SomeLightBox.error("Connection to server lost");
-		} else if (status == 200) {
+		dataType:"json",
+		success: function (data) {
 			// sort by type
 			self.conditions = {};
 			data.forEach(function(con){
@@ -312,19 +315,19 @@ ExpressionBrowser.prototype.loadConditions = function (callback) {
 				self.conditions[con.type][con.id] = con;
 			})
 			if (callback) callback();
+		},
+		error: function () {
+			SomeLightBox.error("Connection to server lost");
 		}
-	})
+	});
 }
 
 ExpressionBrowser.prototype.loadContext = function (geneId, callback) {
 	var self = this;
-	ajax.get({
+	$.ajax({
 		url: "genome/context?gene=" + geneId + "&span=20000",
-		headers: {Accept: "application/json"}
-	}).done(function (status, data, error, xhr){
-		if (error) {
-			self.contextBrowser.showMessage("Connection lost.");
-		} else if(status == 200) {
+		dataType:"json",
+		success: function (data) {
 			for(var i = 0; i < data.length; i++) {
                 data[i].label = data[i].title;
 			}
@@ -337,7 +340,8 @@ ExpressionBrowser.prototype.loadContext = function (geneId, callback) {
 				}
 			});
 			self.contextBrowser.diagram.focus(geneId);
-		} else {
+		},
+		error: function (data) {
 			self.contextBrowser.showMessage(data.message);
 		}
 	});
@@ -467,4 +471,13 @@ ExpressionBrowser.prototype.filterDataSet = function () {
 			}
 		}
 	}
+}
+
+ExpressionBrowser.prototype.adjustImageSize = function () {
+	var img1 = $("#exp-img");
+	var img2 = $("#exp-legend");
+	var width = $(".left").width() - 10;
+	var r = img1.width() /(img1.width() + img2.width());
+	img1.css({width: (r * width > 992 ? 992 : r*width) + "px"});
+	img2.css({width: ((1-r)*width > 228 ? 228 : (1-r)*width) + "px"});
 }
